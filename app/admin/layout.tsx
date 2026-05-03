@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import {
@@ -21,23 +21,14 @@ const NAV = [
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const router   = useRouter()
-  const [auth, setAuth] = useState(false)
   const [collapsed, setCollapsed] = useState(false)
 
-  useEffect(() => {
-    if (pathname === "/admin/login") { setAuth(true); return }
-    const ok = localStorage.getItem("admin_auth") === "true"
-    if (!ok) router.replace("/admin/login")
-    else setAuth(true)
-  }, [pathname, router])
+  if (pathname === "/admin/login") return <>{children}</>
 
-  const logout = () => {
-    localStorage.removeItem("admin_auth")
+  const logout = async () => {
+    await fetch("/api/admin/logout", { method: "POST" })
     router.push("/admin/login")
   }
-
-  if (!auth) return null
-  if (pathname === "/admin/login") return <>{children}</>
 
   const isActive = (href: string) =>
     href === "/admin" ? pathname === "/admin" : pathname.startsWith(href)
