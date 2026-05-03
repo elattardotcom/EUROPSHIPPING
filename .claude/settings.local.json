@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm install *)",
+      "Bash(npm install *)",
+      "Bash(npx tsc *)",
+      "Bash(npm run *)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000/)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000/dashboard)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000/dashboard/leads)",
+      "Bash(curl -s -o /dev/null -w '%{http_code}' http://localhost:3000/dashboard__TRACKED_VAR__)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000)",
+      "Bash(curl -s -o /dev/null -w '%{http_code}' http://localhost:3000__TRACKED_VAR__)",
+      "Bash(curl -s http://localhost:3000/api/withdrawals)",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(f'{len\\(d\\)} withdrawals, first: {d[0][\\\\\"clientName\\\\\"]} €{d[0][\\\\\"amount\\\\\"]} \\({d[0][\\\\\"status\\\\\"]}\\)'\\)\")",
+      "Bash(curl -s http://localhost:3000/api/wallet/c1)",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(f'Balance: €{d[\\\\\"balance\\\\\"]}, withdrawals: {len\\(d[\\\\\"withdrawals\\\\\"]\\)}'\\)\")",
+      "Bash(curl -s -X PATCH http://localhost:3000/api/withdrawals/w1 -H 'Content-Type: application/json' -d '{\"status\":\"approved\",\"adminNote\":\"Virement effectué\"}')",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(f'Status: {d[\\\\\"status\\\\\"]}, processedAt: {d[\\\\\"processedAt\\\\\"]}'\\)\")",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(f'New balance: €{d[\\\\\"balance\\\\\"]}'\\)\")",
+      "Bash(curl -s --max-time 2 http://localhost:3000/api/events)",
+      "Bash(curl -s http://localhost:3000)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000/api/admin/clients)"
+    ]
+  }
+}

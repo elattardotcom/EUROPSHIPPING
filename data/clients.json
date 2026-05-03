@@ -1,0 +1,42 @@
+[
+  {
+    "id": "c_1777777229715",
+    "firstName": "marwan",
+    "lastName": "badri",
+    "email": "badri@gmail.com",
+    "phone": "0617254789",
+    "company": "",
+    "country": "Italie",
+    "countryCode": "IT",
+    "plan": "pro",
+    "status": "active",
+    "joinedAt": "2026-05-03T03:00:29.715Z",
+    "monthlyRevenue": 0,
+    "totalRevenue": 0,
+    "storesCount": 0,
+    "ordersCount": 0,
+    "leadsCount": 0,
+    "lastActive": "2026-05-03T12:22:21.103Z",
+    "avatarColor": "from-pink-500 to-rose-600"
+  },
+  {
+    "id": "c_1777758034031",
+    "firstName": "Mohamed",
+    "lastName": "alami",
+    "email": "alamimohamed@gmail.com",
+    "phone": "0619765287",
+    "company": "",
+    "country": "Maroc",
+    "countryCode": "MA",
+    "plan": "starter",
+    "status": "trial",
+    "joinedAt": "2026-05-02T21:40:34.031Z",
+    "monthlyRevenue": 0,
+    "totalRevenue": 0,
+    "storesCount": 0,
+    "ordersCount": 0,
+    "leadsCount": 0,
+    "lastActive": "2026-05-02T21:40:34.031Z",
+    "avatarColor": "from-teal-500 to-emerald-600"
+  }
+]
