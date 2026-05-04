@@ -9,6 +9,7 @@ import {
   Link2, ListOrdered, Gift, Boxes, X,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { getClientIdFromCookie } from "@/lib/client-cookie"
 interface NavItem {
   href: string
   icon: React.ElementType
@@ -78,7 +79,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [showNotifs,    setShowNotifs]    = useState(false)
   const [balance,       setBalance]       = useState<string | null>(null)
   const [refreshing,    setRefreshing]    = useState(false)
-  const [clientId,      setClientId]      = useState("c1")
+  const [clientId,      setClientId]      = useState(getClientIdFromCookie)
   const [leadsCount,    setLeadsCount]    = useState(0)
   const [ordersCount,   setOrdersCount]   = useState(0)
 

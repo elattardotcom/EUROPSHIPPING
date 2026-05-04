@@ -1,7 +1,7 @@
 import fs     from "fs"
 import path   from "path"
 import crypto from "crypto"
-import { getSupabase } from "./supabase"
+import { getSupabaseAdmin } from "./supabase"
 
 interface AuthRecord {
   clientId: string
@@ -59,7 +59,7 @@ export async function createAuthRecordDb(clientId: string, email: string, passwo
   // Always write file as local dev fallback
   createAuthRecord(clientId, email, password)
 
-  const sb = getSupabase()
+  const sb = getSupabaseAdmin()
   if (!sb) return
 
   // Primary: store hash in clients table (column added via migration)
@@ -112,7 +112,7 @@ export async function verifyAuthDb(email: string, password: string): Promise<str
 }
 
 export async function findByEmailDb(email: string): Promise<AuthRecord | null> {
-  const sb = getSupabase()
+  const sb = getSupabaseAdmin()
   if (sb) {
     const { data } = await sb
       .from("clients")

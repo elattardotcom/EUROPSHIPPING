@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getSupabase }              from "@/lib/supabase"
+import { getSupabaseAdmin }         from "@/lib/supabase"
 import { readClients, writeClients } from "@/lib/clients-store"
 import { createAuthRecordDb, findByEmailDb, hashPassword } from "@/lib/auth-store"
 import type { Client } from "@/lib/db"
@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
 
     const normalizedEmail = email.trim().toLowerCase()
     const avatarColor = AVATAR_COLORS[Math.floor(Math.random() * AVATAR_COLORS.length)]
-    const sb = getSupabase()
+    const sb = getSupabaseAdmin()
 
     if (sb) {
       // Check duplicate via auth_credentials (faster than full clients scan)
