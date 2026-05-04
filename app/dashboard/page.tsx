@@ -8,6 +8,7 @@ import { getClientIdFromCookie } from "@/lib/client-cookie"
 
 export default function DashboardHome() {
   const [lastUpdated,    setLastUpdated]    = useState(new Date())
+  const [refreshKey,     setRefreshKey]     = useState(0)
   const [clientId,       setClientId]       = useState(getClientIdFromCookie)
   const [clientName,     setClientName]     = useState("")
   const [clientInitials, setClientInitials] = useState("…")
@@ -56,7 +57,7 @@ export default function DashboardHome() {
           </div>
           <Button
             className="bg-orange-500 hover:bg-orange-600 text-white gap-2"
-            onClick={() => setLastUpdated(new Date())}
+            onClick={() => { setLastUpdated(new Date()); setRefreshKey(k => k + 1) }}
           >
             <RefreshCw className="w-4 h-4" />
             Actualiser
@@ -64,7 +65,7 @@ export default function DashboardHome() {
         </div>
       </div>
 
-      <DashboardPage clientId={clientId} />
+      <DashboardPage clientId={clientId} refreshKey={refreshKey} />
     </div>
   )
 }

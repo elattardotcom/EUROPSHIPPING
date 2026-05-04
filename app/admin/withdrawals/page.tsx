@@ -78,7 +78,7 @@ export default function AdminWithdrawals() {
             <p className="text-sm text-neutral-500">Gérer les demandes de retrait des clients</p>
             <span className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full transition-all duration-500 ${
               live
-                ? "bg-indigo-500/20 text-indigo-400 border border-indigo-500/30"
+                ? "bg-orange-500/20 text-orange-400 border border-orange-500/30"
                 : "bg-neutral-800 text-neutral-600 border border-neutral-700"
             }`}>
               <Zap className="w-2.5 h-2.5" />
@@ -98,7 +98,7 @@ export default function AdminWithdrawals() {
           { label: "En attente",       value: pending,  border: "border-l-amber-500",   icon: Clock,        action: "pending"  as const },
           { label: "Approuvés",        value: approved, border: "border-l-emerald-500", icon: CheckCircle,  action: "approved" as const },
           { label: "Rejetés",          value: rejected, border: "border-l-red-500",     icon: XCircle,      action: "rejected" as const },
-          { label: "Montant en attente", value: `€${fmt(totalPending)}`, border: "border-l-indigo-500", icon: DollarSign, action: "ALL" as const },
+          { label: "Montant en attente", value: `€${fmt(totalPending)}`, border: "border-l-orange-500", icon: DollarSign, action: "ALL" as const },
         ].map(k => (
           <button key={k.label} onClick={() => setFilter(k.action)}
             className={`bg-neutral-900 border border-neutral-800 border-l-4 ${k.border} rounded-xl p-4 text-left hover:border-neutral-700 transition-colors`}>
@@ -115,11 +115,11 @@ export default function AdminWithdrawals() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
           <input value={search} onChange={e => setSearch(e.target.value)}
             placeholder="Rechercher un client..."
-            className="w-64 bg-neutral-900 border border-neutral-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder:text-neutral-600 focus:outline-none focus:border-indigo-500" />
+            className="w-64 bg-neutral-900 border border-neutral-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder:text-neutral-600 focus:outline-none focus:border-orange-500" />
         </div>
         <div className="relative">
           <select value={filter} onChange={e => setFilter(e.target.value as WithdrawalStatus | "ALL")}
-            className="appearance-none bg-neutral-900 border border-neutral-800 rounded-xl pl-4 pr-9 py-2.5 text-sm text-neutral-300 focus:outline-none focus:border-indigo-500 cursor-pointer">
+            className="appearance-none bg-neutral-900 border border-neutral-800 rounded-xl pl-4 pr-9 py-2.5 text-sm text-neutral-300 focus:outline-none focus:border-orange-500 cursor-pointer">
             <option value="ALL">Tous les statuts</option>
             <option value="pending">En attente</option>
             <option value="approved">Approuvés</option>
@@ -162,7 +162,7 @@ export default function AdminWithdrawals() {
                       <span className="text-neutral-500 text-xs ml-1">{w.currency}</span>
                     </td>
                     <td className="p-4">
-                      <code className="text-xs text-indigo-400 bg-indigo-500/10 px-2 py-1 rounded">{w.iban}</code>
+                      <code className="text-xs text-orange-400 bg-orange-500/10 px-2 py-1 rounded">{w.iban}</code>
                     </td>
                     <td className="p-4">
                       <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${cfg.bg} ${cfg.color}`}>
@@ -229,7 +229,7 @@ export default function AdminWithdrawals() {
               onChange={e => setNote(e.target.value)}
               placeholder="Note admin (optionnelle)…"
               rows={3}
-              className="w-full bg-neutral-800 border border-neutral-700 rounded-xl px-4 py-3 text-sm text-white placeholder:text-neutral-500 focus:outline-none focus:border-indigo-500 resize-none mb-4"
+              className="w-full bg-neutral-800 border border-neutral-700 rounded-xl px-4 py-3 text-sm text-white placeholder:text-neutral-500 focus:outline-none focus:border-orange-500 resize-none mb-4"
             />
             <div className="flex gap-3 justify-end">
               <Button variant="ghost" onClick={() => { setNoteModal(null); setNote("") }}

@@ -1,17 +1,17 @@
 "use client"
 
-import { useState, useMemo, useEffect } from "react"
+import { useState, useMemo, useEffect, useCallback } from "react"
 import Link from "next/link"
-import { Search, ChevronDown, ArrowUpRight, Users, TrendingUp, DollarSign, Shield, ChevronLeft, ChevronRight } from "lucide-react"
+import { Search, ChevronDown, ArrowUpRight, Users, TrendingUp, DollarSign, Shield, ChevronLeft, ChevronRight, RefreshCw } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import type { Client, Plan, UserStatus } from "@/lib/db"
 
 const FLAGS: Record<string, string> = { PT:"🇵🇹", ES:"🇪🇸", FR:"🇫🇷", MA:"🇲🇦", BE:"🇧🇪", TN:"🇹🇳" }
 
 const PLAN_CFG: Record<Plan, { label: string; color: string }> = {
-  enterprise: { label:"Enterprise", color:"bg-indigo-500/20 text-indigo-400 border-indigo-500/25" },
-  pro:        { label:"Pro",        color:"bg-purple-500/20 text-purple-400 border-purple-500/25" },
-  starter:    { label:"Starter",    color:"bg-blue-500/20   text-blue-400   border-blue-500/25"   },
+  enterprise: { label:"Enterprise", color:"bg-orange-500/20 text-orange-400 border-orange-500/25" },
+  pro:        { label:"Pro",        color:"bg-amber-500/20  text-amber-400  border-amber-500/25"  },
+  starter:    { label:"Starter",    color:"bg-neutral-500/20 text-neutral-400 border-neutral-500/25" },
 }
 
 const STATUS_CFG: Record<UserStatus, { label: string; color: string; dot: string }> = {
@@ -31,9 +31,17 @@ export default function AdminClients() {
   const [statF,   setStat]    = useState<UserStatus | "ALL">("ALL")
   const [page,    setPage]    = useState(1)
 
-  useEffect(() => {
-    fetch("/api/admin/clients").then(r => r.json()).catch(() => []).then(d => { setClients(d); setLoading(false) })
+  const load = useCallback(async () => {
+    const d = await fetch("/api/admin/clients").then(r => r.json()).catch(() => [])
+    setClients(Array.isArray(d) ? d : [])
+    setLoading(false)
   }, [])
+
+  useEffect(() => {
+    load()
+    const t = setInterval(load, 30_000)
+    return () => clearInterval(t)
+  }, [load])
 
   const filtered = useMemo(() => clients.filter(c => {
     const ms  = `${c.firstName} ${c.lastName} ${c.email} ${c.company}`.toLowerCase().includes(search.toLowerCase())
@@ -49,17 +57,23 @@ export default function AdminClients() {
 
   return (
     <div className="p-6 space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-white">Clients</h1>
-        <p className="text-sm text-neutral-500 mt-0.5">Gestion de tous les comptes de la plateforme</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-white">Clients</h1>
+          <p className="text-sm text-neutral-500 mt-0.5">Gestion de tous les comptes de la plateforme</p>
+        </div>
+        <button onClick={load}
+          className="flex items-center gap-2 px-3 py-2 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-neutral-400 hover:text-white text-sm transition-colors">
+          <RefreshCw className="w-3.5 h-3.5" />Actualiser
+        </button>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { label:"Total clients", value: clients.length,                                      icon: Users,      color:"border-l-indigo-500"  },
+          { label:"Total clients", value: clients.length,                                      icon: Users,      color:"border-l-orange-500"  },
           { label:"Actifs",        value: clients.filter(c=>c.status==="active").length,        icon: Shield,     color:"border-l-emerald-500" },
           { label:"En essai",      value: clients.filter(c=>c.status==="trial").length,         icon: TrendingUp, color:"border-l-amber-500"   },
-          { label:"MRR total",     value: `€${totalMRR}`,                                       icon: DollarSign, color:"border-l-purple-500"  },
+          { label:"MRR total",     value: `€${totalMRR}`,                                       icon: DollarSign, color:"border-l-orange-400"  },
         ].map(k => (
           <div key={k.label} className={`bg-neutral-900 border border-neutral-800 border-l-4 ${k.color} rounded-xl p-4`}>
             <k.icon className="w-4 h-4 text-neutral-500 mb-3" />
@@ -74,7 +88,7 @@ export default function AdminClients() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
           <input value={search} onChange={e=>{setSearch(e.target.value);setPage(1)}}
             placeholder="Rechercher un client..."
-            className="w-64 bg-neutral-900 border border-neutral-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder:text-neutral-600 focus:outline-none focus:border-indigo-500" />
+            className="w-64 bg-neutral-900 border border-neutral-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder:text-neutral-600 focus:outline-none focus:border-orange-500" />
         </div>
         {[
           { value: planF, set: (v:string)=>{setPlan(v as Plan|"ALL");setPage(1)}, opts:[
@@ -86,7 +100,7 @@ export default function AdminClients() {
         ].map((f,i) => (
           <div key={i} className="relative">
             <select value={f.value} onChange={e=>f.set(e.target.value)}
-              className="appearance-none bg-neutral-900 border border-neutral-800 rounded-xl pl-4 pr-9 py-2.5 text-sm text-neutral-300 focus:outline-none focus:border-indigo-500 cursor-pointer">
+              className="appearance-none bg-neutral-900 border border-neutral-800 rounded-xl pl-4 pr-9 py-2.5 text-sm text-neutral-300 focus:outline-none focus:border-orange-500 cursor-pointer">
               {f.opts.map(o => <option key={o.v} value={o.v}>{o.l}</option>)}
             </select>
             <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-neutral-500 pointer-events-none" />
@@ -149,7 +163,7 @@ export default function AdminClients() {
                       <td className="p-4 text-sm text-neutral-500 whitespace-nowrap">{c.joinedAt}</td>
                       <td className="p-4">
                         <Link href={`/admin/clients/${c.id}`}>
-                          <Button variant="ghost" size="sm" className="text-indigo-400 hover:text-indigo-300 hover:bg-indigo-500/10 gap-1 h-7 text-xs">
+                          <Button variant="ghost" size="sm" className="text-orange-400 hover:text-orange-300 hover:bg-orange-500/10 gap-1 h-7 text-xs">
                             Voir <ArrowUpRight className="w-3 h-3" />
                           </Button>
                         </Link>
@@ -169,7 +183,7 @@ export default function AdminClients() {
               disabled={cur===1} onClick={()=>setPage(p=>p-1)}><ChevronLeft className="w-4 h-4"/></Button>
             {Array.from({length:totalPages},(_,i)=>i+1).map(p=>(
               <button key={p} onClick={()=>setPage(p)}
-                className={`h-8 w-8 rounded-lg text-sm font-medium transition-colors ${cur===p?"bg-indigo-600 text-white":"text-neutral-400 hover:text-white hover:bg-neutral-800"}`}>
+                className={`h-8 w-8 rounded-lg text-sm font-medium transition-colors ${cur===p?"bg-orange-500 text-white":"text-neutral-400 hover:text-white hover:bg-neutral-800"}`}>
                 {p}
               </button>
             ))}

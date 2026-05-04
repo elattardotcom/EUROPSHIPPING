@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useMemo, useEffect } from "react"
-import { Search, ChevronDown, ChevronLeft, ChevronRight, CheckCircle, Clock, Truck, XCircle, AlertCircle, ShoppingCart } from "lucide-react"
+import { useState, useMemo, useEffect, useCallback } from "react"
+import { Search, ChevronDown, ChevronLeft, ChevronRight, CheckCircle, Clock, Truck, XCircle, AlertCircle, ShoppingCart, RefreshCw } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import type { AdminOrder, OrderStatus } from "@/lib/db"
 
@@ -24,9 +24,17 @@ export default function AdminOrders() {
   const [statF,   setStat]    = useState<OrderStatus | "ALL">("ALL")
   const [page,    setPage]    = useState(1)
 
-  useEffect(() => {
-    fetch("/api/admin/orders").then(r => r.json()).catch(() => []).then(d => { setOrders(d); setLoading(false) })
+  const load = useCallback(async () => {
+    const d = await fetch("/api/admin/orders").then(r => r.json()).catch(() => [])
+    setOrders(Array.isArray(d) ? d : [])
+    setLoading(false)
   }, [])
+
+  useEffect(() => {
+    load()
+    const t = setInterval(load, 30_000)
+    return () => clearInterval(t)
+  }, [load])
 
   const filtered = useMemo(() => orders.filter(o => {
     const ms  = `${o.customerName} ${o.clientName} ${o.product} ${o.trackingNumber??""}`
@@ -42,14 +50,20 @@ export default function AdminOrders() {
 
   return (
     <div className="p-6 space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-white">Commandes globales</h1>
-        <p className="text-sm text-neutral-500 mt-0.5">Toutes les commandes de tous les clients</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-white">Commandes globales</h1>
+          <p className="text-sm text-neutral-500 mt-0.5">Toutes les commandes de tous les clients</p>
+        </div>
+        <button onClick={load}
+          className="flex items-center gap-2 px-3 py-2 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-neutral-400 hover:text-white text-sm transition-colors">
+          <RefreshCw className="w-3.5 h-3.5" />Actualiser
+        </button>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         {([
-          { label:"Total",      value: orders.length,                                     status:"ALL",       border:"border-l-indigo-500"  },
+          { label:"Total",      value: orders.length,                                     status:"ALL",       border:"border-l-orange-500"  },
           { label:"En attente", value: orders.filter(o=>o.status==="PENDING").length,     status:"PENDING",   border:"border-l-amber-500"   },
           { label:"Expédiés",   value: orders.filter(o=>o.status==="SHIPPED").length,     status:"SHIPPED",   border:"border-l-blue-500"    },
           { label:"Livrés",     value: orders.filter(o=>o.status==="DELIVERED").length,   status:"DELIVERED", border:"border-l-emerald-500" },
@@ -77,11 +91,11 @@ export default function AdminOrders() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
           <input value={search} onChange={e=>{setSearch(e.target.value);setPage(1)}}
             placeholder="Rechercher..."
-            className="w-64 bg-neutral-900 border border-neutral-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder:text-neutral-600 focus:outline-none focus:border-indigo-500" />
+            className="w-64 bg-neutral-900 border border-neutral-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder:text-neutral-600 focus:outline-none focus:border-orange-500" />
         </div>
         <div className="relative">
           <select value={statF} onChange={e=>{setStat(e.target.value as OrderStatus|"ALL");setPage(1)}}
-            className="appearance-none bg-neutral-900 border border-neutral-800 rounded-xl pl-4 pr-9 py-2.5 text-sm text-neutral-300 focus:outline-none focus:border-indigo-500 cursor-pointer">
+            className="appearance-none bg-neutral-900 border border-neutral-800 rounded-xl pl-4 pr-9 py-2.5 text-sm text-neutral-300 focus:outline-none focus:border-orange-500 cursor-pointer">
             <option value="ALL">Tous les statuts</option>
             {(Object.entries(STATUS_CFG) as [OrderStatus, typeof STATUS_CFG[OrderStatus]][]).map(([k,v])=>(
               <option key={k} value={k}>{v.label}</option>
@@ -115,7 +129,7 @@ export default function AdminOrders() {
                       return (
                         <tr key={o.id} className="border-b border-neutral-800/60 last:border-0 hover:bg-neutral-800/20 transition-colors">
                           <td className="p-4 text-sm text-white whitespace-nowrap">{o.customerName}</td>
-                          <td className="p-4"><span className="text-xs text-indigo-400 bg-indigo-500/10 px-2 py-1 rounded-lg">{o.clientName}</span></td>
+                          <td className="p-4"><span className="text-xs text-orange-400 bg-orange-500/10 px-2 py-1 rounded-lg">{o.clientName}</span></td>
                           <td className="p-4">
                             <div className="flex items-center gap-1.5">
                               <span className="text-base">{FLAGS[o.countryCode]??"🏳️"}</span>
@@ -126,7 +140,7 @@ export default function AdminOrders() {
                           <td className="p-4 text-sm font-semibold text-white">€{o.value.toFixed(2)}</td>
                           <td className="p-4">
                             {o.trackingNumber
-                              ? <code className="text-xs text-indigo-400 bg-indigo-500/10 px-2 py-1 rounded">{o.trackingNumber}</code>
+                              ? <code className="text-xs text-orange-400 bg-orange-500/10 px-2 py-1 rounded">{o.trackingNumber}</code>
                               : <span className="text-neutral-600 text-xs">—</span>
                             }
                           </td>
@@ -152,7 +166,7 @@ export default function AdminOrders() {
               disabled={cur===1} onClick={()=>setPage(p=>p-1)}><ChevronLeft className="w-4 h-4"/></Button>
             {Array.from({length:totalPages},(_,i)=>i+1).map(p=>(
               <button key={p} onClick={()=>setPage(p)}
-                className={`h-8 w-8 rounded-lg text-sm font-medium ${cur===p?"bg-indigo-600 text-white":"text-neutral-400 hover:text-white hover:bg-neutral-800"}`}>
+                className={`h-8 w-8 rounded-lg text-sm font-medium ${cur===p?"bg-orange-500 text-white":"text-neutral-400 hover:text-white hover:bg-neutral-800"}`}>
                 {p}
               </button>
             ))}

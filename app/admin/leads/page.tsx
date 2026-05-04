@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useMemo, useEffect } from "react"
-import { Search, ChevronDown, ChevronLeft, ChevronRight, CheckCircle, Clock, XCircle, AlertCircle, PhoneMissed, Users } from "lucide-react"
+import { useState, useMemo, useEffect, useCallback } from "react"
+import { Search, ChevronDown, ChevronLeft, ChevronRight, CheckCircle, Clock, XCircle, AlertCircle, PhoneMissed, Users, RefreshCw } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import type { AdminLead, LeadStatus } from "@/lib/db"
 
@@ -24,9 +24,17 @@ export default function AdminLeads() {
   const [statF,   setStat]    = useState<LeadStatus | "ALL">("ALL")
   const [page,    setPage]    = useState(1)
 
-  useEffect(() => {
-    fetch("/api/admin/leads").then(r => r.json()).catch(() => []).then(d => { setLeads(d); setLoading(false) })
+  const load = useCallback(async () => {
+    const d = await fetch("/api/admin/leads").then(r => r.json()).catch(() => [])
+    setLeads(Array.isArray(d) ? d : [])
+    setLoading(false)
   }, [])
+
+  useEffect(() => {
+    load()
+    const t = setInterval(load, 30_000)
+    return () => clearInterval(t)
+  }, [load])
 
   const filtered = useMemo(() => leads.filter(l => {
     const ms  = `${l.customerName} ${l.clientName} ${l.product}`.toLowerCase().includes(search.toLowerCase())
@@ -42,18 +50,24 @@ export default function AdminLeads() {
 
   return (
     <div className="p-6 space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-white">Leads globaux</h1>
-        <p className="text-sm text-neutral-500 mt-0.5">Tous les leads de tous les clients de la plateforme</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-white">Leads globaux</h1>
+          <p className="text-sm text-neutral-500 mt-0.5">Tous les leads de tous les clients de la plateforme</p>
+        </div>
+        <button onClick={load}
+          className="flex items-center gap-2 px-3 py-2 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-neutral-400 hover:text-white text-sm transition-colors">
+          <RefreshCw className="w-3.5 h-3.5" />Actualiser
+        </button>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         {([
-          { label:"Total",         value: leads.length,                                    status:"ALL",       border:"border-l-indigo-500"  },
+          { label:"Total",         value: leads.length,                                    status:"ALL",       border:"border-l-orange-500"  },
           { label:"Confirmés",     value: confirmed,                                        status:"CONFIRMED", border:"border-l-emerald-500" },
           { label:"En attente",    value: leads.filter(l=>l.status==="PENDING").length,     status:"PENDING",   border:"border-l-amber-500"   },
           { label:"Pas répondu",   value: leads.filter(l=>l.status==="UNREACHED").length,   status:"UNREACHED", border:"border-l-blue-500"    },
-          { label:"Taux confirm.", value: `${rate}%`,                                       status:"ALL",       border:"border-l-purple-500"  },
+          { label:"Taux confirm.", value: `${rate}%`,                                       status:"ALL",       border:"border-l-orange-400"  },
         ] as {label:string;value:string|number;status:string;border:string}[]).map(k=>(
           <button key={k.label} onClick={()=>{setStat(k.status as LeadStatus|"ALL");setPage(1)}}
             className={`bg-neutral-900 border border-neutral-800 border-l-4 ${k.border} rounded-xl p-4 text-left hover:border-neutral-700 transition-colors`}>
@@ -69,11 +83,11 @@ export default function AdminLeads() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
           <input value={search} onChange={e=>{setSearch(e.target.value);setPage(1)}}
             placeholder="Rechercher un lead..."
-            className="w-64 bg-neutral-900 border border-neutral-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder:text-neutral-600 focus:outline-none focus:border-indigo-500" />
+            className="w-64 bg-neutral-900 border border-neutral-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder:text-neutral-600 focus:outline-none focus:border-orange-500" />
         </div>
         <div className="relative">
           <select value={statF} onChange={e=>{setStat(e.target.value as LeadStatus|"ALL");setPage(1)}}
-            className="appearance-none bg-neutral-900 border border-neutral-800 rounded-xl pl-4 pr-9 py-2.5 text-sm text-neutral-300 focus:outline-none focus:border-indigo-500 cursor-pointer">
+            className="appearance-none bg-neutral-900 border border-neutral-800 rounded-xl pl-4 pr-9 py-2.5 text-sm text-neutral-300 focus:outline-none focus:border-orange-500 cursor-pointer">
             <option value="ALL">Tous les statuts</option>
             {(Object.entries(STATUS_CFG) as [LeadStatus, typeof STATUS_CFG[LeadStatus]][]).map(([k,v])=>(
               <option key={k} value={k}>{v.label}</option>
@@ -110,7 +124,7 @@ export default function AdminLeads() {
                             <p className="text-white text-sm font-medium">{l.customerName}</p>
                             <p className="text-neutral-500 text-xs">{l.customerPhone}</p>
                           </td>
-                          <td className="p-4"><span className="text-xs text-indigo-400 bg-indigo-500/10 px-2 py-1 rounded-lg">{l.clientName}</span></td>
+                          <td className="p-4"><span className="text-xs text-orange-400 bg-orange-500/10 px-2 py-1 rounded-lg">{l.clientName}</span></td>
                           <td className="p-4">
                             <div className="flex items-center gap-1.5">
                               <span className="text-base">{FLAGS[l.countryCode]??"🏳️"}</span>
@@ -141,7 +155,7 @@ export default function AdminLeads() {
               disabled={cur===1} onClick={()=>setPage(p=>p-1)}><ChevronLeft className="w-4 h-4"/></Button>
             {Array.from({length:totalPages},(_,i)=>i+1).map(p=>(
               <button key={p} onClick={()=>setPage(p)}
-                className={`h-8 w-8 rounded-lg text-sm font-medium ${cur===p?"bg-indigo-600 text-white":"text-neutral-400 hover:text-white hover:bg-neutral-800"}`}>
+                className={`h-8 w-8 rounded-lg text-sm font-medium ${cur===p?"bg-orange-500 text-white":"text-neutral-400 hover:text-white hover:bg-neutral-800"}`}>
                 {p}
               </button>
             ))}
