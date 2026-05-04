@@ -1,4 +1,4 @@
-import { getSupabase } from "./supabase"
+import { getSupabase, getSupabaseAdmin } from "./supabase"
 import { ALL_ORDERS, MOCK_CLIENT, MOCK_ADMIN_ORDERS, MOCK_ADMIN_LEADS, MOCK_STORES } from "./mock-data"
 import { readWithdrawals, writeWithdrawals, readAdjustments, writeAdjustments } from "./store"
 import { readClients, writeClients as _wc } from "./clients-store"
@@ -202,7 +202,7 @@ const mapWithdrawal = (r: any): Withdrawal => ({
 
 export async function getClients(): Promise<Client[]> {
   try {
-    const sb = getSupabase()
+    const sb = getSupabaseAdmin()
     if (!sb) {
       const file = readClients()
       return file.length > 0 ? file : [MOCK_CLIENT]
@@ -219,7 +219,7 @@ export async function getClients(): Promise<Client[]> {
 
 export async function getClientById(id: string): Promise<Client | null> {
   try {
-    const sb = getSupabase()
+    const sb = getSupabaseAdmin()
     if (!sb) {
       const file = readClients()
       return file.find(c => c.id === id) ?? (id === "c1" ? MOCK_CLIENT : null)
@@ -237,7 +237,7 @@ export async function getClientById(id: string): Promise<Client | null> {
 
 export async function getAllOrders(): Promise<AdminOrder[]> {
   try {
-    const sb = getSupabase(); if (!sb) return MOCK_ADMIN_ORDERS
+    const sb = getSupabaseAdmin(); if (!sb) return MOCK_ADMIN_ORDERS
     const { data, error } = await sb.from("orders").select("*").order("created_at", { ascending: false })
     if (error) throw error
     const result = (data ?? []).map(mapOrder)
@@ -258,7 +258,7 @@ export async function getClientOrders(clientId: string): Promise<AdminOrder[]> {
 
 export async function getAllLeads(): Promise<AdminLead[]> {
   try {
-    const sb = getSupabase(); if (!sb) return MOCK_ADMIN_LEADS
+    const sb = getSupabaseAdmin(); if (!sb) return MOCK_ADMIN_LEADS
     const { data, error } = await sb.from("leads").select("*").order("created_at", { ascending: false })
     if (error) throw error
     const result = (data ?? []).map(mapLead)
@@ -310,7 +310,7 @@ function memCreate(payload: Omit<Withdrawal, "id" | "status" | "requestedAt" | "
 /* ── Withdrawals ────────────────────────────────────────────────────────── */
 
 export async function getWithdrawals(): Promise<Withdrawal[]> {
-  const sb = getSupabase()
+  const sb = getSupabaseAdmin()
   if (!sb) return readWithdrawals()
   try {
     const { data, error } = await sb.from("withdrawals").select("*").order("requested_at", { ascending: false })
@@ -383,7 +383,7 @@ export async function createAdjustment(
     reason,
     createdAt: new Date().toISOString(),
   }
-  const sb = getSupabase()
+  const sb = getSupabaseAdmin()
   if (sb) {
     try {
       const { data } = await sb
@@ -429,7 +429,7 @@ export async function createWithdrawal(
   const summary = await getBalanceSummary(payload.clientId)
   if (payload.amount > summary.available) return null
 
-  const sb = getSupabase()
+  const sb = getSupabaseAdmin()
   if (!sb) return memCreate(payload)
 
   try {
@@ -451,7 +451,7 @@ export async function processWithdrawal(
   status: "approved" | "rejected",
   adminNote?: string,
 ): Promise<Withdrawal | null> {
-  const sb = getSupabase()
+  const sb = getSupabaseAdmin()
   if (!sb) {
     const list = readWithdrawals()
     const idx = list.findIndex(w => w.id === id && w.status === "pending")
