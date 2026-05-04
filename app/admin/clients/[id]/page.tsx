@@ -13,9 +13,9 @@ import type { Client, AdminOrder, AdminLead, AdminStore, BalanceAdjustment } fro
 const FLAGS: Record<string, string> = { PT:"🇵🇹", ES:"🇪🇸", FR:"🇫🇷", MA:"🇲🇦", BE:"🇧🇪", TN:"🇹🇳" }
 
 const PLAN_CFG: Record<string, string> = {
-  enterprise: "bg-indigo-500/20 text-indigo-400 border-indigo-500/25",
-  pro:        "bg-purple-500/20 text-purple-400 border-purple-500/25",
-  starter:    "bg-blue-500/20   text-blue-400   border-blue-500/25",
+  enterprise: "bg-orange-500/20 text-orange-400 border-orange-500/25",
+  pro:        "bg-amber-500/20  text-amber-400  border-amber-500/25",
+  starter:    "bg-neutral-500/20 text-neutral-400 border-neutral-500/25",
 }
 
 const STATUS_CFG: Record<string, { label:string; color:string }> = {
@@ -132,7 +132,7 @@ export default function ClientDetail({ params }: { params: Promise<{ id: string 
   if (notFound) return (
     <div className="p-6">
       <p className="text-neutral-500">Client introuvable.</p>
-      <Link href="/admin/clients" className="text-indigo-400 text-sm mt-2 inline-block">← Retour</Link>
+      <Link href="/admin/clients" className="text-orange-400 text-sm mt-2 inline-block">← Retour</Link>
     </div>
   )
 
@@ -188,7 +188,7 @@ export default function ClientDetail({ params }: { params: Promise<{ id: string 
               <select
                 value={editPlan}
                 onChange={e => setEditPlan(e.target.value)}
-                className="flex-1 bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500"
+                className="flex-1 bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-orange-500"
               >
                 <option value="starter">Starter</option>
                 <option value="pro">Pro</option>
@@ -197,7 +197,7 @@ export default function ClientDetail({ params }: { params: Promise<{ id: string 
               <select
                 value={editStatus}
                 onChange={e => setEditStatus(e.target.value)}
-                className="flex-1 bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500"
+                className="flex-1 bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-orange-500"
               >
                 <option value="active">Actif</option>
                 <option value="trial">Essai</option>
@@ -208,7 +208,7 @@ export default function ClientDetail({ params }: { params: Promise<{ id: string 
             <Button
               onClick={saveMeta}
               disabled={savingMeta}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white gap-2 w-full"
+              className="bg-orange-500 hover:bg-orange-600 text-white gap-2 w-full"
             >
               {savingMeta ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
               Sauvegarder
@@ -219,7 +219,7 @@ export default function ClientDetail({ params }: { params: Promise<{ id: string 
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { label:"Boutiques",       value: stores.length,                       icon: Store,        color:"border-l-indigo-500" },
+          { label:"Boutiques",       value: stores.length,                       icon: Store,        color:"border-l-orange-500"  },
           { label:"Commandes",       value: orders.length,                       icon: ShoppingCart, color:"border-l-orange-500"  },
           { label:"Leads confirmés", value: `${confirmedLeads}/${leads.length}`, icon: Users,        color:"border-l-teal-500"    },
           { label:"Revenus générés", value: `€${totalRevenue.toFixed(0)}`,       icon: DollarSign,   color:"border-l-emerald-500" },
@@ -438,7 +438,7 @@ export default function ClientDetail({ params }: { params: Promise<{ id: string 
                         <td className="p-4 text-sm font-semibold text-white">€{o.value.toFixed(2)}</td>
                         <td className="p-4">
                           {o.trackingNumber
-                            ? <code className="text-xs text-indigo-400 bg-indigo-500/10 px-2 py-1 rounded">{o.trackingNumber}</code>
+                            ? <code className="text-xs text-orange-400 bg-orange-500/10 px-2 py-1 rounded">{o.trackingNumber}</code>
                             : <span className="text-neutral-600 text-xs">—</span>
                           }
                         </td>

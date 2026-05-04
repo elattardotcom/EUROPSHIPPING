@@ -247,7 +247,7 @@ export async function getAllOrders(): Promise<AdminOrder[]> {
 
 export async function getClientOrders(clientId: string): Promise<AdminOrder[]> {
   try {
-    const sb = getSupabase(); if (!sb) return []
+    const sb = getSupabaseAdmin(); if (!sb) return []
     const { data, error } = await sb.from("orders").select("*").eq("client_id", clientId).order("created_at", { ascending: false })
     if (error) throw error
     return (data ?? []).map(mapOrder)
@@ -268,7 +268,7 @@ export async function getAllLeads(): Promise<AdminLead[]> {
 
 export async function getClientLeads(clientId: string): Promise<AdminLead[]> {
   try {
-    const sb = getSupabase(); if (!sb) return []
+    const sb = getSupabaseAdmin(); if (!sb) return []
     const { data, error } = await sb.from("leads").select("*").eq("client_id", clientId).order("created_at", { ascending: false })
     if (error) throw error
     return (data ?? []).map(mapLead)
@@ -279,12 +279,11 @@ export async function getClientLeads(clientId: string): Promise<AdminLead[]> {
 
 export async function getClientStores(clientId: string): Promise<AdminStore[]> {
   try {
-    const sb = getSupabase(); if (!sb) return MOCK_STORES.filter(s => s.clientId === clientId)
+    const sb = getSupabaseAdmin(); if (!sb) return []
     const { data, error } = await sb.from("stores").select("*").eq("client_id", clientId)
     if (error) throw error
-    const result = (data ?? []).map(mapStore)
-    return result.length > 0 ? result : MOCK_STORES.filter(s => s.clientId === clientId)
-  } catch { return MOCK_STORES.filter(s => s.clientId === clientId) }
+    return (data ?? []).map(mapStore)
+  } catch { return [] }
 }
 
 /* ── File-backed withdrawal store (used when Supabase is not configured) ──── */
