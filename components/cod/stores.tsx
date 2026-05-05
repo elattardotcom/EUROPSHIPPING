@@ -107,37 +107,19 @@ function StoreStatusBadge({ status }: { status: ShopifyStore["status"] }) {
   )
 }
 
-function ConnectForm({ onCancel, onSuccess }: { onCancel: () => void; onSuccess?: () => void }) {
-  const [domain,  setDomain]  = useState("")
-  const [apiKey,  setApiKey]  = useState("")
-  const [copied,  setCopied]  = useState(false)
-  const [saving,  setSaving]  = useState(false)
-  const [err,     setErr]     = useState("")
+function ConnectForm({ onCancel }: { onCancel: () => void }) {
+  const [domain, setDomain] = useState("")
+  const [err,    setErr]    = useState("")
 
-  const copyWebhook = () => {
-    navigator.clipboard.writeText("https://app.codship.com/api/webhooks/shopify")
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    setErr("")
-    setSaving(true)
-    try {
-      const res  = await fetch("/api/stores/connect", {
-        method:  "POST",
-        headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify({ domain: domain.trim(), accessToken: apiKey.trim() }),
-      })
-      const data = await res.json()
-      if (!res.ok) { setErr(data.error ?? "Erreur de connexion"); setSaving(false); return }
-      onSuccess?.()
-      window.location.href = "/dashboard/products?connected=1"
-    } catch {
-      setErr("Erreur de connexion au serveur")
-      setSaving(false)
+    const clean = domain.trim().toLowerCase()
+      .replace(/^https?:\/\//, "").replace(/\/$/, "")
+    if (!clean.includes(".myshopify.com")) {
+      setErr("Le domaine doit se terminer par .myshopify.com")
+      return
     }
+    window.location.href = `/api/shopify/auth?shop=${clean}`
   }
 
   return (
@@ -148,7 +130,7 @@ function ConnectForm({ onCancel, onSuccess }: { onCancel: () => void; onSuccess?
           <div className="w-8 h-8 rounded-lg flex items-center justify-center text-lg" style={{ background: "rgba(255,255,255,0.04)" }}>🛍️</div>
           <div>
             <p className="text-white font-semibold text-sm">Connecter une boutique Shopify</p>
-            <p className="text-neutral-600 text-xs">Remplissez les informations de votre boutique</p>
+            <p className="text-neutral-600 text-xs">Vous serez redirigé vers Shopify pour autoriser l&apos;accès</p>
           </div>
         </div>
         <button onClick={onCancel} className="text-neutral-600 hover:text-white text-xl leading-none transition-colors">×</button>
@@ -162,53 +144,22 @@ function ConnectForm({ onCancel, onSuccess }: { onCancel: () => void; onSuccess?
         )}
         <div>
           <label className="block text-xs font-semibold text-neutral-500 mb-2 uppercase tracking-wider">Domaine Shopify *</label>
-          <div className="relative">
-            <input
-              type="text"
-              value={domain}
-              onChange={e => setDomain(e.target.value)}
-              placeholder="ma-boutique.myshopify.com"
-              required
-              className="w-full bg-white/[0.04] border border-white/10 rounded-xl px-4 py-3 text-white text-sm placeholder:text-neutral-700 focus:outline-none focus:border-orange-500/60 transition-colors font-mono"
-            />
-          </div>
-          <p className="text-neutral-700 text-xs mt-1.5">Ex : ma-boutique.myshopify.com — sans https://</p>
-        </div>
-
-        <div>
-          <label className="block text-xs font-semibold text-neutral-500 mb-2 uppercase tracking-wider">Clé API Shopify *</label>
           <input
             type="text"
-            value={apiKey}
-            onChange={e => setApiKey(e.target.value)}
-            placeholder="shpat_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+            value={domain}
+            onChange={e => { setDomain(e.target.value); setErr("") }}
+            placeholder="ma-boutique.myshopify.com"
             required
             className="w-full bg-white/[0.04] border border-white/10 rounded-xl px-4 py-3 text-white text-sm placeholder:text-neutral-700 focus:outline-none focus:border-orange-500/60 transition-colors font-mono"
           />
-          <p className="text-neutral-700 text-xs mt-1.5">Token d'accès admin depuis votre app privée Shopify</p>
-        </div>
-
-        <div className="rounded-xl border border-white/[0.06] p-4" style={{ background: "rgba(249,115,22,0.04)" }}>
-          <p className="text-xs font-semibold text-orange-400/80 mb-2 uppercase tracking-wider">URL Webhook (optionnel)</p>
-          <div className="flex items-center gap-2">
-            <code className="flex-1 text-xs text-neutral-400 font-mono truncate">https://app.codship.com/api/webhooks/shopify</code>
-            <button type="button" onClick={copyWebhook}
-              className="flex-shrink-0 flex items-center gap-1.5 text-xs text-orange-400 hover:text-orange-300 border border-orange-500/20 px-3 py-1.5 rounded-lg transition-all hover:bg-orange-500/5">
-              {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-              {copied ? "Copié" : "Copier"}
-            </button>
-          </div>
+          <p className="text-neutral-700 text-xs mt-1.5">Ex : ma-boutique.myshopify.com — sans https://</p>
         </div>
 
         <div className="flex gap-3 pt-1">
-          <button type="submit" disabled={saving}
-            className="flex items-center gap-2 font-bold text-sm text-white px-6 py-3 rounded-xl transition-all disabled:opacity-60"
+          <button type="submit"
+            className="flex items-center gap-2 font-bold text-sm text-white px-6 py-3 rounded-xl transition-all"
             style={{ background: "linear-gradient(135deg,#f97316,#dc2626)", boxShadow: "0 4px 20px rgba(249,115,22,0.25)" }}>
-            {saving ? (
-              <><svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>Connexion…</>
-            ) : (
-              <><CheckCircle className="w-4 h-4" />Connecter la boutique</>
-            )}
+            <CheckCircle className="w-4 h-4" />Connecter via Shopify
           </button>
           <button type="button" onClick={onCancel}
             className="text-sm text-neutral-500 hover:text-white border border-white/[0.08] px-5 py-3 rounded-xl transition-all hover:border-white/20">
