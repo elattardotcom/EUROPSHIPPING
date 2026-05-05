@@ -201,20 +201,19 @@ const mapWithdrawal = (r: any): Withdrawal => ({
 /* ── Clients ────────────────────────────────────────────────────────────── */
 
 export async function getClients(): Promise<Client[]> {
-  try {
-    const sb = getSupabaseAdmin()
-    if (!sb) {
-      const file = readClients()
-      return file.length > 0 ? file : [MOCK_CLIENT]
-    }
-    const { data, error } = await sb.from("clients").select("*").order("joined_at", { ascending: false })
-    if (error) throw error
-    const result = (data ?? []).map(mapClient)
-    return result.length > 0 ? result : [MOCK_CLIENT]
-  } catch {
+  const sb = getSupabaseAdmin()
+  if (!sb) {
     const file = readClients()
     return file.length > 0 ? file : [MOCK_CLIENT]
   }
+  const { data, error } = await sb.from("clients").select("*")
+  if (error) {
+    console.error("getClients error:", error.message)
+    const file = readClients()
+    return file.length > 0 ? file : [MOCK_CLIENT]
+  }
+  const result = (data ?? []).map(mapClient)
+  return result.length > 0 ? result : [MOCK_CLIENT]
 }
 
 export async function getClientById(id: string): Promise<Client | null> {
