@@ -90,14 +90,12 @@ function adjustmentToTx(a: BalanceAdjustment): Transaction {
 }
 
 function downloadInvoice(inv: Invoice, clientWithdrawals: Withdrawal[], invoiceClientName: string, invoiceClientEmail: string) {
-  // Find the specific withdrawal for this invoice
   const withdrawal = clientWithdrawals.find(w => w.id === inv.id) ?? null
   const iban       = withdrawal?.iban ?? "—"
   const ibanMasked = iban.replace(/\s/g, "").length > 8
     ? `${iban.replace(/\s/g, "").slice(0, 4)} •••• •••• ${iban.replace(/\s/g, "").slice(-4)}`
     : iban
 
-  // Tax calculation — amount is TTC, back-calculate HT + TVA 20%
   const amtTTC = inv.amount
   const amtHT  = amtTTC / 1.20
   const amtTVA = amtTTC - amtHT
@@ -342,22 +340,32 @@ html,body{
   </div>
 
 </div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+window.onload = async function() {
+  try {
+    var page = document.querySelector('.page');
+    var canvas = await html2canvas(page, { scale:3, useCORS:true, logging:false, backgroundColor:'#ffffff' });
+    var pdf = new window.jspdf.jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+    pdf.addImage(canvas.toDataURL('image/jpeg',1.0), 'JPEG', 0, 0, 210, 297);
+    pdf.save('${inv.number}.pdf');
+    setTimeout(function(){ window.close(); }, 800);
+  } catch(e) {
+    document.body.innerHTML = '<div style="padding:40px;font-family:sans-serif;text-align:center"><p style="color:red">Erreur: '+e+'</p><button onclick="window.print()">Imprimer à la place</button></div>';
+  }
+};
+</script>
 </body>
 </html>`
 
-  // Use hidden iframe — works in Safari (window.open with blob is blocked)
-  const iframe = document.createElement("iframe")
-  iframe.style.cssText = "position:fixed;top:-9999px;left:-9999px;width:210mm;height:297mm;border:none;visibility:hidden"
-  document.body.appendChild(iframe)
-  const doc = iframe.contentDocument ?? iframe.contentWindow?.document
-  if (!doc) return
-  doc.open(); doc.write(html); doc.close()
-  iframe.onload = () => {
-    setTimeout(() => {
-      iframe.contentWindow?.print()
-      setTimeout(() => { try { document.body.removeChild(iframe) } catch {} }, 2000)
-    }, 400)
-  }
+  // Open in new window — auto-downloads PDF via html2canvas+jsPDF, then closes
+  const win = window.open("about:blank", "_blank")
+  if (!win) return
+  win.document.open()
+  win.document.write(html)
+  win.document.close()
 }
 
 const INVOICES: Invoice[] = [
