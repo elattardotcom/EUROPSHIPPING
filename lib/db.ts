@@ -207,7 +207,7 @@ export async function getClients(): Promise<Client[]> {
       const file = readClients()
       return file.length > 0 ? file : [MOCK_CLIENT]
     }
-    const { data, error } = await sb.from("clients").select("*").order("created_at", { ascending: false })
+    const { data, error } = await sb.from("clients").select("*").order("joined_at", { ascending: false })
     if (error) throw error
     const result = (data ?? []).map(mapClient)
     return result.length > 0 ? result : [MOCK_CLIENT]
@@ -319,7 +319,7 @@ export async function getWithdrawals(): Promise<Withdrawal[]> {
 }
 
 export async function getClientWithdrawals(clientId: string): Promise<Withdrawal[]> {
-  const sb = getSupabase()
+  const sb = getSupabaseAdmin()
   if (!sb) return readWithdrawals().filter(w => w.clientId === clientId)
   try {
     const { data, error } = await sb.from("withdrawals").select("*").eq("client_id", clientId).order("requested_at", { ascending: false })
@@ -334,7 +334,7 @@ async function getDeliveredRevenue(clientId: string): Promise<number> {
     const raw = ALL_ORDERS.filter(o => o.status === "DELIVERED").reduce((s, o) => s + o.orderValue, 0)
     return Math.round(raw * 100) / 100
   }
-  const sb = getSupabase()
+  const sb = getSupabaseAdmin()
   if (!sb) return 0
   try {
     const { data } = await sb.from("orders").select("value").eq("client_id", clientId).eq("status", "DELIVERED")
@@ -352,7 +352,7 @@ export interface BalanceSummary {
 }
 
 export async function getClientAdjustments(clientId: string): Promise<BalanceAdjustment[]> {
-  const sb = getSupabase()
+  const sb = getSupabaseAdmin()
   if (sb) {
     try {
       const { data } = await sb
@@ -404,7 +404,7 @@ export async function getBalanceSummary(clientId: string): Promise<BalanceSummar
     getDeliveredRevenue(clientId),
     getClientAdjustments(clientId),
   ])
-  const sb = getSupabase()
+  const sb = getSupabaseAdmin()
 
   const rows: { amount: number; status: string }[] = sb
     ? await sb.from("withdrawals").select("amount, status").eq("client_id", clientId)
