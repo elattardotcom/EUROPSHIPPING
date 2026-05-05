@@ -69,7 +69,7 @@ export async function GET(req: Request) {
     .single()
 
   if (storeErr || !store) {
-    return NextResponse.json({ error: "Erreur sauvegarde boutique" }, { status: 500 })
+    return NextResponse.json({ error: "Erreur sauvegarde boutique", detail: storeErr?.message, clientId, shop }, { status: 500 })
   }
 
   // Enregistre les webhooks pour la sync automatique
