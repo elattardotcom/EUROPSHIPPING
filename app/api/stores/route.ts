@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getSupabase } from "@/lib/supabase"
+import { getSupabaseAdmin } from "@/lib/supabase"
 
 export async function GET(req: NextRequest) {
   const clientId = req.cookies.get("client_id")?.value
   if (!clientId) return NextResponse.json([], { status: 401 })
 
-  const sb = getSupabase()
+  const sb = getSupabaseAdmin()
   if (!sb) return NextResponse.json([])
 
   const { data } = await sb

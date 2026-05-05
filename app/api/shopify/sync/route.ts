@@ -1,6 +1,6 @@
 import { NextResponse }              from "next/server"
 import { fetchShopifyProducts, extractPricing } from "@/lib/shopify"
-import { getSupabase }               from "@/lib/supabase"
+import { getSupabaseAdmin }               from "@/lib/supabase"
 
 export async function POST(req: Request) {
   const { storeId, shop, accessToken } = await req.json()
@@ -9,7 +9,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Paramètres manquants" }, { status: 400 })
   }
 
-  const sb = getSupabase()
+  const sb = getSupabaseAdmin()
   if (!sb) return NextResponse.json({ error: "DB non configurée" }, { status: 500 })
 
   // Récupère tous les produits depuis l'API Shopify

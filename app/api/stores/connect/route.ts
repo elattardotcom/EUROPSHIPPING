@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getSupabase } from "@/lib/supabase"
+import { getSupabaseAdmin } from "@/lib/supabase"
 import { canAddStore } from "@/lib/plan-limits"
 
 export async function POST(req: NextRequest) {
@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Le domaine doit se terminer par .myshopify.com" }, { status: 400 })
   }
 
-  const sb = getSupabase()
+  const sb = getSupabaseAdmin()
   if (!sb) return NextResponse.json({ error: "Base de données non configurée" }, { status: 500 })
 
   // Check plan store limit
