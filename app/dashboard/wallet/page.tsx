@@ -90,15 +90,23 @@ function adjustmentToTx(a: BalanceAdjustment): Transaction {
 }
 
 function downloadInvoice(inv: Invoice, clientWithdrawals: Withdrawal[], invoiceClientName: string, invoiceClientEmail: string) {
-  const statusLabel = inv.status === "paid" ? "PAYÉE" : inv.status === "overdue" ? "EN RETARD" : "EN ATTENTE"
-  const statusColor = inv.status === "paid" ? "#10b981" : inv.status === "overdue" ? "#ef4444" : "#f59e0b"
-  const amountFmt   = inv.amount.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  // Find the specific withdrawal for this invoice
+  const withdrawal = clientWithdrawals.find(w => w.id === inv.id) ?? null
+  const iban       = withdrawal?.iban ?? "—"
+  const ibanMasked = iban.replace(/\s/g, "").length > 8
+    ? `${iban.replace(/\s/g, "").slice(0, 4)} •••• •••• ${iban.replace(/\s/g, "").slice(-4)}`
+    : iban
 
-  const approvedWithdrawals = clientWithdrawals.filter(w => w.status === "approved")
-  const pendingWithdrawals  = clientWithdrawals.filter(w => w.status === "pending")
-  const totalApproved = approvedWithdrawals.reduce((s, w) => s + w.amount, 0)
-  const totalPending  = pendingWithdrawals.reduce((s, w) => s + w.amount, 0)
-  const fmtAmt = (n: number) => n.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  // Tax calculation — amount is TTC, back-calculate HT + TVA 20%
+  const amtTTC = inv.amount
+  const amtHT  = amtTTC / 1.20
+  const amtTVA = amtTTC - amtHT
+  const f = (n: number) => n.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+
+  const today    = new Date()
+  const dateStr  = today.toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" })
+  const periodStart = withdrawal?.requestedAt ?? inv.date
+  const periodEnd   = withdrawal?.processedAt  ?? inv.dueDate
 
   const withdrawalRows = clientWithdrawals.length === 0
     ? `<tr><td colspan="4" style="text-align:center;color:#52525b;padding:20px 0;font-size:13px">Aucun retrait enregistré</td></tr>`
@@ -121,190 +129,231 @@ function downloadInvoice(inv: Invoice, clientWithdrawals: Withdrawal[], invoiceC
 <meta charset="UTF-8"/>
 <title>${inv.number}</title>
 <style>
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{background:#0a0a0a;color:#fff;font-family:Arial,Helvetica,sans-serif;padding:40px 24px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  .card{background:#111113;border:1px solid #27272a;border-radius:20px;max-width:700px;margin:0 auto;overflow:hidden}
-  /* Header */
-  .header{background:linear-gradient(135deg,#f97316 0%,#dc2626 100%);padding:32px 40px;position:relative;overflow:hidden}
-  .header::before{content:'';position:absolute;top:-70px;right:-70px;width:220px;height:220px;background:rgba(255,255,255,.07);border-radius:50%}
-  .header::after{content:'';position:absolute;bottom:-50px;left:30px;width:140px;height:140px;background:rgba(255,255,255,.04);border-radius:50%}
-  .header-inner{position:relative;display:flex;align-items:center;justify-content:space-between}
-  .logo{display:flex;align-items:center;gap:14px}
-  .logo-icon{width:50px;height:50px;background:rgba(255,255,255,.22);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:#fff}
-  .logo-name{font-size:22px;font-weight:800;color:#fff;line-height:1}
-  .logo-sub{font-size:11px;color:rgba(255,255,255,.65);margin-top:3px;letter-spacing:.5px}
-  .badge{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.35);color:#fff;padding:7px 18px;border-radius:999px;font-size:13px;font-weight:700;letter-spacing:1px}
-  /* Body */
-  .body{padding:32px 40px}
-  .section-title{font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:#71717a;font-weight:700;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid #27272a}
-  .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:28px}
-  .info-item .label{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#71717a;font-weight:600;margin-bottom:5px}
-  .info-item .value{font-size:14px;color:#e4e4e7;font-weight:500}
-  .value-mono{font-family:'Courier New',monospace;font-size:15px;color:#f97316;font-weight:700}
-  .status-pill{display:inline-block;padding:4px 14px;border-radius:999px;font-size:12px;font-weight:700;letter-spacing:.5px;border:1px solid}
-  .divider{border:none;border-top:1px solid #27272a;margin:24px 0}
-  /* Description */
-  .desc-box{background:#18181b;border:1px solid #27272a;border-radius:12px;padding:18px 22px;margin-bottom:24px}
-  .desc-text{font-size:14px;color:#e4e4e7;line-height:1.6}
-  /* Amount */
-  .amount-box{background:linear-gradient(135deg,rgba(249,115,22,.14),rgba(220,38,38,.08));border:1px solid rgba(249,115,22,.3);border-radius:14px;padding:22px 28px;display:flex;align-items:center;justify-content:space-between;margin-bottom:28px}
-  .amount-label{font-size:13px;color:#a1a1aa}
-  .amount-sub{font-size:11px;color:#52525b;margin-top:3px}
-  .amount-value{font-size:38px;font-weight:800;color:#f97316;letter-spacing:-1px}
-  .amount-cur{font-size:14px;color:#f97316;opacity:.75;font-weight:600;margin-left:4px}
-  /* Withdrawals table */
-  .wd-table{width:100%;border-collapse:collapse;margin-top:8px}
-  .wd-table th{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#52525b;font-weight:700;padding:0 0 10px;text-align:left}
-  .wd-table th:last-child,.wd-table td:last-child{text-align:right}
-  .wd-table th:nth-child(3){text-align:right}
-  .wd-table td:nth-child(3){text-align:right}
-  /* Summary row */
-  .summary-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #27272a}
-  .summary-row:last-child{border-bottom:none;margin-top:4px;padding-top:12px}
-  .summary-label{font-size:13px;color:#a1a1aa}
-  .summary-value{font-size:13px;color:#e4e4e7;font-weight:600}
-  /* Footer */
-  .footer{background:#0d0d0f;border-top:1px solid #27272a;padding:18px 40px;display:flex;justify-content:space-between;align-items:center}
-  .footer-left{font-size:12px;color:#52525b}
-  .footer-right{font-size:11px;color:#3f3f46}
-  @media print{
-    body{padding:0;background:#0a0a0a}
-    .card{border-radius:0;border:none;max-width:100%}
-  }
+*{box-sizing:border-box;margin:0;padding:0}
+@page{size:A4 portrait;margin:0}
+html,body{
+  width:210mm;height:297mm;overflow:hidden;
+  font-family:'Helvetica Neue',Arial,sans-serif;
+  background:#fff;color:#111827;font-size:13px;
+  -webkit-print-color-adjust:exact;print-color-adjust:exact
+}
+.page{width:210mm;height:297mm;display:flex;flex-direction:column;overflow:hidden}
+
+/* ── Header ── */
+.hdr{background:linear-gradient(135deg,#f97316,#dc2626);padding:22px 30px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.hdr-logo{display:flex;align-items:center;gap:12px}
+.hdr-icon{width:42px;height:42px;background:rgba(255,255,255,.22);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:#fff;letter-spacing:-.5px}
+.hdr-name{font-size:20px;font-weight:800;color:#fff;line-height:1}
+.hdr-sub{font-size:10px;color:rgba(255,255,255,.65);letter-spacing:.5px;margin-top:2px}
+.hdr-right{text-align:right}
+.hdr-badge{font-size:10px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,.75);text-transform:uppercase;margin-bottom:4px}
+.hdr-num{font-size:18px;font-weight:800;color:#fff;font-family:monospace}
+
+/* ── Body ── */
+.body{padding:22px 30px;flex:1;display:flex;flex-direction:column;gap:18px}
+
+/* ── Parties ── */
+.parties{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.party-box{background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:14px 16px}
+.party-label{font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#9ca3af;margin-bottom:8px}
+.party-name{font-size:14px;font-weight:700;color:#111827;margin-bottom:4px}
+.party-detail{font-size:11px;color:#6b7280;line-height:1.6}
+.date-row{display:flex;gap:20px}
+.date-item{}
+.date-item .lbl{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#9ca3af;margin-bottom:3px}
+.date-item .val{font-size:12px;font-weight:600;color:#374151}
+
+/* ── Object ── */
+.objet-box{background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:12px 16px}
+.objet-label{font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#ea580c;margin-bottom:4px}
+.objet-text{font-size:13px;color:#7c2d12;font-weight:600}
+
+/* ── Table ── */
+.tbl{width:100%;border-collapse:collapse}
+.tbl thead tr{background:#f3f4f6}
+.tbl th{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#6b7280;padding:8px 12px;text-align:left;border-bottom:2px solid #e5e7eb}
+.tbl th.r,.tbl td.r{text-align:right}
+.tbl td{padding:10px 12px;color:#374151;font-size:12px;border-bottom:1px solid #f3f4f6}
+.tbl tr:last-child td{border-bottom:none}
+.item-desc{font-weight:600;color:#111827;font-size:13px}
+.item-ref{font-size:10px;color:#9ca3af;font-family:monospace;margin-top:2px}
+
+/* ── Totals ── */
+.totals{margin-left:auto;width:260px}
+.tot-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f3f4f6;font-size:12px}
+.tot-row:last-child{border-bottom:none;padding-top:10px;margin-top:4px}
+.tot-label{color:#6b7280}
+.tot-val{color:#374151;font-weight:600}
+.tot-tva{color:#dc2626}
+.tot-total .tot-label{color:#111827;font-weight:700;font-size:14px}
+.tot-total .tot-val{color:#f97316;font-weight:800;font-size:16px}
+
+/* ── Payment ── */
+.pay-box{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:16px}
+.pay-status{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:999px;background:#dcfce7;border:1px solid #86efac;font-size:11px;font-weight:700;color:#16a34a;letter-spacing:.5px}
+.pay-dot{width:7px;height:7px;border-radius:50%;background:#16a34a}
+.pay-detail{flex:1}
+.pay-mode{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#6b7280;margin-bottom:3px}
+.pay-iban{font-size:12px;font-weight:600;color:#374151;font-family:monospace}
+
+/* ── Footer ── */
+.ftr{background:#f9fafb;border-top:1px solid #e5e7eb;padding:12px 30px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.ftr-left{font-size:10px;color:#9ca3af}
+.ftr-center{font-size:10px;color:#d1d5db;text-align:center}
+.ftr-right{font-size:10px;color:#9ca3af;text-align:right}
+
+@media print{
+  html,body{width:210mm;height:297mm}
+  .page{page-break-after:avoid;break-after:avoid}
+}
 </style>
 </head>
 <body>
-<div class="card">
+<div class="page">
 
-  <div class="header">
-    <div class="header-inner">
-      <div class="logo">
-        <div class="logo-icon">CS</div>
-        <div>
-          <div class="logo-name">CODShip</div>
-          <div class="logo-sub">Pro Platform</div>
-        </div>
+  <!-- HEADER -->
+  <div class="hdr">
+    <div class="hdr-logo">
+      <div class="hdr-icon">CS</div>
+      <div>
+        <div class="hdr-name">CODShip</div>
+        <div class="hdr-sub">PRO PLATFORM</div>
       </div>
-      <div class="badge">FACTURE</div>
+    </div>
+    <div class="hdr-right">
+      <div class="hdr-badge">Facture de payout</div>
+      <div class="hdr-num">${inv.number}</div>
     </div>
   </div>
 
   <div class="body">
 
-    <!-- Invoice meta -->
-    <div class="section-title">Informations de la facture</div>
-    <div class="info-grid">
-      <div class="info-item">
-        <div class="label">Numéro de facture</div>
-        <div class="value-mono">${inv.number}</div>
+    <!-- PARTIES -->
+    <div class="parties">
+      <div class="party-box">
+        <div class="party-label">Émetteur</div>
+        <div class="party-name">CODShip Pro Platform</div>
+        <div class="party-detail">
+          contact@codship.com<br/>
+          Plateforme de vente COD<br/>
+          N° TVA intracommunautaire : FR00000000000
+        </div>
       </div>
-      <div class="info-item">
-        <div class="label">Statut</div>
-        <span class="status-pill" style="color:${statusColor};border-color:${statusColor}55;background:${statusColor}20">${statusLabel}</span>
-      </div>
-      <div class="info-item">
-        <div class="label">Date d'émission</div>
-        <div class="value">${inv.date}</div>
-      </div>
-      <div class="info-item">
-        <div class="label">Date d'échéance</div>
-        <div class="value">${inv.dueDate}</div>
-      </div>
-      <div class="info-item">
-        <div class="label">Client</div>
-        <div class="value">${invoiceClientName}</div>
-      </div>
-      <div class="info-item">
-        <div class="label">Email</div>
-        <div class="value">${invoiceClientEmail}</div>
+      <div class="party-box">
+        <div class="party-label">Destinataire</div>
+        <div class="party-name">${invoiceClientName || "—"}</div>
+        <div class="party-detail">
+          ${invoiceClientEmail || "—"}<br/>
+          Vendeur partenaire CODShip<br/>
+          Réf. client : ${inv.id.slice(-8).toUpperCase()}
+        </div>
       </div>
     </div>
 
-    <div class="divider"></div>
-
-    <!-- Description -->
-    <div class="section-title">Description</div>
-    <div class="desc-box">
-      <div class="desc-text">${inv.description}</div>
-    </div>
-
-    <!-- Amount -->
-    <div class="amount-box">
-      <div>
-        <div class="amount-label">Montant de la facture</div>
-        <div class="amount-sub">TVA incluse</div>
+    <!-- DATES -->
+    <div class="date-row">
+      <div class="date-item">
+        <div class="lbl">Date d'émission</div>
+        <div class="val">${dateStr}</div>
       </div>
-      <div>
-        <span class="amount-value">${amountFmt}</span>
-        <span class="amount-cur">EUR</span>
+      <div class="date-item">
+        <div class="lbl">Période couverte</div>
+        <div class="val">${periodStart} — ${periodEnd}</div>
+      </div>
+      <div class="date-item">
+        <div class="lbl">Statut</div>
+        <div class="val" style="color:#16a34a;font-weight:700">✓ PAYÉE</div>
       </div>
     </div>
 
-    <div class="divider"></div>
+    <!-- OBJET -->
+    <div class="objet-box">
+      <div class="objet-label">Objet</div>
+      <div class="objet-text">Payout — Revenus de ventes de produits COD traités par CODShip</div>
+    </div>
 
-    <!-- Withdrawals -->
-    <div class="section-title">Retraits effectués</div>
-    <table class="wd-table">
-      <thead>
-        <tr>
-          <th>Date</th>
-          <th>IBAN</th>
-          <th>Montant</th>
-          <th>Statut</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${withdrawalRows}
-      </tbody>
-    </table>
+    <!-- TABLE -->
+    <div>
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Description</th>
+            <th class="r">Qté</th>
+            <th class="r">Prix unitaire HT</th>
+            <th class="r">Montant HT</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="color:#9ca3af;font-size:11px">01</td>
+            <td>
+              <div class="item-desc">Payout — Revenus de ventes produits COD</div>
+              <div class="item-ref">Ref: ${inv.number} · Virement bancaire approuvé</div>
+            </td>
+            <td class="r">1</td>
+            <td class="r">${f(amtHT)} €</td>
+            <td class="r" style="font-weight:700;color:#111827">${f(amtHT)} €</td>
+          </tr>
+        </tbody>
+      </table>
 
-    ${clientWithdrawals.length > 0 ? `
-    <div style="background:#18181b;border:1px solid #27272a;border-radius:12px;padding:16px 22px;margin-top:20px">
-      <div class="summary-row">
-        <span class="summary-label">Total retiré (approuvé)</span>
-        <span class="summary-value" style="color:#10b981">${fmtAmt(totalApproved)} EUR</span>
+      <!-- TOTALS -->
+      <div style="display:flex;justify-content:flex-end;margin-top:12px">
+        <div class="totals">
+          <div class="tot-row">
+            <span class="tot-label">Sous-total HT</span>
+            <span class="tot-val">${f(amtHT)} €</span>
+          </div>
+          <div class="tot-row">
+            <span class="tot-label tot-tva">TVA 20 %</span>
+            <span class="tot-val tot-tva">${f(amtTVA)} €</span>
+          </div>
+          <div class="tot-row tot-total">
+            <span class="tot-label">Total TTC</span>
+            <span class="tot-val">${f(amtTTC)} €</span>
+          </div>
+        </div>
       </div>
-      <div class="summary-row">
-        <span class="summary-label">En attente de traitement</span>
-        <span class="summary-value" style="color:#f59e0b">${fmtAmt(totalPending)} EUR</span>
-      </div>
-      <div class="summary-row">
-        <span class="summary-label" style="color:#fff;font-weight:700">Total retraits</span>
-        <span class="summary-value" style="color:#f97316;font-size:15px">${fmtAmt(totalApproved + totalPending)} EUR</span>
-      </div>
-    </div>` : ""}
+    </div>
 
-    <div class="divider"></div>
-
-    <!-- Issuer -->
-    <div style="display:flex;justify-content:space-between;align-items:flex-end">
+    <!-- PAYMENT -->
+    <div class="pay-box">
       <div>
-        <div class="info-item"><div class="label">Émis par</div></div>
-        <div style="color:#e4e4e7;font-size:14px;font-weight:600;margin-top:4px">CODShip Pro Platform</div>
-        <div style="color:#71717a;font-size:12px;margin-top:2px">contact@codship.com</div>
+        <span class="pay-status"><span class="pay-dot"></span>PAIEMENT EFFECTUÉ</span>
       </div>
-      <div style="text-align:right">
-        <div class="info-item"><div class="label">Généré le</div></div>
-        <div style="color:#e4e4e7;font-size:13px;margin-top:4px">${new Date().toLocaleDateString("fr-FR",{day:"2-digit",month:"long",year:"numeric"})}</div>
+      <div class="pay-detail">
+        <div class="pay-mode">Mode de règlement — Virement bancaire SEPA</div>
+        <div class="pay-iban">IBAN : ${ibanMasked}</div>
+      </div>
+      <div style="text-align:right;font-size:11px;color:#6b7280">
+        <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:#9ca3af;margin-bottom:2px">Montant versé</div>
+        <div style="font-size:16px;font-weight:800;color:#f97316">${f(amtTTC)} €</div>
       </div>
     </div>
 
   </div>
 
-  <div class="footer">
-    <span class="footer-left">© ${new Date().getFullYear()} CODShip — Tous droits réservés</span>
-    <span class="footer-right">Document officiel · Ne pas modifier</span>
+  <!-- FOOTER -->
+  <div class="ftr">
+    <div class="ftr-left">© ${today.getFullYear()} CODShip Pro Platform · Tous droits réservés</div>
+    <div class="ftr-center">Document officiel — Ne pas modifier</div>
+    <div class="ftr-right">Généré le ${dateStr}</div>
   </div>
 
 </div>
-<script>window.onload=function(){window.print()}</script>
+<script>
+  window.addEventListener('load', function() {
+    setTimeout(function() { window.print(); }, 300);
+  });
+</script>
 </body>
 </html>`
 
   const blob = new Blob([html], { type: "text/html;charset=utf-8" })
   const url  = URL.createObjectURL(blob)
-  const win  = window.open(url, "_blank", "width=800,height=900")
-  if (win) win.addEventListener("load", () => URL.revokeObjectURL(url))
+  const win  = window.open(url, "_blank")
+  if (win) win.addEventListener("load", () => setTimeout(() => URL.revokeObjectURL(url), 1000))
   else URL.revokeObjectURL(url)
 }
 
