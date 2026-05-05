@@ -342,19 +342,22 @@ html,body{
   </div>
 
 </div>
-<script>
-  window.addEventListener('load', function() {
-    setTimeout(function() { window.print(); }, 300);
-  });
-</script>
 </body>
 </html>`
 
-  const blob = new Blob([html], { type: "text/html;charset=utf-8" })
-  const url  = URL.createObjectURL(blob)
-  const win  = window.open(url, "_blank")
-  if (win) win.addEventListener("load", () => setTimeout(() => URL.revokeObjectURL(url), 1000))
-  else URL.revokeObjectURL(url)
+  // Use hidden iframe — works in Safari (window.open with blob is blocked)
+  const iframe = document.createElement("iframe")
+  iframe.style.cssText = "position:fixed;top:-9999px;left:-9999px;width:210mm;height:297mm;border:none;visibility:hidden"
+  document.body.appendChild(iframe)
+  const doc = iframe.contentDocument ?? iframe.contentWindow?.document
+  if (!doc) return
+  doc.open(); doc.write(html); doc.close()
+  iframe.onload = () => {
+    setTimeout(() => {
+      iframe.contentWindow?.print()
+      setTimeout(() => { try { document.body.removeChild(iframe) } catch {} }, 2000)
+    }, 400)
+  }
 }
 
 const INVOICES: Invoice[] = [
