@@ -1,19 +1,25 @@
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 import { getSupabaseAdmin } from "@/lib/supabase"
 import { fetchShopifyProducts, extractPricing } from "@/lib/shopify"
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   const sb = getSupabaseAdmin()
   if (!sb) return NextResponse.json({ error: "Supabase non configuré" })
 
-  const { data: clients }  = await sb.from("clients").select("id, email").limit(5)
-  const { data: stores, error: se }   = await sb.from("stores").select("id, name, domain, status, client_id, access_token").limit(10)
-  const { data: products, error: pe } = await sb.from("products").select("id, title, store_id").limit(10)
+  const cookieClientId = req.cookies.get("client_id")?.value ?? null
 
-  // Auto-sync first store if products empty
+  const { data: clients }  = await sb.from("clients").select("id, email").limit(10)
+  const { data: stores }   = await sb.from("stores").select("id, name, domain, status, client_id, access_token").limit(10)
+  const { data: products } = await sb.from("products").select("id, title, store_id").limit(20)
+
+  const myStores   = stores?.filter(s => s.client_id === cookieClientId) ?? []
+  const myStoreIds = myStores.map(s => s.id)
+  const myProducts = products?.filter(p => myStoreIds.includes(p.store_id)) ?? []
+
+  // Auto-sync: if cookie client has a store but no products, sync now
   let syncResult = null
-  if ((!products || products.length === 0) && stores && stores.length > 0) {
-    const store = stores[0]
+  if (myStores.length > 0 && myProducts.length === 0) {
+    const store = myStores[0]
     if (store.access_token) {
       try {
         const shopifyProducts = await fetchShopifyProducts(store.domain, store.access_token)
@@ -39,11 +45,19 @@ export async function GET() {
   }
 
   return NextResponse.json({
-    supabase: "connecté",
-    serviceKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
-    clients,
-    stores:   se ? { error: se.message } : stores?.map(s => ({ ...s, access_token: s.access_token ? "✓" : "missing" })),
-    products: pe ? { error: pe.message } : products,
+    cookieClientId,
+    allClients:  clients,
+    allStores:   stores?.map(s => ({ ...s, access_token: s.access_token ? "✓" : "missing" })),
+    allProducts: products,
+    myStores:    myStores.map(s => ({ ...s, access_token: s.access_token ? "✓" : "missing" })),
+    myProducts,
     syncResult,
+    diagnosis: myStores.length === 0
+      ? "❌ Aucune boutique pour ce client_id cookie"
+      : myProducts.length === 0 && !syncResult
+        ? "❌ Boutique trouvée mais aucun produit"
+        : syncResult
+          ? `🔄 Sync lancée: ${JSON.stringify(syncResult)}`
+          : `✅ ${myProducts.length} produit(s) trouvé(s)`,
   })
 }
