@@ -1,7 +1,7 @@
 import { NextResponse }                   from "next/server"
 import { cookies }                         from "next/headers"
 import { exchangeCodeForToken, verifyOAuthCallback, registerWebhook } from "@/lib/shopify"
-import { getSupabase }                     from "@/lib/supabase"
+import { getSupabaseAdmin }                     from "@/lib/supabase"
 import { canAddStore }                     from "@/lib/plan-limits"
 
 export async function GET(req: Request) {
@@ -37,7 +37,7 @@ export async function GET(req: Request) {
   // Échange le code contre un access token
   const accessToken = await exchangeCodeForToken(shop, code)
 
-  const sb = getSupabase()
+  const sb = getSupabaseAdmin()
   if (!sb) {
     return NextResponse.json({ error: "Base de données non configurée" }, { status: 500 })
   }
@@ -49,7 +49,7 @@ export async function GET(req: Request) {
     .from("stores").select("id", { count: "exact", head: true }).eq("client_id", clientId)
 
   if (!canAddStore(plan, existingCount ?? 0)) {
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL
+    const appUrl = "https://europs-shipping.vercel.app"
     return NextResponse.redirect(`${appUrl}/dashboard/stores?error=plan_limit`)
   }
 
@@ -80,7 +80,7 @@ export async function GET(req: Request) {
   ])
 
   // Déclenche la sync initiale des produits
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL
+  const appUrl = "https://europs-shipping.vercel.app"
   fetch(`${appUrl}/api/shopify/sync`, {
     method:  "POST",
     headers: { "Content-Type": "application/json" },

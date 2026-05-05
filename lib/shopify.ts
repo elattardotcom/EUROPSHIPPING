@@ -1,55 +1,43 @@
 import crypto from "crypto"
 
-const API_VERSION = "2024-01"
-const SCOPES      = "read_products,write_products"
+const API_VERSION  = "2024-01"
+const SCOPES       = "read_products,write_products,read_orders,write_orders,read_customers"
+const APP_URL      = process.env.NEXT_PUBLIC_APP_URL ?? "https://europs-shipping.vercel.app"
+const API_KEY      = process.env.SHOPIFY_API_KEY     ?? "e8be12f3fba0f60638139a6e62d956ea"
+const API_SECRET   = process.env.SHOPIFY_API_SECRET  ?? ""
 
 /* ── OAuth ──────────────────────────────────────────────────────────────── */
 
-/** Génère l'URL d'autorisation Shopify OAuth */
 export function buildAuthUrl(shop: string, state: string): string {
-  const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL}/api/shopify/callback`
   const params = new URLSearchParams({
-    client_id:    process.env.SHOPIFY_API_KEY!,
+    client_id:    API_KEY,
     scope:        SCOPES,
-    redirect_uri: redirectUri,
+    redirect_uri: `${APP_URL}/api/shopify/callback`,
     state,
-    "grant_options[]": "per-user",
   })
   return `https://${shop}/admin/oauth/authorize?${params}`
 }
 
-/** Échange le code OAuth contre un access token */
 export async function exchangeCodeForToken(shop: string, code: string): Promise<string> {
   const res = await fetch(`https://${shop}/admin/oauth/access_token`, {
     method:  "POST",
     headers: { "Content-Type": "application/json" },
-    body:    JSON.stringify({
-      client_id:     process.env.SHOPIFY_API_KEY,
-      client_secret: process.env.SHOPIFY_API_SECRET,
-      code,
-    }),
+    body:    JSON.stringify({ client_id: API_KEY, client_secret: API_SECRET, code }),
   })
   if (!res.ok) throw new Error(`Token exchange failed: ${res.status}`)
   const data = await res.json()
   return data.access_token as string
 }
 
-/** Vérifie que la requête OAuth vient bien de Shopify (HMAC sur les query params) */
 export function verifyOAuthCallback(query: URLSearchParams): boolean {
   const hmac = query.get("hmac")
   if (!hmac) return false
-
   const params = [...query.entries()]
     .filter(([k]) => k !== "hmac")
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([k, v]) => `${k}=${v}`)
     .join("&")
-
-  const computed = crypto
-    .createHmac("sha256", process.env.SHOPIFY_API_SECRET!)
-    .update(params)
-    .digest("hex")
-
+  const computed = crypto.createHmac("sha256", API_SECRET).update(params).digest("hex")
   return crypto.timingSafeEqual(Buffer.from(computed), Buffer.from(hmac))
 }
 
