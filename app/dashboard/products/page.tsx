@@ -13,6 +13,7 @@ interface Product {
   imageUrl:  string | null
   price:     number
   currency:  string
+  stock:     number | null
   storeId:   string
   storeName: string
   domain:    string
@@ -138,15 +139,14 @@ export default function ProductsPage() {
             <ProductCard
               key={p.id}
               product={{
-                id:                 p.id,
-                title:              p.title,
-                image_url:          p.imageUrl,
-                price:              p.price,
-                currency:           p.currency,
-                presentment_prices: [],
+                id:        p.id,
+                title:     p.title,
+                image_url: p.imageUrl,
+                price:     p.price,
+                currency:  p.currency,
+                stock:     p.stock,
+                storeName: p.storeName,
               }}
-              countryCode="FR"
-              currencyCode={p.currency}
             />
           ))}
         </div>

@@ -34,6 +34,7 @@ export async function GET(req: NextRequest) {
     imageUrl:  p.image_url,
     price:     p.price,
     currency:  p.currency ?? "EUR",
+    stock:     p.stock ?? null,
     storeId:   p.store_id,
     storeName: storeMap[p.store_id]?.name ?? "",
     domain:    storeMap[p.store_id]?.domain ?? "",
