@@ -80,7 +80,7 @@ export async function createAuthRecordDb(clientId: string, email: string, passwo
 // ── Primary: verify from clients table, then auth_credentials, then file ──────
 export async function verifyAuthDb(email: string, password: string): Promise<string | null> {
   const hash = hashPassword(password)
-  const sb   = getSupabase()
+  const sb   = getSupabaseAdmin()
 
   if (sb) {
     // 1. Check clients.password_hash (fastest and most reliable)
