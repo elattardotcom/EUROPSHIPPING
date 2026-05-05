@@ -10,9 +10,8 @@ export async function GET(req: NextRequest) {
 
   const { data } = await sb
     .from("stores")
-    .select("id, name, domain, status, last_sync, created_at")
+    .select("id, name, domain, status, last_sync")
     .eq("client_id", clientId)
-    .order("created_at", { ascending: false })
 
   return NextResponse.json(data ?? [])
 }
