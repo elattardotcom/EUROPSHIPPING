@@ -3,7 +3,7 @@ import { getSupabaseAdmin } from "@/lib/supabase"
 
 export async function GET(req: NextRequest) {
   const clientId = req.cookies.get("client_id")?.value
-  if (!clientId) return NextResponse.json([], { status: 401 })
+  if (!clientId) return NextResponse.json({ error: "not_authenticated" }, { status: 401 })
 
   const sb = getSupabaseAdmin()
   if (!sb) return NextResponse.json([])

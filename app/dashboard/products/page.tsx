@@ -21,16 +21,18 @@ interface Product {
 }
 
 export default function ProductsPage() {
-  const [products, setProducts] = useState<Product[]>([])
-  const [search,   setSearch]   = useState("")
-  const [loading,  setLoading]  = useState(true)
-  const [syncing,  setSyncing]  = useState(false)
-  const [storeId,  setStoreId]  = useState<string | null>(null)
+  const [products,    setProducts]    = useState<Product[]>([])
+  const [search,      setSearch]      = useState("")
+  const [loading,     setLoading]     = useState(true)
+  const [syncing,     setSyncing]     = useState(false)
+  const [storeId,     setStoreId]     = useState<string | null>(null)
+  const [notAuth,     setNotAuth]     = useState(false)
 
   const loadProducts = useCallback(async () => {
     setLoading(true)
     try {
       const res  = await fetch("/api/client/products")
+      if (res.status === 401) { setNotAuth(true); setLoading(false); return }
       const data = await res.json()
       const list: Product[] = Array.isArray(data) ? data : []
       setProducts(list)
@@ -64,6 +66,19 @@ export default function ProductsPage() {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 className="w-6 h-6 text-orange-500 animate-spin" />
+      </div>
+    )
+  }
+
+  if (notAuth) {
+    return (
+      <div className="p-6 flex flex-col items-center justify-center py-32 text-center">
+        <ShoppingBag className="w-12 h-12 text-neutral-700 mb-4" />
+        <h2 className="text-xl font-bold text-white mb-2">Session expirée</h2>
+        <p className="text-neutral-500 text-sm mb-6">Veuillez vous reconnecter pour voir vos produits.</p>
+        <Link href="/login">
+          <Button className="bg-orange-500 hover:bg-orange-600 text-white">Se connecter</Button>
+        </Link>
       </div>
     )
   }
