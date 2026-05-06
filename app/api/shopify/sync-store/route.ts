@@ -45,24 +45,39 @@ export async function POST(req: NextRequest) {
 
   const shopifyProducts = await fetchShopifyProducts(store.domain, store.access_token)
 
-  const rows = shopifyProducts.map((p) => {
-    const { price, currency } = extractPricing(p)
-    return {
-      store_id:   store.id,
-      shopify_id: String(p.id),
-      title:      p.title,
-      image_url:  p.images?.[0]?.src ?? null,
-      price,
-      currency,
-      updated_at: new Date().toISOString(),
-    }
-  })
+  const rows = shopifyProducts
+    .filter(p => p.title) // ignore produits sans titre
+    .map((p) => {
+      const { price, currency } = extractPricing(p)
+      return {
+        store_id:   store.id,
+        shopify_id: String(p.id),
+        title:      p.title,
+        image_url:  p.images?.[0]?.src ?? null,
+        price,
+        currency,
+        updated_at: new Date().toISOString(),
+      }
+    })
 
   const { error } = await sb
     .from("products")
     .upsert(rows, { onConflict: "store_id,shopify_id" })
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  // Supprimer les produits en DB qui n'existent plus sur Shopify
+  const validIds = rows.map(r => r.shopify_id)
+  if (validIds.length > 0) {
+    await sb
+      .from("products")
+      .delete()
+      .eq("store_id", store.id)
+      .not("shopify_id", "in", `(${validIds.join(",")})`)
+  } else {
+    // Aucun produit sur Shopify → tout supprimer pour ce store
+    await sb.from("products").delete().eq("store_id", store.id)
+  }
 
   await sb
     .from("stores")
