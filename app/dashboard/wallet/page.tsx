@@ -89,7 +89,7 @@ function adjustmentToTx(a: BalanceAdjustment): Transaction {
   }
 }
 
-function downloadInvoice(inv: Invoice, clientWithdrawals: Withdrawal[], invoiceClientName: string, invoiceClientEmail: string) {
+async function downloadInvoice(inv: Invoice, clientWithdrawals: Withdrawal[], invoiceClientName: string, invoiceClientEmail: string) {
   const withdrawal = clientWithdrawals.find(w => w.id === inv.id) ?? null
   const iban       = withdrawal?.iban ?? "—"
   const ibanMasked = iban.replace(/\s/g, "").length > 8
@@ -101,115 +101,66 @@ function downloadInvoice(inv: Invoice, clientWithdrawals: Withdrawal[], invoiceC
   const amtTVA = amtTTC - amtHT
   const f = (n: number) => n.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
-  const today    = new Date()
-  const dateStr  = today.toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" })
+  const today       = new Date()
+  const dateStr     = today.toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" })
   const periodStart = withdrawal?.requestedAt ?? inv.date
   const periodEnd   = withdrawal?.processedAt  ?? inv.dueDate
 
-  const withdrawalRows = clientWithdrawals.length === 0
-    ? `<tr><td colspan="4" style="text-align:center;color:#52525b;padding:20px 0;font-size:13px">Aucun retrait enregistré</td></tr>`
-    : clientWithdrawals.map(w => {
-        const sc = w.status === "approved" ? "#10b981" : w.status === "rejected" ? "#ef4444" : "#f59e0b"
-        const sl = w.status === "approved" ? "Approuvé" : w.status === "rejected" ? "Rejeté" : "En attente"
-        return `<tr>
-          <td style="padding:10px 0;color:#e4e4e7;font-size:13px;border-bottom:1px solid #27272a">${w.requestedAt}</td>
-          <td style="padding:10px 0;color:#a1a1aa;font-size:12px;font-family:'Courier New',monospace;border-bottom:1px solid #27272a">${w.iban}</td>
-          <td style="padding:10px 0;color:#f97316;font-weight:700;font-size:13px;border-bottom:1px solid #27272a;text-align:right">${fmtAmt(w.amount)} EUR</td>
-          <td style="padding:10px 0;text-align:right;border-bottom:1px solid #27272a">
-            <span style="display:inline-block;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700;color:${sc};background:${sc}20;border:1px solid ${sc}40">${sl}</span>
-          </td>
-        </tr>`
-      }).join("")
+  // A4 at 96dpi = 794 × 1123px
+  const W = 794, H = 1123
 
-  const html = `<!DOCTYPE html>
-<html lang="fr">
-<head>
-<meta charset="UTF-8"/>
-<title>${inv.number}</title>
+  const container = document.createElement("div")
+  container.style.cssText = `position:fixed;top:-9999px;left:-9999px;width:${W}px;height:${H}px;overflow:hidden;background:#fff;font-family:'Helvetica Neue',Arial,sans-serif;font-size:13px;color:#111827`
+  container.innerHTML = `
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-@page{size:A4 portrait;margin:0}
-html,body{
-  width:210mm;height:297mm;overflow:hidden;
-  font-family:'Helvetica Neue',Arial,sans-serif;
-  background:#fff;color:#111827;font-size:13px;
-  -webkit-print-color-adjust:exact;print-color-adjust:exact
-}
-.page{width:210mm;height:297mm;display:flex;flex-direction:column;overflow:hidden}
-
-/* ── Header ── */
-.hdr{background:linear-gradient(135deg,#f97316,#dc2626);padding:22px 30px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
-.hdr-logo{display:flex;align-items:center;gap:12px}
-.hdr-icon{width:42px;height:42px;background:rgba(255,255,255,.22);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:#fff;letter-spacing:-.5px}
-.hdr-name{font-size:20px;font-weight:800;color:#fff;line-height:1}
-.hdr-sub{font-size:10px;color:rgba(255,255,255,.65);letter-spacing:.5px;margin-top:2px}
-.hdr-right{text-align:right}
-.hdr-badge{font-size:10px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,.75);text-transform:uppercase;margin-bottom:4px}
-.hdr-num{font-size:18px;font-weight:800;color:#fff;font-family:monospace}
-
-/* ── Body ── */
-.body{padding:22px 30px;flex:1;display:flex;flex-direction:column;gap:18px}
-
-/* ── Parties ── */
+.page{width:${W}px;height:${H}px;display:flex;flex-direction:column;background:#fff;overflow:hidden}
+.hdr{background:linear-gradient(135deg,#f97316,#dc2626);padding:26px 36px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.hdr-logo{display:flex;align-items:center;gap:14px}
+.hdr-icon{width:48px;height:48px;background:rgba(255,255,255,.22);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:#fff}
+.hdr-name{font-size:22px;font-weight:800;color:#fff;line-height:1}
+.hdr-sub{font-size:11px;color:rgba(255,255,255,.65);letter-spacing:.5px;margin-top:3px}
+.hdr-badge{font-size:10px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,.75);text-transform:uppercase;text-align:right;margin-bottom:4px}
+.hdr-num{font-size:20px;font-weight:800;color:#fff;font-family:monospace;text-align:right}
+.body{padding:28px 36px;flex:1;display:flex;flex-direction:column;gap:20px}
 .parties{display:grid;grid-template-columns:1fr 1fr;gap:20px}
-.party-box{background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:14px 16px}
-.party-label{font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#9ca3af;margin-bottom:8px}
-.party-name{font-size:14px;font-weight:700;color:#111827;margin-bottom:4px}
-.party-detail{font-size:11px;color:#6b7280;line-height:1.6}
-.date-row{display:flex;gap:20px}
-.date-item{}
-.date-item .lbl{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#9ca3af;margin-bottom:3px}
-.date-item .val{font-size:12px;font-weight:600;color:#374151}
-
-/* ── Object ── */
-.objet-box{background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:12px 16px}
-.objet-label{font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#ea580c;margin-bottom:4px}
-.objet-text{font-size:13px;color:#7c2d12;font-weight:600}
-
-/* ── Table ── */
+.party-box{background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:16px 18px}
+.party-label{font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#9ca3af;margin-bottom:10px}
+.party-name{font-size:15px;font-weight:700;color:#111827;margin-bottom:5px}
+.party-detail{font-size:12px;color:#6b7280;line-height:1.7}
+.date-row{display:flex;gap:32px}
+.lbl{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#9ca3af;margin-bottom:4px}
+.val{font-size:13px;font-weight:600;color:#374151}
+.objet-box{background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:14px 18px}
+.objet-label{font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#ea580c;margin-bottom:5px}
+.objet-text{font-size:14px;color:#7c2d12;font-weight:600}
 .tbl{width:100%;border-collapse:collapse}
 .tbl thead tr{background:#f3f4f6}
-.tbl th{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#6b7280;padding:8px 12px;text-align:left;border-bottom:2px solid #e5e7eb}
+.tbl th{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#6b7280;padding:10px 14px;text-align:left;border-bottom:2px solid #e5e7eb}
 .tbl th.r,.tbl td.r{text-align:right}
-.tbl td{padding:10px 12px;color:#374151;font-size:12px;border-bottom:1px solid #f3f4f6}
-.tbl tr:last-child td{border-bottom:none}
-.item-desc{font-weight:600;color:#111827;font-size:13px}
-.item-ref{font-size:10px;color:#9ca3af;font-family:monospace;margin-top:2px}
-
-/* ── Totals ── */
-.totals{margin-left:auto;width:260px}
-.tot-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f3f4f6;font-size:12px}
-.tot-row:last-child{border-bottom:none;padding-top:10px;margin-top:4px}
+.tbl td{padding:12px 14px;color:#374151;font-size:13px;border-bottom:1px solid #f3f4f6}
+.item-desc{font-weight:600;color:#111827;font-size:14px}
+.item-ref{font-size:11px;color:#9ca3af;font-family:monospace;margin-top:3px}
+.totals{margin-left:auto;width:280px;margin-top:14px}
+.tot-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #f3f4f6;font-size:13px}
+.tot-row:last-child{border-bottom:none;padding-top:12px;margin-top:4px}
 .tot-label{color:#6b7280}
 .tot-val{color:#374151;font-weight:600}
 .tot-tva{color:#dc2626}
-.tot-total .tot-label{color:#111827;font-weight:700;font-size:14px}
-.tot-total .tot-val{color:#f97316;font-weight:800;font-size:16px}
-
-/* ── Payment ── */
-.pay-box{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:16px}
-.pay-status{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:999px;background:#dcfce7;border:1px solid #86efac;font-size:11px;font-weight:700;color:#16a34a;letter-spacing:.5px}
-.pay-dot{width:7px;height:7px;border-radius:50%;background:#16a34a}
+.tot-total .tot-label{color:#111827;font-weight:700;font-size:15px}
+.tot-total .tot-val{color:#f97316;font-weight:800;font-size:18px}
+.pay-box{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:14px 18px;display:flex;align-items:center;gap:18px}
+.pay-status{display:inline-flex;align-items:center;gap:6px;padding:5px 14px;border-radius:999px;background:#dcfce7;border:1px solid #86efac;font-size:12px;font-weight:700;color:#16a34a;letter-spacing:.5px;white-space:nowrap}
+.pay-dot{width:8px;height:8px;border-radius:50%;background:#16a34a;display:inline-block}
 .pay-detail{flex:1}
-.pay-mode{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#6b7280;margin-bottom:3px}
-.pay-iban{font-size:12px;font-weight:600;color:#374151;font-family:monospace}
-
-/* ── Footer ── */
-.ftr{background:#f9fafb;border-top:1px solid #e5e7eb;padding:12px 30px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
-.ftr-left{font-size:10px;color:#9ca3af}
-.ftr-center{font-size:10px;color:#d1d5db;text-align:center}
-.ftr-right{font-size:10px;color:#9ca3af;text-align:right}
-
-@media print{
-  html,body{width:210mm;height:297mm}
-  .page{page-break-after:avoid;break-after:avoid}
-}
+.pay-mode{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#6b7280;margin-bottom:4px}
+.pay-iban{font-size:13px;font-weight:600;color:#374151;font-family:monospace}
+.ftr{background:#f9fafb;border-top:1px solid #e5e7eb;padding:14px 36px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.ftr-left{font-size:11px;color:#9ca3af}
+.ftr-center{font-size:11px;color:#d1d5db;text-align:center}
+.ftr-right{font-size:11px;color:#9ca3af;text-align:right}
 </style>
-</head>
-<body>
 <div class="page">
-
-  <!-- HEADER -->
   <div class="hdr">
     <div class="hdr-logo">
       <div class="hdr-icon">CS</div>
@@ -218,154 +169,86 @@ html,body{
         <div class="hdr-sub">PRO PLATFORM</div>
       </div>
     </div>
-    <div class="hdr-right">
+    <div>
       <div class="hdr-badge">Facture de payout</div>
       <div class="hdr-num">${inv.number}</div>
     </div>
   </div>
-
   <div class="body">
-
-    <!-- PARTIES -->
     <div class="parties">
       <div class="party-box">
         <div class="party-label">Émetteur</div>
         <div class="party-name">CODShip Pro Platform</div>
-        <div class="party-detail">
-          contact@codship.com<br/>
-          Plateforme de vente COD<br/>
-          N° TVA intracommunautaire : FR00000000000
-        </div>
+        <div class="party-detail">contact@codship.com<br>Plateforme de vente COD<br>N° TVA : FR00000000000</div>
       </div>
       <div class="party-box">
         <div class="party-label">Destinataire</div>
         <div class="party-name">${invoiceClientName || "—"}</div>
-        <div class="party-detail">
-          ${invoiceClientEmail || "—"}<br/>
-          Vendeur partenaire CODShip<br/>
-          Réf. client : ${inv.id.slice(-8).toUpperCase()}
-        </div>
+        <div class="party-detail">${invoiceClientEmail || "—"}<br>Vendeur partenaire CODShip<br>Réf. client : ${inv.id.slice(-8).toUpperCase()}</div>
       </div>
     </div>
-
-    <!-- DATES -->
     <div class="date-row">
-      <div class="date-item">
-        <div class="lbl">Date d'émission</div>
-        <div class="val">${dateStr}</div>
-      </div>
-      <div class="date-item">
-        <div class="lbl">Période couverte</div>
-        <div class="val">${periodStart} — ${periodEnd}</div>
-      </div>
-      <div class="date-item">
-        <div class="lbl">Statut</div>
-        <div class="val" style="color:#16a34a;font-weight:700">✓ PAYÉE</div>
-      </div>
+      <div><div class="lbl">Date d'émission</div><div class="val">${dateStr}</div></div>
+      <div><div class="lbl">Période couverte</div><div class="val">${periodStart} — ${periodEnd}</div></div>
+      <div><div class="lbl">Statut</div><div class="val" style="color:#16a34a;font-weight:700">✓ PAYÉE</div></div>
     </div>
-
-    <!-- OBJET -->
     <div class="objet-box">
       <div class="objet-label">Objet</div>
       <div class="objet-text">Payout — Revenus de ventes de produits COD traités par CODShip</div>
     </div>
-
-    <!-- TABLE -->
     <div>
       <table class="tbl">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Description</th>
-            <th class="r">Qté</th>
-            <th class="r">Prix unitaire HT</th>
-            <th class="r">Montant HT</th>
-          </tr>
-        </thead>
+        <thead><tr><th>#</th><th>Description</th><th class="r">Qté</th><th class="r">Prix HT</th><th class="r">Montant HT</th></tr></thead>
         <tbody>
           <tr>
             <td style="color:#9ca3af;font-size:11px">01</td>
-            <td>
-              <div class="item-desc">Payout — Revenus de ventes produits COD</div>
-              <div class="item-ref">Ref: ${inv.number} · Virement bancaire approuvé</div>
-            </td>
+            <td><div class="item-desc">Payout — Revenus de ventes produits COD</div><div class="item-ref">Ref: ${inv.number} · Virement bancaire approuvé</div></td>
             <td class="r">1</td>
             <td class="r">${f(amtHT)} €</td>
             <td class="r" style="font-weight:700;color:#111827">${f(amtHT)} €</td>
           </tr>
         </tbody>
       </table>
-
-      <!-- TOTALS -->
-      <div style="display:flex;justify-content:flex-end;margin-top:12px">
+      <div style="display:flex;justify-content:flex-end">
         <div class="totals">
-          <div class="tot-row">
-            <span class="tot-label">Sous-total HT</span>
-            <span class="tot-val">${f(amtHT)} €</span>
-          </div>
-          <div class="tot-row">
-            <span class="tot-label tot-tva">TVA 20 %</span>
-            <span class="tot-val tot-tva">${f(amtTVA)} €</span>
-          </div>
-          <div class="tot-row tot-total">
-            <span class="tot-label">Total TTC</span>
-            <span class="tot-val">${f(amtTTC)} €</span>
-          </div>
+          <div class="tot-row"><span class="tot-label">Sous-total HT</span><span class="tot-val">${f(amtHT)} €</span></div>
+          <div class="tot-row"><span class="tot-label tot-tva">TVA 20 %</span><span class="tot-val tot-tva">${f(amtTVA)} €</span></div>
+          <div class="tot-row tot-total"><span class="tot-label">Total TTC</span><span class="tot-val">${f(amtTTC)} €</span></div>
         </div>
       </div>
     </div>
-
-    <!-- PAYMENT -->
     <div class="pay-box">
-      <div>
-        <span class="pay-status"><span class="pay-dot"></span>PAIEMENT EFFECTUÉ</span>
-      </div>
+      <span class="pay-status"><span class="pay-dot"></span>PAIEMENT EFFECTUÉ</span>
       <div class="pay-detail">
-        <div class="pay-mode">Mode de règlement — Virement bancaire SEPA</div>
+        <div class="pay-mode">Virement bancaire SEPA</div>
         <div class="pay-iban">IBAN : ${ibanMasked}</div>
       </div>
-      <div style="text-align:right;font-size:11px;color:#6b7280">
+      <div style="text-align:right">
         <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:#9ca3af;margin-bottom:2px">Montant versé</div>
-        <div style="font-size:16px;font-weight:800;color:#f97316">${f(amtTTC)} €</div>
+        <div style="font-size:18px;font-weight:800;color:#f97316">${f(amtTTC)} €</div>
       </div>
     </div>
-
   </div>
-
-  <!-- FOOTER -->
   <div class="ftr">
     <div class="ftr-left">© ${today.getFullYear()} CODShip Pro Platform · Tous droits réservés</div>
     <div class="ftr-center">Document officiel — Ne pas modifier</div>
     <div class="ftr-right">Généré le ${dateStr}</div>
   </div>
+</div>`
 
-</div>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script>
-window.onload = async function() {
+  document.body.appendChild(container)
   try {
-    var page = document.querySelector('.page');
-    var canvas = await html2canvas(page, { scale:3, useCORS:true, logging:false, backgroundColor:'#ffffff' });
-    var pdf = new window.jspdf.jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
-    pdf.addImage(canvas.toDataURL('image/jpeg',1.0), 'JPEG', 0, 0, 210, 297);
-    pdf.save('${inv.number}.pdf');
-    setTimeout(function(){ window.close(); }, 800);
-  } catch(e) {
-    document.body.innerHTML = '<div style="padding:40px;font-family:sans-serif;text-align:center"><p style="color:red">Erreur: '+e+'</p><button onclick="window.print()">Imprimer à la place</button></div>';
+    const html2canvas = (await import("html2canvas")).default
+    const { jsPDF }   = await import("jspdf")
+    const canvas = await html2canvas(container.querySelector(".page") as HTMLElement, {
+      scale: 2, useCORS: true, logging: false, backgroundColor: "#ffffff", width: W, height: H,
+    })
+    const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" })
+    pdf.addImage(canvas.toDataURL("image/jpeg", 0.98), "JPEG", 0, 0, 210, 297)
+    pdf.save(`${inv.number}.pdf`)
+  } finally {
+    document.body.removeChild(container)
   }
-};
-</script>
-</body>
-</html>`
-
-  // Open in new window — auto-downloads PDF via html2canvas+jsPDF, then closes
-  const win = window.open("about:blank", "_blank")
-  if (!win) return
-  win.document.open()
-  win.document.write(html)
-  win.document.close()
 }
 
 const INVOICES: Invoice[] = [
@@ -950,9 +833,9 @@ export default function WalletPage() {
                         <td className="py-4">
                           <div className="flex items-center gap-1">
                             <Button variant="ghost" size="icon" className="text-neutral-400 hover:text-white h-8 w-8" title="Aperçu"><Eye className="w-4 h-4" /></Button>
-                            <Button variant="ghost" size="icon" className="text-neutral-400 hover:text-orange-400 h-8 w-8" title="Télécharger" onClick={() => {
+                            <Button variant="ghost" size="icon" className="text-neutral-400 hover:text-orange-400 h-8 w-8" title="Télécharger" onClick={async () => {
                               const w = withdrawals.find(w => w.id === inv.id)
-                              downloadInvoice(inv, w ? [w] : withdrawals, clientName, clientEmail)
+                              await downloadInvoice(inv, w ? [w] : withdrawals, clientName, clientEmail)
                             }}><Download className="w-4 h-4" /></Button>
                           </div>
                         </td>
