@@ -1,6 +1,26 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getSupabaseAdmin } from "@/lib/supabase"
 import { fetchShopifyProducts, extractPricing } from "@/lib/shopify"
+import crypto from "crypto"
+
+async function registerWebhookWithUrl(shop: string, accessToken: string, topic: string, appUrl: string) {
+  const API_VERSION = "2025-01"
+  const API_KEY     = process.env.SHOPIFY_API_KEY ?? "e8be12f3fba0f60638139a6e62d956ea"
+  await fetch(`https://${shop}/admin/api/${API_VERSION}/webhooks.json`, {
+    method:  "POST",
+    headers: {
+      "X-Shopify-Access-Token": accessToken,
+      "Content-Type":           "application/json",
+    },
+    body: JSON.stringify({
+      webhook: {
+        topic,
+        address: `${appUrl}/api/webhooks/shopify/products`,
+        format:  "json",
+      },
+    }),
+  })
+}
 
 export async function POST(req: NextRequest) {
   const clientId = req.cookies.get("client_id")?.value
@@ -12,7 +32,6 @@ export async function POST(req: NextRequest) {
   const sb = getSupabaseAdmin()
   if (!sb) return NextResponse.json({ error: "DB non configurée" }, { status: 500 })
 
-  // Vérifies que le store appartient bien au client
   const { data: store } = await sb
     .from("stores")
     .select("id, domain, access_token")
@@ -50,6 +69,14 @@ export async function POST(req: NextRequest) {
     .from("stores")
     .update({ last_sync: new Date().toISOString() })
     .eq("id", storeId)
+
+  // Re-register webhooks using the current server URL so auto-sync works
+  const origin = new URL(req.url).origin
+  await Promise.allSettled([
+    registerWebhookWithUrl(store.domain, store.access_token, "products/create", origin),
+    registerWebhookWithUrl(store.domain, store.access_token, "products/update", origin),
+    registerWebhookWithUrl(store.domain, store.access_token, "products/delete", origin),
+  ])
 
   return NextResponse.json({ synced: rows.length })
 }
