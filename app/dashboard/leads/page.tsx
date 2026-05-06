@@ -49,7 +49,7 @@ function StatusBadge({ status }: { status: LeadStatus }) {
 }
 
 function initials(name: string) {
-  return name.split(" ").slice(0, 2).map(w => w[0]).join("").toUpperCase()
+  return name.split(" ").slice(0, 2).map(w => w[0] ?? "").join("").toUpperCase() || "?"
 }
 
 const AVATAR_COLORS = [
@@ -98,9 +98,9 @@ export default function LeadsPage() {
   /* filtered */
   const filtered = useMemo(() => {
     return leads.filter(l => {
-      const matchSearch  = l.name.toLowerCase().includes(search.toLowerCase()) ||
-                           l.phone.includes(search) ||
-                           l.product.toLowerCase().includes(search.toLowerCase())
+      const matchSearch  = (l.name ?? "").toLowerCase().includes(search.toLowerCase()) ||
+                           (l.phone ?? "").includes(search) ||
+                           (l.product ?? "").toLowerCase().includes(search.toLowerCase())
       const matchStatus  = statusFilter === "ALL" || l.status === statusFilter
       const matchCountry = countryFilter === "ALL" || l.countryCode === countryFilter
       return matchSearch && matchStatus && matchCountry
