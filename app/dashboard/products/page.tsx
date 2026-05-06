@@ -86,7 +86,7 @@ export default function ProductsPage() {
   }, [storeId, load])
 
   const filtered = products.filter(p =>
-    p.title.toLowerCase().includes(search.toLowerCase())
+    (p.title ?? "").toLowerCase().includes(search.toLowerCase())
   )
 
   // ── Loading ──────────────────────────────────────────────────────────────
