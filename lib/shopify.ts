@@ -47,7 +47,7 @@ export function verifyOAuthCallback(query: URLSearchParams): boolean {
 export async function fetchShopifyProducts(shop: string, accessToken: string) {
   const allProducts: ShopifyProduct[] = []
   let url: string | null =
-    `https://${shop}/admin/api/${API_VERSION}/products.json?limit=250&fields=id,title,images,variants`
+    `https://${shop}/admin/api/${API_VERSION}/products.json?limit=250&published_status=any&fields=id,title,images,variants`
 
   while (url) {
     const res = await fetch(url, {

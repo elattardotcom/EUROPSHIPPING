@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getSupabaseAdmin } from "@/lib/supabase"
 import { fetchShopifyProducts, extractPricing } from "@/lib/shopify"
-import crypto from "crypto"
+
+const SHOPIFY_API_VERSION = "2025-01"
 
 async function registerWebhookWithUrl(shop: string, accessToken: string, topic: string, appUrl: string) {
-  const API_VERSION = "2025-01"
-  const API_KEY     = process.env.SHOPIFY_API_KEY ?? "e8be12f3fba0f60638139a6e62d956ea"
-  await fetch(`https://${shop}/admin/api/${API_VERSION}/webhooks.json`, {
+  await fetch(`https://${shop}/admin/api/${SHOPIFY_API_VERSION}/webhooks.json`, {
     method:  "POST",
     headers: {
       "X-Shopify-Access-Token": accessToken,
