@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react"
 import Link from "next/link"
-import { Search, RefreshCw, ShoppingBag, Plus, Loader2, Package } from "lucide-react"
+import { Search, RefreshCw, ShoppingBag, Plus, Loader2, Package, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ProductCard } from "@/components/shopify/ProductCard"
 
@@ -23,52 +23,48 @@ interface Product {
 export default function ProductsPage() {
   const [products,  setProducts]  = useState<Product[]>([])
   const [search,    setSearch]    = useState("")
-  const [loading,   setLoading]   = useState(true)
+  const [status,    setStatus]    = useState<"loading" | "ready" | "notauth" | "nostore">("loading")
   const [syncing,   setSyncing]   = useState(false)
-  const [storeId,   setStoreId]   = useState<string | null>(null)
-  const [notAuth,   setNotAuth]   = useState(false)
-  const [noStore,   setNoStore]   = useState(false)
   const [syncError, setSyncError] = useState("")
+  const [storeId,   setStoreId]   = useState<string | null>(null)
+  const [storeName, setStoreName] = useState("")
 
-  const loadProducts = useCallback(async () => {
-    setLoading(true)
+  const load = useCallback(async () => {
+    setStatus("loading")
     setSyncError("")
     try {
-      const res  = await fetch("/api/client/products")
-      if (res.status === 401) { setNotAuth(true); return }
+      const res = await fetch("/api/client/products")
+      if (res.status === 401) { setStatus("notauth"); return }
+
       const data = await res.json()
-      if (!Array.isArray(data)) { setNoStore(true); return }
-      const list: Product[] = data
-      setProducts(list)
-      if (list.length > 0) {
-        setStoreId(list[0].storeId)
-        setNoStore(false)
+
+      if (!data.hasStore) { setStatus("nostore"); return }
+
+      // Store is connected
+      if (data.stores?.[0]) {
+        setStoreId(data.stores[0].id)
+        setStoreName(data.stores[0].name)
       }
+
+      setProducts(data.products ?? [])
+      setStatus("ready")
     } catch {
-      setSyncError("Erreur de chargement. Veuillez réessayer.")
-    } finally {
-      setLoading(false)
+      setSyncError("Erreur réseau. Veuillez réessayer.")
+      setStatus("ready")
     }
   }, [])
 
-  // Check if stores are connected even when no products yet
-  const checkStore = useCallback(async () => {
-    try {
-      const res = await fetch("/api/stores")
-      if (!res.ok) return
-      const stores = await res.json()
-      if (Array.isArray(stores) && stores.length > 0) {
-        setStoreId(stores[0].id)
-        setNoStore(false)
-      } else {
-        setNoStore(true)
-      }
-    } catch { /* ignore */ }
-  }, [])
+  useEffect(() => { load() }, [load])
 
-  useEffect(() => { loadProducts() }, [loadProducts])
+  // Auto-sync when store is connected but no products in DB yet
+  useEffect(() => {
+    if (status === "ready" && products.length === 0 && storeId && !syncing) {
+      handleSync()
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, storeId])
 
-  const handleSync = async () => {
+  const handleSync = useCallback(async () => {
     if (!storeId) return
     setSyncing(true)
     setSyncError("")
@@ -85,29 +81,33 @@ export default function ProductsPage() {
     } catch {
       setSyncError("Erreur réseau. Veuillez réessayer.")
     }
-    await loadProducts()
+    await load()
     setSyncing(false)
-  }
+  }, [storeId, load])
 
   const filtered = products.filter(p =>
     p.title.toLowerCase().includes(search.toLowerCase())
   )
 
-  if (loading) {
+  // ── Loading ──────────────────────────────────────────────────────────────
+  if (status === "loading" || (status === "ready" && products.length === 0 && storeId && syncing)) {
     return (
       <div className="flex flex-col items-center justify-center h-64 gap-3">
         <Loader2 className="w-6 h-6 text-orange-500 animate-spin" />
-        <p className="text-neutral-500 text-sm">Chargement des produits…</p>
+        <p className="text-neutral-500 text-sm">
+          {syncing ? "Synchronisation avec Shopify…" : "Chargement des produits…"}
+        </p>
       </div>
     )
   }
 
-  if (notAuth) {
+  // ── Not authenticated ────────────────────────────────────────────────────
+  if (status === "notauth") {
     return (
       <div className="p-6 flex flex-col items-center justify-center py-32 text-center">
         <ShoppingBag className="w-12 h-12 text-neutral-700 mb-4" />
         <h2 className="text-xl font-bold text-white mb-2">Session expirée</h2>
-        <p className="text-neutral-500 text-sm mb-6">Veuillez vous reconnecter pour voir vos produits.</p>
+        <p className="text-neutral-500 text-sm mb-6">Veuillez vous reconnecter.</p>
         <Link href="/login">
           <Button className="bg-orange-500 hover:bg-orange-600 text-white">Se connecter</Button>
         </Link>
@@ -115,35 +115,8 @@ export default function ProductsPage() {
     )
   }
 
-  if (products.length === 0) {
-    const hasStore = !!storeId
-
-    // If we have a store but no products yet, show sync option
-    if (hasStore) {
-      return (
-        <div className="p-6 flex flex-col items-center justify-center py-32 text-center">
-          <div className="w-20 h-20 rounded-2xl bg-orange-500/10 flex items-center justify-center mb-5">
-            <RefreshCw className={`w-10 h-10 text-orange-500 ${syncing ? "animate-spin" : ""}`} />
-          </div>
-          <h2 className="text-xl font-bold text-white mb-2">Boutique connectée</h2>
-          <p className="text-neutral-500 text-sm max-w-sm mb-2">
-            Votre boutique Shopify est liée mais aucun produit n'a encore été synchronisé.
-          </p>
-          {syncError && <p className="text-red-400 text-xs mb-4">{syncError}</p>}
-          <Button
-            onClick={handleSync}
-            disabled={syncing}
-            className="bg-orange-500 hover:bg-orange-600 text-white mt-4"
-          >
-            {syncing
-              ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Synchronisation…</>
-              : <><RefreshCw className="w-4 h-4 mr-2" />Synchroniser les produits</>
-            }
-          </Button>
-        </div>
-      )
-    }
-
+  // ── No store connected ───────────────────────────────────────────────────
+  if (status === "nostore") {
     return (
       <div className="p-6 flex flex-col items-center justify-center py-32 text-center">
         <div className="w-20 h-20 rounded-2xl bg-orange-500/10 flex items-center justify-center mb-5">
@@ -162,13 +135,45 @@ export default function ProductsPage() {
     )
   }
 
+  // ── Store connected but sync failed / no products yet ───────────────────
+  if (products.length === 0) {
+    return (
+      <div className="p-6 flex flex-col items-center justify-center py-32 text-center">
+        <div className="w-20 h-20 rounded-2xl bg-red-500/10 flex items-center justify-center mb-5">
+          <AlertCircle className="w-10 h-10 text-red-400" />
+        </div>
+        <h2 className="text-xl font-bold text-white mb-2">Synchronisation échouée</h2>
+        <p className="text-neutral-500 text-sm max-w-sm mb-2">
+          Votre boutique <span className="text-white">{storeName}</span> est connectée mais la synchronisation a échoué.
+        </p>
+        {syncError && (
+          <p className="text-red-400 text-xs max-w-xs mb-4 font-mono">{syncError}</p>
+        )}
+        <div className="flex gap-3 mt-4">
+          <Button onClick={handleSync} disabled={syncing} className="bg-orange-500 hover:bg-orange-600 text-white">
+            {syncing
+              ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Synchronisation…</>
+              : <><RefreshCw className="w-4 h-4 mr-2" />Réessayer</>
+            }
+          </Button>
+          <Link href="/dashboard/stores">
+            <Button variant="ghost" className="border border-neutral-700 text-neutral-400 hover:text-white">
+              Reconnecter Shopify
+            </Button>
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
+  // ── Products list ────────────────────────────────────────────────────────
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-bold text-white">Produits</h1>
           <p className="text-sm text-neutral-500 mt-0.5">
-            {products[0]?.storeName} · {products.length} produit{products.length !== 1 ? "s" : ""}
+            {storeName || products[0]?.storeName} · {products.length} produit{products.length !== 1 ? "s" : ""}
           </p>
         </div>
         <div className="flex gap-2">
@@ -188,7 +193,8 @@ export default function ProductsPage() {
       </div>
 
       {syncError && (
-        <div className="px-4 py-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+        <div className="px-4 py-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex items-center gap-2">
+          <AlertCircle className="w-4 h-4 flex-shrink-0" />
           {syncError}
         </div>
       )}
