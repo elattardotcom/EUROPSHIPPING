@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getSupabase } from "@/lib/supabase"
-import { ALL_LEADS }   from "@/lib/mock-data"
+import { getSupabaseAdmin } from "@/lib/supabase"
+import { ALL_LEADS }        from "@/lib/mock-data"
 
 export async function GET(req: NextRequest) {
   const clientId = req.cookies.get("client_id")?.value
@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
   // Demo client always gets mock data
   if (clientId === "c1") return NextResponse.json(ALL_LEADS)
 
-  const sb = getSupabase()
+  const sb = getSupabaseAdmin()
   if (!sb) return NextResponse.json([])
 
   try {
@@ -32,6 +32,7 @@ export async function GET(req: NextRequest) {
         product:     r.product        ?? "",
         orderValue:  r.value          ?? 0,
         status:      r.status,
+        currency:    r.currency        ?? "EUR",
         store:       r.store          ?? "",
         attempts:    r.attempts       ?? 0,
         createdAt:   dt ? dt.toLocaleDateString("fr-FR") : "",
