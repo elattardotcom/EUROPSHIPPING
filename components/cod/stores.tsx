@@ -184,6 +184,7 @@ export default function StoresPage() {
   const [loadingReal,    setLoadingReal]    = useState(true)
   const [showForm,       setShowForm]       = useState(false)
   const [disconnecting,  setDisconnecting]  = useState<string | null>(null)
+  const [syncing,        setSyncing]        = useState<string | null>(null)
 
   const isDemo = clientId === "c1"
 
@@ -201,6 +202,18 @@ export default function StoresPage() {
       .then(d => { setRealStores(Array.isArray(d) ? d : []); setLoadingReal(false) })
       .catch(() => setLoadingReal(false))
   }, [isDemo])
+
+  async function syncStore(storeId: string) {
+    setSyncing(storeId)
+    try {
+      await fetch("/api/shopify/sync-store", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ storeId }),
+      })
+    } catch {}
+    setSyncing(null)
+  }
 
   async function disconnectStore(storeId: string) {
     if (!confirm("Déconnecter cette boutique ? Les produits associés seront supprimés.")) return
@@ -296,6 +309,18 @@ export default function StoresPage() {
                         Voir les produits <ArrowRight className="w-3 h-3" />
                       </a>
                     </div>
+                    <button
+                      onClick={() => syncStore(s.id)}
+                      disabled={syncing === s.id}
+                      title="Synchroniser"
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-blue-400 border border-blue-500/20 bg-blue-500/5 hover:bg-blue-500/15 transition-colors disabled:opacity-50"
+                    >
+                      {syncing === s.id
+                        ? <Loader2 className="w-3 h-3 animate-spin" />
+                        : <RefreshCw className="w-3 h-3" />
+                      }
+                      Synchroniser
+                    </button>
                     <button
                       onClick={() => disconnectStore(s.id)}
                       disabled={disconnecting === s.id}

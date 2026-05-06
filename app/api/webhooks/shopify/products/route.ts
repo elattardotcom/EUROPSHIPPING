@@ -44,6 +44,8 @@ export async function POST(req: Request) {
   }
 
   // products/create ou products/update : upsert
+  if (!product.title) return NextResponse.json({ ok: true }) // ignore produit sans titre
+
   const { price, currency } = extractPricing(product)
 
   await sb.from("products").upsert({
