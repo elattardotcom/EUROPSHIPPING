@@ -74,6 +74,7 @@ export async function POST(req: NextRequest) {
     registerWebhookWithUrl(store.domain, store.access_token, "products/create", origin),
     registerWebhookWithUrl(store.domain, store.access_token, "products/update", origin),
     registerWebhookWithUrl(store.domain, store.access_token, "products/delete", origin),
+    registerWebhookWithUrl(store.domain, store.access_token, "orders/create",   origin),
   ])
 
   return NextResponse.json({ synced: rows.length })

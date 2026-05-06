@@ -73,14 +73,15 @@ export async function GET(req: Request) {
   }
 
   // Enregistre les webhooks pour la sync automatique
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://europs-shipping.vercel.app"
   await Promise.allSettled([
     registerWebhook(shop, accessToken, "products/create"),
     registerWebhook(shop, accessToken, "products/update"),
     registerWebhook(shop, accessToken, "products/delete"),
+    registerWebhook(shop, accessToken, "orders/create"),
   ])
 
   // Déclenche la sync initiale des produits
-  const appUrl = "https://europs-shipping.vercel.app"
   fetch(`${appUrl}/api/shopify/sync`, {
     method:  "POST",
     headers: { "Content-Type": "application/json" },
