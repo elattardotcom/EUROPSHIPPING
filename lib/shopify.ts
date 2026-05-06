@@ -69,7 +69,8 @@ export async function fetchShopifyProducts(shop: string, accessToken: string) {
 
 /** Enregistre un webhook Shopify */
 export async function registerWebhook(shop: string, accessToken: string, topic: string) {
-  const address = `${process.env.NEXT_PUBLIC_APP_URL}/api/webhooks/shopify/products`
+  const path    = topic.startsWith("orders/") ? "orders" : "products"
+  const address = `${process.env.NEXT_PUBLIC_APP_URL}/api/webhooks/shopify/${path}`
   await fetch(`https://${shop}/admin/api/${API_VERSION}/webhooks.json`, {
     method:  "POST",
     headers: {
