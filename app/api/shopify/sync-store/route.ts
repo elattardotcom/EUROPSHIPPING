@@ -5,6 +5,7 @@ import { fetchShopifyProducts, extractPricing } from "@/lib/shopify"
 const SHOPIFY_API_VERSION = "2025-01"
 
 async function registerWebhookWithUrl(shop: string, accessToken: string, topic: string, appUrl: string) {
+  const path = topic.startsWith("orders/") ? "orders" : "products"
   await fetch(`https://${shop}/admin/api/${SHOPIFY_API_VERSION}/webhooks.json`, {
     method:  "POST",
     headers: {
@@ -14,7 +15,7 @@ async function registerWebhookWithUrl(shop: string, accessToken: string, topic: 
     body: JSON.stringify({
       webhook: {
         topic,
-        address: `${appUrl}/api/webhooks/shopify/products`,
+        address: `${appUrl}/api/webhooks/shopify/${path}`,
         format:  "json",
       },
     }),
