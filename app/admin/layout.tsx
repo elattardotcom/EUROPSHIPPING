@@ -5,7 +5,7 @@ import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import {
   Shield, LayoutDashboard, Users, ShoppingCart, UserCheck,
-  BarChart3, LogOut, ChevronRight, Bell, Store, ArrowDownLeft, Settings,
+  BarChart3, LogOut, ChevronRight, Bell, Store, ArrowDownLeft, Settings, Radio,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
@@ -24,7 +24,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         .then(d => setCounts(d))
         .catch(() => {})
     load()
-    const t = setInterval(load, 30_000)
+    const t = setInterval(load, 5_000)
     return () => clearInterval(t)
   }, [])
 
@@ -41,8 +41,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const NAV = [
     { href: "/admin",              icon: LayoutDashboard, label: "Vue d'ensemble", badge: 0 },
     { href: "/admin/clients",      icon: Users,           label: "Clients",        badge: counts.clients },
-    { href: "/admin/orders",       icon: ShoppingCart,    label: "Commandes",      badge: counts.orders },
     { href: "/admin/leads",        icon: UserCheck,       label: "Leads",          badge: counts.leads },
+    { href: "/admin/orders",       icon: ShoppingCart,    label: "Commandes",      badge: counts.orders },
+    { href: "/admin/stores",       icon: Store,           label: "Boutiques",      badge: 0 },
     { href: "/admin/withdrawals",  icon: ArrowDownLeft,   label: "Retraits",       badge: counts.withdrawals },
     { href: "/admin/analytics",    icon: BarChart3,       label: "Analytiques",    badge: 0 },
   ]
@@ -137,6 +138,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </span>
           </div>
           <div className="flex items-center gap-3">
+            <span className="hidden sm:flex items-center gap-1.5 text-xs text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-full">
+              <Radio className="w-3 h-3 animate-pulse" />Live
+            </span>
             <Button variant="ghost" size="icon" className="relative text-neutral-500 hover:text-white hover:bg-neutral-800">
               <Bell className="w-5 h-5" />
               {(counts.orders + counts.withdrawals) > 0 && (

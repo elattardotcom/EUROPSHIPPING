@@ -200,20 +200,47 @@ const mapWithdrawal = (r: any): Withdrawal => ({
 
 /* ── Clients ────────────────────────────────────────────────────────────── */
 
+const PLAN_PRICE: Record<string, number> = { starter: 29, pro: 59, enterprise: 89 }
+const AVATAR_COLORS = [
+  "from-orange-500 to-red-600", "from-teal-500 to-emerald-600",
+  "from-blue-500 to-cyan-600",  "from-purple-500 to-violet-600",
+  "from-pink-500 to-rose-600",
+]
+
 export async function getClients(): Promise<Client[]> {
   const sb = getSupabaseAdmin()
-  if (!sb) {
-    const file = readClients()
-    return file.length > 0 ? file : [MOCK_CLIENT]
-  }
-  const { data, error } = await sb.from("clients").select("*")
-  if (error) {
-    console.error("getClients error:", error.message)
-    const file = readClients()
-    return file.length > 0 ? file : [MOCK_CLIENT]
-  }
-  const result = (data ?? []).map(mapClient)
-  return result.length > 0 ? result : [MOCK_CLIENT]
+  if (!sb) return []
+  try {
+    const [clientsRes, ordersRes, leadsRes, storesRes] = await Promise.all([
+      sb.from("clients").select("*"),
+      sb.from("orders").select("client_id"),
+      sb.from("leads").select("client_id"),
+      sb.from("stores").select("client_id"),
+    ])
+    const orders = ordersRes.data ?? []
+    const leads  = leadsRes.data  ?? []
+    const stores = storesRes.data ?? []
+    return (clientsRes.data ?? []).map((r, i) => ({
+      id:             r.id,
+      firstName:      r.first_name  ?? "",
+      lastName:       r.last_name   ?? "",
+      email:          r.email       ?? "",
+      phone:          r.phone       ?? "",
+      company:        r.company     ?? "",
+      country:        r.country     ?? "",
+      countryCode:    r.country_code ?? "",
+      plan:           r.plan        ?? "starter",
+      status:         r.status      ?? "active",
+      joinedAt:       r.created_at  ?? r.joined_at ?? "",
+      monthlyRevenue: PLAN_PRICE[r.plan ?? "starter"] ?? 29,
+      totalRevenue:   PLAN_PRICE[r.plan ?? "starter"] ?? 29,
+      storesCount:    stores.filter(s => s.client_id === r.id).length,
+      ordersCount:    orders.filter(o => o.client_id === r.id).length,
+      leadsCount:     leads.filter(l  => l.client_id === r.id).length,
+      lastActive:     r.last_active ?? "",
+      avatarColor:    AVATAR_COLORS[i % AVATAR_COLORS.length],
+    }))
+  } catch { return [] }
 }
 
 export async function getClientById(id: string): Promise<Client | null> {
