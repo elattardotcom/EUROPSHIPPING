@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useMemo, useEffect, useCallback } from "react"
-import { Search, ChevronDown, ChevronLeft, ChevronRight, CheckCircle, Clock, Truck, XCircle, AlertCircle, ShoppingCart, RefreshCw } from "lucide-react"
+import { Search, ChevronDown, ChevronLeft, ChevronRight, CheckCircle, Clock, Truck, XCircle, AlertCircle, ShoppingCart, RefreshCw, Radio } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import type { AdminOrder, OrderStatus } from "@/lib/db"
 
@@ -23,16 +23,18 @@ export default function AdminOrders() {
   const [search,  setSearch]  = useState("")
   const [statF,   setStat]    = useState<OrderStatus | "ALL">("ALL")
   const [page,    setPage]    = useState(1)
+  const [live,    setLive]    = useState(false)
 
   const load = useCallback(async () => {
     const d = await fetch("/api/admin/orders").then(r => r.json()).catch(() => [])
     setOrders(Array.isArray(d) ? d : [])
     setLoading(false)
+    setLive(true)
   }, [])
 
   useEffect(() => {
     load()
-    const t = setInterval(load, 30_000)
+    const t = setInterval(load, 5_000)
     return () => clearInterval(t)
   }, [load])
 
@@ -55,10 +57,18 @@ export default function AdminOrders() {
           <h1 className="text-2xl font-bold text-white">Commandes globales</h1>
           <p className="text-sm text-neutral-500 mt-0.5">Toutes les commandes de tous les clients</p>
         </div>
-        <button onClick={load}
-          className="flex items-center gap-2 px-3 py-2 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-neutral-400 hover:text-white text-sm transition-colors">
-          <RefreshCw className="w-3.5 h-3.5" />Actualiser
-        </button>
+        <div className="flex items-center gap-3">
+          {live && (
+            <span className="flex items-center gap-1.5 text-xs text-emerald-400">
+              <Radio className="w-3 h-3 animate-pulse" />
+              Live
+            </span>
+          )}
+          <button onClick={load}
+            className="flex items-center gap-2 px-3 py-2 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-neutral-400 hover:text-white text-sm transition-colors">
+            <RefreshCw className="w-3.5 h-3.5" />Actualiser
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">

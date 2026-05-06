@@ -236,12 +236,11 @@ export async function getClientById(id: string): Promise<Client | null> {
 
 export async function getAllOrders(): Promise<AdminOrder[]> {
   try {
-    const sb = getSupabaseAdmin(); if (!sb) return MOCK_ADMIN_ORDERS
+    const sb = getSupabaseAdmin(); if (!sb) return []
     const { data, error } = await sb.from("orders").select("*").order("created_at", { ascending: false })
     if (error) throw error
-    const result = (data ?? []).map(mapOrder)
-    return result.length > 0 ? result : MOCK_ADMIN_ORDERS
-  } catch { return MOCK_ADMIN_ORDERS }
+    return (data ?? []).map(mapOrder)
+  } catch { return [] }
 }
 
 export async function getClientOrders(clientId: string): Promise<AdminOrder[]> {
@@ -257,12 +256,11 @@ export async function getClientOrders(clientId: string): Promise<AdminOrder[]> {
 
 export async function getAllLeads(): Promise<AdminLead[]> {
   try {
-    const sb = getSupabaseAdmin(); if (!sb) return MOCK_ADMIN_LEADS
+    const sb = getSupabaseAdmin(); if (!sb) return []
     const { data, error } = await sb.from("leads").select("*").order("created_at", { ascending: false })
     if (error) throw error
-    const result = (data ?? []).map(mapLead)
-    return result.length > 0 ? result : MOCK_ADMIN_LEADS
-  } catch { return MOCK_ADMIN_LEADS }
+    return (data ?? []).map(mapLead)
+  } catch { return [] }
 }
 
 export async function getClientLeads(clientId: string): Promise<AdminLead[]> {
