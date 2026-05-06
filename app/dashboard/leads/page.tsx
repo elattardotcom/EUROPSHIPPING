@@ -1,12 +1,11 @@
 "use client"
 
-import { useState, useMemo, useEffect } from "react"
+import { useState, useMemo, useEffect, useCallback } from "react"
 import {
   Search,
   Download,
   ChevronLeft,
   ChevronRight,
-  MoreHorizontal,
   CheckCircle,
   Clock,
   Phone,
@@ -18,6 +17,9 @@ import {
   PhoneMissed,
   RefreshCw,
   ChevronDown,
+  Check,
+  PhoneOff,
+  Ban,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { exportToCSV } from "@/lib/mock-data"
@@ -70,6 +72,21 @@ export default function LeadsPage() {
   const [selected, setSelected]     = useState<string[]>([])
   const [leads, setLeads]           = useState<Lead[]>([])
   const [loading, setLoading]       = useState(true)
+  const [updating, setUpdating]     = useState<string | null>(null)
+
+  const updateStatus = useCallback(async (leadId: string, status: string) => {
+    setUpdating(leadId)
+    try {
+      await fetch(`/api/client/leads/${leadId}`, {
+        method:  "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ status }),
+      })
+      setLeads(prev => prev.map(l => l.id === leadId ? { ...l, status: status as LeadStatus, attempts: status === "UNREACHED" ? (l.attempts ?? 0) + 1 : l.attempts } : l))
+    } finally {
+      setUpdating(null)
+    }
+  }, [])
 
   useEffect(() => {
     fetch("/api/client/leads")
@@ -397,9 +414,38 @@ export default function LeadsPage() {
 
                       {/* Actions */}
                       <td className="p-4">
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-neutral-500 hover:text-white">
-                          <MoreHorizontal className="w-4 h-4" />
-                        </Button>
+                        {lead.status === "CONFIRMED" ? (
+                          <span className="text-xs text-emerald-400 font-medium">✓ Confirmé</span>
+                        ) : lead.status === "CANCELED" ? (
+                          <span className="text-xs text-neutral-500">Annulé</span>
+                        ) : (
+                          <div className="flex items-center gap-1">
+                            <button
+                              onClick={() => updateStatus(lead.id, "CONFIRMED")}
+                              disabled={updating === lead.id}
+                              title="Confirmer"
+                              className="h-7 w-7 rounded-md bg-emerald-500/10 flex items-center justify-center text-emerald-400 hover:bg-emerald-500/20 transition-colors disabled:opacity-40"
+                            >
+                              <Check className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={() => updateStatus(lead.id, "UNREACHED")}
+                              disabled={updating === lead.id}
+                              title="Non joignable"
+                              className="h-7 w-7 rounded-md bg-blue-500/10 flex items-center justify-center text-blue-400 hover:bg-blue-500/20 transition-colors disabled:opacity-40"
+                            >
+                              <PhoneOff className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={() => updateStatus(lead.id, "CANCELED")}
+                              disabled={updating === lead.id}
+                              title="Annuler"
+                              className="h-7 w-7 rounded-md bg-red-500/10 flex items-center justify-center text-red-400 hover:bg-red-500/20 transition-colors disabled:opacity-40"
+                            >
+                              <Ban className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        )}
                       </td>
                     </tr>
                   )

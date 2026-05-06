@@ -28,15 +28,13 @@ export async function POST(req: Request) {
 
   const firstName    = order.customer?.first_name ?? ""
   const lastName     = order.customer?.last_name  ?? ""
-  const customerName = `${firstName} ${lastName}`.trim() || order.billing_address?.name  || "Client"
+  const customerName = `${firstName} ${lastName}`.trim() || order.billing_address?.name || "Client"
   const phone        = order.customer?.phone ?? order.billing_address?.phone ?? order.shipping_address?.phone ?? ""
   const country      = order.billing_address?.country      ?? order.shipping_address?.country      ?? ""
   const countryCode  = order.billing_address?.country_code ?? order.shipping_address?.country_code ?? ""
   const product      = order.line_items?.[0]?.title ?? "Produit"
   const value        = parseFloat(order.total_price ?? "0")
-
-  // Use Shopify order ID as primary key to prevent duplicates
-  const orderId = `shopify_${order.id}`
+  const leadId       = `shopify_${order.id}`
 
   const { data: client } = await sb
     .from("clients")
@@ -46,8 +44,9 @@ export async function POST(req: Request) {
 
   const clientName = client ? `${client.first_name} ${client.last_name}`.trim() : ""
 
-  await sb.from("orders").upsert({
-    id:             orderId,
+  // Insert as lead — confirmation moves it to orders
+  await sb.from("leads").upsert({
+    id:             leadId,
     client_id:      store.client_id,
     client_name:    clientName,
     customer_name:  customerName,
@@ -59,6 +58,7 @@ export async function POST(req: Request) {
     currency:       order.currency ?? "EUR",
     status:         "PENDING",
     store:          store.name,
+    attempts:       0,
     created_at:     order.created_at ?? new Date().toISOString(),
   }, { onConflict: "id" })
 
