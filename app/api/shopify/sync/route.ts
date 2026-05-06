@@ -17,16 +17,15 @@ export async function POST(req: Request) {
 
   // Construit les rows à upsert en base
   const rows = shopifyProducts.map((p) => {
-    const { price, currency, presentmentPrices } = extractPricing(p)
+    const { price, currency } = extractPricing(p)
     return {
-      store_id:           storeId,
-      shopify_id:         String(p.id),
-      title:              p.title,
-      image_url:          p.images?.[0]?.src ?? null,
+      store_id:   storeId,
+      shopify_id: String(p.id),
+      title:      p.title,
+      image_url:  p.images?.[0]?.src ?? null,
       price,
       currency,
-      presentment_prices: presentmentPrices,
-      updated_at:         new Date().toISOString(),
+      updated_at: new Date().toISOString(),
     }
   })
 

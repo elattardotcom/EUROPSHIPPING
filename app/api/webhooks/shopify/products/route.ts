@@ -44,17 +44,16 @@ export async function POST(req: Request) {
   }
 
   // products/create ou products/update : upsert
-  const { price, currency, presentmentPrices } = extractPricing(product)
+  const { price, currency } = extractPricing(product)
 
   await sb.from("products").upsert({
-    store_id:           store.id,
-    shopify_id:         String(product.id),
-    title:              product.title,
-    image_url:          product.images?.[0]?.src ?? null,
+    store_id:   store.id,
+    shopify_id: String(product.id),
+    title:      product.title,
+    image_url:  product.images?.[0]?.src ?? null,
     price,
     currency,
-    presentment_prices: presentmentPrices,
-    updated_at:         new Date().toISOString(),
+    updated_at: new Date().toISOString(),
   }, { onConflict: "store_id,shopify_id" })
 
   return NextResponse.json({ ok: true })

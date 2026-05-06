@@ -31,16 +31,15 @@ export async function GET(req: NextRequest) {
       // Force upsert everything from Shopify to DB
       if (shopifyProducts.length > 0) {
         const rows = shopifyProducts.map((p) => {
-          const { price, currency, presentmentPrices } = extractPricing(p)
+          const { price, currency } = extractPricing(p)
           return {
-            store_id:           store.id,
-            shopify_id:         String(p.id),
-            title:              p.title,
-            image_url:          p.images?.[0]?.src ?? null,
+            store_id:   store.id,
+            shopify_id: String(p.id),
+            title:      p.title,
+            image_url:  p.images?.[0]?.src ?? null,
             price,
             currency,
-            presentment_prices: presentmentPrices,
-            updated_at:         new Date().toISOString(),
+            updated_at: new Date().toISOString(),
           }
         })
         const { error: upsertErr } = await sb.from("products")
