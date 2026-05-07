@@ -1,6 +1,7 @@
 import { getSupabase, getSupabaseAdmin } from "./supabase"
 import { ALL_ORDERS, MOCK_CLIENT, MOCK_ADMIN_ORDERS, MOCK_ADMIN_LEADS, MOCK_STORES } from "./mock-data"
 import { readWithdrawals, writeWithdrawals, readAdjustments, writeAdjustments } from "./store"
+import { readPaymentMethods, writePaymentMethods } from "./payment-methods-store"
 import { readClients, writeClients as _wc } from "./clients-store"
 
 /* ── Types ─────────────────────────────────────────────────────────────── */
@@ -10,7 +11,27 @@ export type UserStatus  = "active" | "suspended" | "trial" | "cancelled"
 export type LeadStatus  = "CONFIRMED" | "PENDING" | "UNREACHED" | "CANCELED" | "ERROR"
 export type OrderStatus = "PENDING" | "SHIPPED" | "DELIVERED" | "RETURNED" | "ERROR"
 export type StoreStatus = "connected" | "syncing" | "error"
-export type WithdrawalStatus = "pending" | "approved" | "rejected"
+export type WithdrawalStatus   = "pending" | "approved" | "rejected"
+export type PaymentMethodType  = "bank" | "wise" | "crypto"
+
+export interface PaymentMethod {
+  id:              string
+  clientId:        string
+  type:            PaymentMethodType
+  label:           string
+  // Bank (IBAN)
+  iban?:           string
+  bic?:            string
+  accountHolder?:  string
+  // Wise
+  wiseEmail?:      string
+  wiseCurrency?:   string
+  // Crypto
+  cryptoNetwork?:  string   // "BTC" | "ETH" | "USDT-TRC20" | "USDT-ERC20" | "BNB"
+  cryptoAddress?:  string
+  isDefault:       boolean
+  createdAt:       string
+}
 
 export interface BalanceAdjustment {
   id:        string
@@ -88,17 +109,19 @@ export interface AdminStore {
 }
 
 export interface Withdrawal {
-  id: string
-  clientId: string
-  clientName: string
-  clientEmail: string
-  amount: number
-  currency: string
-  iban: string
-  status: WithdrawalStatus
-  requestedAt: string
-  processedAt?: string
-  adminNote?: string
+  id:                  string
+  clientId:            string
+  clientName:          string
+  clientEmail:         string
+  amount:              number
+  currency:            string
+  iban:                string
+  status:              WithdrawalStatus
+  requestedAt:         string
+  processedAt?:        string
+  adminNote?:          string
+  paymentMethodType?:  PaymentMethodType
+  paymentDetails?:     string  // JSON: method-specific details
 }
 
 /* ── Mappers ────────────────────────────────────────────────────────────── */
@@ -185,17 +208,19 @@ const frDate = (iso?: string | null): string => {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const mapWithdrawal = (r: any): Withdrawal => ({
-  id:          r.id,
-  clientId:    r.client_id,
-  clientName:  r.client_name ?? "",
-  clientEmail: r.client_email ?? "",
-  amount:      r.amount ?? 0,
-  currency:    r.currency ?? "EUR",
-  iban:        r.iban ?? "",
-  status:      r.status,
-  requestedAt: frDate(r.requested_at),
-  processedAt: r.processed_at ? frDate(r.processed_at) : undefined,
-  adminNote:   r.admin_note ?? undefined,
+  id:                  r.id,
+  clientId:            r.client_id,
+  clientName:          r.client_name ?? "",
+  clientEmail:         r.client_email ?? "",
+  amount:              r.amount ?? 0,
+  currency:            r.currency ?? "EUR",
+  iban:                r.iban ?? "",
+  status:              r.status,
+  requestedAt:         frDate(r.requested_at),
+  processedAt:         r.processed_at ? frDate(r.processed_at) : undefined,
+  adminNote:           r.admin_note ?? undefined,
+  paymentMethodType:   r.payment_method_type ?? undefined,
+  paymentDetails:      r.payment_details ?? undefined,
 })
 
 /* ── Clients ────────────────────────────────────────────────────────────── */
@@ -457,12 +482,14 @@ export async function createWithdrawal(
 
   try {
     const { data, error } = await sb.from("withdrawals").insert({
-      client_id:    payload.clientId,
-      client_name:  payload.clientName,
-      client_email: payload.clientEmail,
-      amount:       payload.amount,
-      currency:     payload.currency,
-      iban:         payload.iban,
+      client_id:            payload.clientId,
+      client_name:          payload.clientName,
+      client_email:         payload.clientEmail,
+      amount:               payload.amount,
+      currency:             payload.currency,
+      iban:                 payload.iban,
+      payment_method_type:  payload.paymentMethodType ?? null,
+      payment_details:      payload.paymentDetails ?? null,
     }).select().single()
     if (error || !data) return memCreate(payload)
     return mapWithdrawal(data)
@@ -493,6 +520,118 @@ export async function processWithdrawal(
     if (error || !data) return null
     return mapWithdrawal(data)
   } catch { return null }
+}
+
+/* ── Payment methods ────────────────────────────────────────────────────── */
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const mapPaymentMethod = (r: any): PaymentMethod => ({
+  id:             r.id,
+  clientId:       r.client_id,
+  type:           r.type,
+  label:          r.label ?? "",
+  iban:           r.iban           ?? undefined,
+  bic:            r.bic            ?? undefined,
+  accountHolder:  r.account_holder ?? undefined,
+  wiseEmail:      r.wise_email     ?? undefined,
+  wiseCurrency:   r.wise_currency  ?? undefined,
+  cryptoNetwork:  r.crypto_network ?? undefined,
+  cryptoAddress:  r.crypto_address ?? undefined,
+  isDefault:      r.is_default     ?? false,
+  createdAt:      r.created_at     ?? new Date().toISOString(),
+})
+
+export async function getPaymentMethods(clientId: string): Promise<PaymentMethod[]> {
+  const sb = getSupabaseAdmin()
+  if (!sb) return readPaymentMethods().filter(m => m.clientId === clientId)
+  try {
+    const { data, error } = await sb
+      .from("payment_methods")
+      .select("*")
+      .eq("client_id", clientId)
+      .order("created_at", { ascending: false })
+    if (error || !data) return readPaymentMethods().filter(m => m.clientId === clientId)
+    return data.map(mapPaymentMethod)
+  } catch { return readPaymentMethods().filter(m => m.clientId === clientId) }
+}
+
+export async function createPaymentMethod(
+  payload: Omit<PaymentMethod, "id" | "createdAt">
+): Promise<PaymentMethod | null> {
+  const sb = getSupabaseAdmin()
+  const now = new Date().toISOString()
+
+  if (!sb) {
+    const list = readPaymentMethods()
+    // Unset default on others if this is default
+    if (payload.isDefault) {
+      list.forEach(m => { if (m.clientId === payload.clientId) m.isDefault = false })
+    }
+    const newMethod: PaymentMethod = { ...payload, id: `pm_${Date.now()}`, createdAt: now }
+    list.push(newMethod)
+    writePaymentMethods(list)
+    return newMethod
+  }
+  try {
+    // Unset default on others if this is default
+    if (payload.isDefault) {
+      await sb.from("payment_methods").update({ is_default: false }).eq("client_id", payload.clientId)
+    }
+    const { data, error } = await sb.from("payment_methods").insert({
+      client_id:      payload.clientId,
+      type:           payload.type,
+      label:          payload.label,
+      iban:           payload.iban           ?? null,
+      bic:            payload.bic            ?? null,
+      account_holder: payload.accountHolder  ?? null,
+      wise_email:     payload.wiseEmail      ?? null,
+      wise_currency:  payload.wiseCurrency   ?? null,
+      crypto_network: payload.cryptoNetwork  ?? null,
+      crypto_address: payload.cryptoAddress  ?? null,
+      is_default:     payload.isDefault,
+      created_at:     now,
+    }).select().single()
+    if (error || !data) {
+      // file fallback
+      const list = readPaymentMethods()
+      const newMethod: PaymentMethod = { ...payload, id: `pm_${Date.now()}`, createdAt: now }
+      list.push(newMethod)
+      writePaymentMethods(list)
+      return newMethod
+    }
+    return mapPaymentMethod(data)
+  } catch { return null }
+}
+
+export async function deletePaymentMethod(id: string, clientId: string): Promise<boolean> {
+  const sb = getSupabaseAdmin()
+  if (!sb) {
+    const list = readPaymentMethods()
+    const idx  = list.findIndex(m => m.id === id && m.clientId === clientId)
+    if (idx === -1) return false
+    list.splice(idx, 1)
+    writePaymentMethods(list)
+    return true
+  }
+  try {
+    const { error } = await sb.from("payment_methods").delete().eq("id", id).eq("client_id", clientId)
+    return !error
+  } catch { return false }
+}
+
+export async function setDefaultPaymentMethod(id: string, clientId: string): Promise<boolean> {
+  const sb = getSupabaseAdmin()
+  if (!sb) {
+    const list = readPaymentMethods()
+    list.forEach(m => { if (m.clientId === clientId) m.isDefault = m.id === id })
+    writePaymentMethods(list)
+    return true
+  }
+  try {
+    await sb.from("payment_methods").update({ is_default: false }).eq("client_id", clientId)
+    const { error } = await sb.from("payment_methods").update({ is_default: true }).eq("id", id).eq("client_id", clientId)
+    return !error
+  } catch { return false }
 }
 
 /* ── Admin stats ────────────────────────────────────────────────────────── */

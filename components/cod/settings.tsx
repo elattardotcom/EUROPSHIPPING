@@ -5,7 +5,9 @@ import { useRouter } from "next/navigation"
 import {
   User, Bell, Shield, CreditCard, Globe, Palette,
   Save, Key, Eye, EyeOff, Check, Download, Monitor, Moon, Sun, Loader2, LogOut,
+  Wallet, Plus, Trash2, Star, Bitcoin, Building2, ArrowRight, CheckCircle2, AlertCircle,
 } from "lucide-react"
+import type { PaymentMethod, PaymentMethodType } from "@/lib/db"
 import { Button } from "@/components/ui/button"
 import { getPlanLimits } from "@/lib/plan-limits"
 import { getClientIdFromCookie } from "@/lib/client-cookie"
@@ -64,6 +66,24 @@ export default function SettingsPage() {
 
   // ── Appearance state ───────────────────────────────────
   const [theme, setTheme] = useState<"dark" | "light" | "system">("dark")
+
+  // ── Payment methods state ──────────────────────────────
+  const [payMethods,    setPayMethods]    = useState<PaymentMethod[]>([])
+  const [loadingPay,    setLoadingPay]    = useState(false)
+  const [showPayForm,   setShowPayForm]   = useState(false)
+  const [payFormType,   setPayFormType]   = useState<PaymentMethodType>("bank")
+  const [payLabel,      setPayLabel]      = useState("")
+  const [payIban,       setPayIban]       = useState("")
+  const [payBic,        setPayBic]        = useState("")
+  const [payHolder,     setPayHolder]     = useState("")
+  const [payWiseEmail,  setPayWiseEmail]  = useState("")
+  const [payWiseCurr,   setPayWiseCurr]   = useState("USD")
+  const [payCryptoNet,  setPayCryptoNet]  = useState("USDT-TRC20")
+  const [payCryptoAddr, setPayCryptoAddr] = useState("")
+  const [payDefault,    setPayDefault]    = useState(false)
+  const [savingPay,     setSavingPay]     = useState(false)
+  const [payMsg,        setPayMsg]        = useState<{ type: "success"|"error"; text: string } | null>(null)
+  const [deletingPay,   setDeletingPay]   = useState<string | null>(null)
 
   // ── Load profile ───────────────────────────────────────
   useEffect(() => {
@@ -154,6 +174,53 @@ export default function SettingsPage() {
     }
   }
 
+  async function loadPaymentMethods() {
+    setLoadingPay(true)
+    try {
+      const res = await fetch("/api/client/payment-methods")
+      if (res.ok) setPayMethods(await res.json())
+    } catch {} finally { setLoadingPay(false) }
+  }
+
+  useEffect(() => { if (activeTab === "payment") loadPaymentMethods() }, [activeTab])
+
+  async function savePaymentMethod() {
+    setPayMsg(null)
+    setSavingPay(true)
+    try {
+      const body: Record<string, unknown> = { type: payFormType, label: payLabel.trim(), isDefault: payDefault }
+      if (payFormType === "bank")   { body.iban = payIban.trim(); body.bic = payBic.trim(); body.accountHolder = payHolder.trim() }
+      if (payFormType === "wise")   { body.wiseEmail = payWiseEmail.trim(); body.wiseCurrency = payWiseCurr }
+      if (payFormType === "crypto") { body.cryptoNetwork = payCryptoNet; body.cryptoAddress = payCryptoAddr.trim() }
+      const res = await fetch("/api/client/payment-methods", {
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? "Erreur")
+      setPayMsg({ type: "success", text: "Méthode ajoutée avec succès." })
+      setShowPayForm(false)
+      setPayLabel(""); setPayIban(""); setPayBic(""); setPayHolder("")
+      setPayWiseEmail(""); setPayCryptoAddr(""); setPayDefault(false)
+      loadPaymentMethods()
+    } catch (e: unknown) {
+      setPayMsg({ type: "error", text: e instanceof Error ? e.message : "Erreur serveur" })
+    } finally { setSavingPay(false) }
+  }
+
+  async function deletePaymentMethod(id: string) {
+    setDeletingPay(id)
+    await fetch(`/api/client/payment-methods/${id}`, { method: "DELETE" })
+    setDeletingPay(null)
+    loadPaymentMethods()
+  }
+
+  async function setDefaultMethod(id: string) {
+    await fetch(`/api/client/payment-methods/${id}`, {
+      method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ isDefault: true }),
+    })
+    loadPaymentMethods()
+  }
+
   async function logout() {
     if (loggingOut) return
     setLoggingOut(true)
@@ -194,6 +261,7 @@ export default function SettingsPage() {
 
   const tabs = [
     { id: "profile",       icon: User,       label: "Profil" },
+    { id: "payment",       icon: Wallet,     label: "Paiement" },
     { id: "notifications", icon: Bell,       label: "Notifications" },
     { id: "security",      icon: Shield,     label: "Sécurité" },
     { id: "billing",       icon: CreditCard, label: "Facturation" },
@@ -356,6 +424,198 @@ export default function SettingsPage() {
                       Sauvegarder
                     </Button>
                   </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ── Paiement ─────────────────────────────────── */}
+          {activeTab === "payment" && (
+            <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-6 space-y-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-lg font-medium text-white">Méthodes de retrait</h2>
+                  <p className="text-sm text-neutral-500 mt-0.5">Enregistrez vos coordonnées de paiement pour accélérer vos retraits</p>
+                </div>
+                {!showPayForm && (
+                  <button onClick={() => setShowPayForm(true)}
+                    className="flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold rounded-xl transition-colors">
+                    <Plus className="w-4 h-4" />Ajouter
+                  </button>
+                )}
+              </div>
+
+              {payMsg && <Alert type={payMsg.type} msg={payMsg.text} />}
+
+              {/* Add form */}
+              {showPayForm && (
+                <div className="border border-orange-500/20 bg-orange-500/5 rounded-xl p-5 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <p className="text-white font-medium text-sm">Nouvelle méthode</p>
+                    <button onClick={() => setShowPayForm(false)} className="text-neutral-500 hover:text-white text-xl leading-none">×</button>
+                  </div>
+
+                  {/* Type selector */}
+                  <div className="grid grid-cols-3 gap-2">
+                    {([
+                      { id: "bank",   icon: Building2, label: "Virement bancaire", sub: "IBAN / BIC" },
+                      { id: "wise",   icon: ArrowRight, label: "Wise",             sub: "Email Wise" },
+                      { id: "crypto", icon: Bitcoin,    label: "Crypto",           sub: "BTC / ETH / USDT" },
+                    ] as { id: PaymentMethodType; icon: React.ElementType; label: string; sub: string }[]).map(t => (
+                      <button key={t.id} onClick={() => setPayFormType(t.id)}
+                        className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border transition-all ${
+                          payFormType === t.id
+                            ? "border-orange-500/50 bg-orange-500/10 text-orange-400"
+                            : "border-neutral-700 bg-neutral-800 text-neutral-400 hover:border-neutral-600"
+                        }`}>
+                        <t.icon className="w-5 h-5" />
+                        <span className="text-xs font-semibold">{t.label}</span>
+                        <span className="text-[10px] text-neutral-500">{t.sub}</span>
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Label */}
+                  <div>
+                    <label className="text-xs text-neutral-400 font-medium mb-1.5 block">Libellé *</label>
+                    <input value={payLabel} onChange={e => setPayLabel(e.target.value)} placeholder="Ex: Compte principal"
+                      className={INPUT} />
+                  </div>
+
+                  {/* Bank fields */}
+                  {payFormType === "bank" && (
+                    <div className="space-y-3">
+                      <div>
+                        <label className="text-xs text-neutral-400 font-medium mb-1.5 block">IBAN *</label>
+                        <input value={payIban} onChange={e => setPayIban(e.target.value)} placeholder="PT50 0002 0000 0001 2345 6781 4"
+                          className={INPUT + " font-mono"} />
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="text-xs text-neutral-400 font-medium mb-1.5 block">BIC / SWIFT</label>
+                          <input value={payBic} onChange={e => setPayBic(e.target.value)} placeholder="CGDIPTPL"
+                            className={INPUT + " font-mono"} />
+                        </div>
+                        <div>
+                          <label className="text-xs text-neutral-400 font-medium mb-1.5 block">Titulaire du compte</label>
+                          <input value={payHolder} onChange={e => setPayHolder(e.target.value)} placeholder="Nom Prénom"
+                            className={INPUT} />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Wise fields */}
+                  {payFormType === "wise" && (
+                    <div className="space-y-3">
+                      <div>
+                        <label className="text-xs text-neutral-400 font-medium mb-1.5 block">Email Wise *</label>
+                        <input type="email" value={payWiseEmail} onChange={e => setPayWiseEmail(e.target.value)} placeholder="vous@email.com"
+                          className={INPUT} />
+                      </div>
+                      <div>
+                        <label className="text-xs text-neutral-400 font-medium mb-1.5 block">Devise préférée</label>
+                        <select value={payWiseCurr} onChange={e => setPayWiseCurr(e.target.value)}
+                          className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-orange-500">
+                          {["USD","EUR","GBP","MAD","CAD","AUD"].map(c => <option key={c} value={c}>{c}</option>)}
+                        </select>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Crypto fields */}
+                  {payFormType === "crypto" && (
+                    <div className="space-y-3">
+                      <div>
+                        <label className="text-xs text-neutral-400 font-medium mb-1.5 block">Réseau *</label>
+                        <select value={payCryptoNet} onChange={e => setPayCryptoNet(e.target.value)}
+                          className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-orange-500">
+                          {["USDT-TRC20","USDT-ERC20","BTC","ETH","BNB","USDC-ERC20"].map(n => <option key={n} value={n}>{n}</option>)}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-xs text-neutral-400 font-medium mb-1.5 block">Adresse de wallet *</label>
+                        <input value={payCryptoAddr} onChange={e => setPayCryptoAddr(e.target.value)} placeholder="0x... ou T..."
+                          className={INPUT + " font-mono text-xs"} />
+                        <p className="text-[11px] text-amber-400/70 mt-1.5">⚠ Vérifiez bien l'adresse — les envois crypto sont irréversibles</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Default */}
+                  <label className="flex items-center gap-3 cursor-pointer">
+                    <input type="checkbox" checked={payDefault} onChange={e => setPayDefault(e.target.checked)}
+                      className="w-4 h-4 rounded border-neutral-600 bg-neutral-800 text-orange-500" />
+                    <span className="text-sm text-neutral-300">Définir comme méthode par défaut</span>
+                  </label>
+
+                  <div className="flex gap-3 pt-1">
+                    <button onClick={savePaymentMethod} disabled={savingPay || !payLabel.trim()}
+                      className="flex items-center gap-2 px-5 py-2.5 bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white text-sm font-semibold rounded-xl transition-colors">
+                      {savingPay ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                      Enregistrer
+                    </button>
+                    <button onClick={() => setShowPayForm(false)}
+                      className="px-5 py-2.5 text-neutral-400 hover:text-white hover:bg-neutral-800 text-sm rounded-xl transition-colors">
+                      Annuler
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Methods list */}
+              {loadingPay ? (
+                <div className="flex justify-center py-8"><Loader2 className="w-5 h-5 text-orange-500 animate-spin" /></div>
+              ) : payMethods.length === 0 && !showPayForm ? (
+                <div className="py-12 text-center border border-dashed border-neutral-800 rounded-xl">
+                  <Wallet className="w-10 h-10 text-neutral-700 mx-auto mb-3" />
+                  <p className="text-neutral-400 text-sm font-medium">Aucune méthode enregistrée</p>
+                  <p className="text-neutral-600 text-xs mt-1">Ajoutez votre IBAN, Wise ou adresse crypto</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {payMethods.map(m => (
+                    <div key={m.id} className={`flex items-center justify-between p-4 rounded-xl border transition-all ${
+                      m.isDefault ? "border-orange-500/30 bg-orange-500/5" : "border-neutral-800 bg-neutral-800/40"
+                    }`}>
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                          m.type === "bank"   ? "bg-blue-500/15"   :
+                          m.type === "wise"   ? "bg-emerald-500/15" : "bg-amber-500/15"
+                        }`}>
+                          {m.type === "bank"   && <Building2 className="w-4 h-4 text-blue-400" />}
+                          {m.type === "wise"   && <ArrowRight className="w-4 h-4 text-emerald-400" />}
+                          {m.type === "crypto" && <Bitcoin    className="w-4 h-4 text-amber-400" />}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <p className="text-white text-sm font-medium">{m.label}</p>
+                            {m.isDefault && (
+                              <span className="text-[10px] font-bold text-orange-400 bg-orange-500/15 border border-orange-500/20 px-1.5 py-0.5 rounded-full">Par défaut</span>
+                            )}
+                          </div>
+                          <p className="text-neutral-500 text-xs mt-0.5 truncate font-mono">
+                            {m.type === "bank"   && (m.iban   ? `IBAN: ${m.iban.slice(0,4)} •••• ${m.iban.replace(/\s/g,"").slice(-4)}` : "")}
+                            {m.type === "wise"   && (m.wiseEmail   ? `${m.wiseEmail} · ${m.wiseCurrency ?? "USD"}` : "")}
+                            {m.type === "crypto" && (m.cryptoAddress ? `${m.cryptoNetwork} · ${m.cryptoAddress.slice(0,8)}...${m.cryptoAddress.slice(-6)}` : "")}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        {!m.isDefault && (
+                          <button onClick={() => setDefaultMethod(m.id)}
+                            className="text-xs text-neutral-500 hover:text-orange-400 px-2 py-1 rounded-lg hover:bg-orange-500/10 transition-colors"
+                            title="Définir par défaut">
+                            <Star className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                        <button onClick={() => deletePaymentMethod(m.id)} disabled={deletingPay === m.id}
+                          className="text-neutral-500 hover:text-red-400 p-1.5 rounded-lg hover:bg-red-500/10 transition-colors">
+                          {deletingPay === m.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>

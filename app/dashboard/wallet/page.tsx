@@ -6,11 +6,12 @@ import {
   Wallet, ArrowDownLeft, ArrowUpRight, Clock, CheckCircle, CheckCircle2,
   XCircle, Plus, RefreshCw, AlertCircle, ChevronDown, Zap,
   TrendingUp, TrendingDown, Download, Filter, Search,
-  Building2, Euro, Calendar, FileText, Eye, MoreHorizontal,
+  Building2, Euro, Calendar, FileText, Eye, Bitcoin, ArrowRight,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import type { Withdrawal, WithdrawalStatus, BalanceAdjustment } from "@/lib/db"
+import type { Withdrawal, WithdrawalStatus, BalanceAdjustment, PaymentMethod } from "@/lib/db"
+import Link from "next/link"
 import { useRealtime, type RealtimeEvent } from "@/hooks/useSse"
 
 // CLIENT_ID is resolved dynamically from /api/auth/me
@@ -50,6 +51,18 @@ const MOCK_DEPOSITS: Transaction[] = [
   { id: "d4", type: "deposit", amount: 1567.25, status: "completed", date: "5 Mai 2025",  description: "Paiement commandes — Lot #1244", reference: "TXN-2025-001244" },
 ]
 
+function getWithdrawalLabel(w: Withdrawal): string {
+  if (w.paymentMethodType === "wise" && w.paymentDetails) {
+    return `Retrait Wise — ${w.paymentDetails.split("|")[0]}`
+  }
+  if (w.paymentMethodType === "crypto" && w.paymentDetails) {
+    const [network, addr] = w.paymentDetails.split("|")
+    return `Retrait Crypto (${network ?? ""}) — ${addr ? `${addr.slice(0, 6)}…${addr.slice(-4)}` : ""}`
+  }
+  const raw = (w.paymentDetails || w.iban).replace(/\s/g, "")
+  return `Virement bancaire — IBAN ***${raw.slice(-4)}`
+}
+
 function withdrawalToTx(w: Withdrawal): Transaction {
   return {
     id:          `w-${w.id}`,
@@ -57,7 +70,7 @@ function withdrawalToTx(w: Withdrawal): Transaction {
     amount:      w.amount,
     status:      w.status === "approved" ? "completed" : w.status === "rejected" ? "failed" : "pending",
     date:        w.requestedAt,
-    description: `Virement bancaire — IBAN ***${w.iban.replace(/\s/g, "").slice(-4)}`,
+    description: getWithdrawalLabel(w),
     reference:   `WTH-${w.id}`,
   }
 }
@@ -70,7 +83,7 @@ function withdrawalToInvoice(w: Withdrawal): Invoice {
     status:      "paid",
     date:        w.processedAt ?? w.requestedAt,
     dueDate:     w.processedAt ?? w.requestedAt,
-    description: `Retrait approuvé — Virement bancaire IBAN ***${w.iban.replace(/\s/g, "").slice(-4)}`,
+    description: `Retrait approuvé — ${getWithdrawalLabel(w)}`,
   }
 }
 
@@ -278,13 +291,14 @@ export default function WalletPage() {
   const [success,    setSuccess] = useState(false)
   const [error,      setError]   = useState("")
   const [live,       setLive]    = useState(false)
-  const [form, setForm] = useState({ amount: "", currency: "EUR", iban: "" })
+  const [form, setForm] = useState({ amount: "", currency: "EUR" })
 
-  const [quickAmount, setQuickAmount] = useState("")
-  const [quickIban,   setQuickIban]   = useState("")
-  const [quickError,  setQuickError]  = useState("")
-  const [quickSub,    setQuickSub]    = useState(false)
-  const [quickOk,     setQuickOk]     = useState(false)
+  const [quickAmount,    setQuickAmount]    = useState("")
+  const [quickError,     setQuickError]     = useState("")
+  const [quickSub,       setQuickSub]       = useState(false)
+  const [quickOk,        setQuickOk]        = useState(false)
+  const [payMethods,     setPayMethods]     = useState<PaymentMethod[]>([])
+  const [selectedMethod, setSelectedMethod] = useState<string>("")
 
   // Current client — resolved synchronously from cookie, supplemented async
   const [clientId,     setClientId]     = useState(getClientIdFromCookie)
@@ -324,6 +338,18 @@ export default function WalletPage() {
         setClientEmail(c.email ?? "")
       })
       .catch(() => {})
+
+    fetch("/api/client/payment-methods")
+      .then(r => r.json())
+      .then((methods: PaymentMethod[]) => {
+        if (Array.isArray(methods)) {
+          setPayMethods(methods)
+          const def = methods.find(m => m.isDefault)
+          if (def) setSelectedMethod(def.id)
+          else if (methods.length > 0) setSelectedMethod(methods[0].id)
+        }
+      })
+      .catch(() => {})
   }, [])
 
   const onEvent = useCallback((e: RealtimeEvent) => {
@@ -343,7 +369,13 @@ export default function WalletPage() {
     const amount = parseFloat(form.amount)
     if (!amount || amount <= 0)        { setError("Montant invalide"); return }
     if (data && amount > data.balance) { setError(`Solde insuffisant — disponible : €${fmt(data.balance)}`); return }
-    if (!form.iban.trim())             { setError("IBAN requis"); return }
+    const method = payMethods.find(m => m.id === selectedMethod)
+    if (!method) { setError("Veuillez sélectionner une méthode de paiement dans Paramètres"); return }
+    const paymentDetails = method.type === "bank"
+      ? (method.iban ?? "")
+      : method.type === "wise"
+      ? `${method.wiseEmail}|${method.wiseCurrency ?? "EUR"}`
+      : `${method.cryptoNetwork}|${method.cryptoAddress}`
     setError("")
     setSub(true)
     const res = await fetch("/api/withdrawals", {
@@ -351,13 +383,16 @@ export default function WalletPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         clientId, clientName, clientEmail,
-        amount, currency: form.currency, iban: form.iban.trim(),
+        amount, currency: form.currency,
+        iban: method.iban ?? method.wiseEmail ?? method.cryptoAddress ?? "",
+        paymentMethodType: method.type,
+        paymentDetails,
       }),
     })
     setSub(false)
     if (!res.ok) { setError("Solde insuffisant ou erreur serveur"); return }
     setSuccess(true)
-    setForm({ amount: "", currency: "EUR", iban: "" })
+    setForm({ amount: "", currency: "EUR" })
     setShowForm(false)
     setTimeout(() => setSuccess(false), 4000)
     load()
@@ -368,7 +403,13 @@ export default function WalletPage() {
     const amount = parseFloat(quickAmount)
     if (!amount || amount <= 0)        { setQuickError("Montant invalide"); return }
     if (data && amount > data.balance) { setQuickError(`Solde insuffisant — disponible : €${fmt(data.balance)}`); return }
-    if (!quickIban.trim())             { setQuickError("IBAN requis"); return }
+    const method = payMethods.find(m => m.id === selectedMethod)
+    if (!method) { setQuickError("Ajoutez une méthode de paiement dans Paramètres"); return }
+    const paymentDetails = method.type === "bank"
+      ? (method.iban ?? "")
+      : method.type === "wise"
+      ? `${method.wiseEmail}|${method.wiseCurrency ?? "EUR"}`
+      : `${method.cryptoNetwork}|${method.cryptoAddress}`
     setQuickError("")
     setQuickSub(true)
     const res = await fetch("/api/withdrawals", {
@@ -376,7 +417,10 @@ export default function WalletPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         clientId, clientName, clientEmail,
-        amount, currency: "EUR", iban: quickIban.trim(),
+        amount, currency: "EUR",
+        iban: method.iban ?? method.wiseEmail ?? method.cryptoAddress ?? "",
+        paymentMethodType: method.type,
+        paymentDetails,
       }),
     })
     setQuickSub(false)
@@ -525,13 +569,50 @@ export default function WalletPage() {
               </div>
             </div>
             <div>
-              <label className="text-xs text-neutral-400 font-medium mb-1.5 block">IBAN</label>
-              <input type="text" value={form.iban} onChange={e => setForm(f => ({ ...f, iban: e.target.value }))}
-                placeholder="PT50 0002 0000 0001 2345 6781 4"
-                className="w-full bg-neutral-800 border border-neutral-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-neutral-600 focus:outline-none focus:border-orange-500 font-mono" />
+              <label className="text-xs text-neutral-400 font-medium mb-2 block">Méthode de paiement</label>
+              {payMethods.length === 0 ? (
+                <div className="bg-amber-500/5 border border-amber-500/20 rounded-xl p-4 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                    <p className="text-neutral-400 text-sm">Aucune méthode enregistrée</p>
+                  </div>
+                  <Link href="/dashboard/settings?tab=payment" className="text-orange-400 text-sm flex items-center gap-1 hover:text-orange-300">
+                    Ajouter <ArrowRight className="w-3.5 h-3.5" />
+                  </Link>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {payMethods.map(m => (
+                    <button key={m.id} type="button" onClick={() => setSelectedMethod(m.id)}
+                      className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-colors ${
+                        selectedMethod === m.id
+                          ? "bg-orange-500/10 border-orange-500/40"
+                          : "bg-neutral-800 border-neutral-700 hover:border-neutral-600"
+                      }`}>
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                        m.type === "bank" ? "bg-blue-500/15" : m.type === "wise" ? "bg-green-500/15" : "bg-purple-500/15"
+                      }`}>
+                        {m.type === "bank" ? <Building2 className="w-4 h-4 text-blue-400" />
+                          : m.type === "wise" ? <ArrowRight className="w-4 h-4 text-green-400" />
+                          : <Bitcoin className="w-4 h-4 text-purple-400" />}
+                      </div>
+                      <div className="text-left min-w-0 flex-1">
+                        <p className="text-white text-sm font-medium">{m.label}</p>
+                        <p className="text-neutral-500 text-xs truncate">
+                          {m.type === "bank" ? (m.iban ?? "") : m.type === "wise" ? `${m.wiseEmail ?? ""} · ${m.wiseCurrency ?? "EUR"}` : `${m.cryptoNetwork ?? ""} · ${m.cryptoAddress?.slice(0, 8) ?? ""}…`}
+                        </p>
+                      </div>
+                      {selectedMethod === m.id && <CheckCircle2 className="w-4 h-4 text-orange-400 flex-shrink-0" />}
+                    </button>
+                  ))}
+                  <Link href="/dashboard/settings?tab=payment" className="flex items-center gap-1.5 text-xs text-neutral-500 hover:text-orange-400 transition-colors pt-1">
+                    <Plus className="w-3 h-3" />Ajouter une méthode
+                  </Link>
+                </div>
+              )}
             </div>
             <div className="flex gap-3 pt-1">
-              <Button type="submit" disabled={submitting} className="bg-orange-500 hover:bg-orange-600 text-white font-semibold">
+              <Button type="submit" disabled={submitting || !selectedMethod} className="bg-orange-500 hover:bg-orange-600 text-white font-semibold disabled:opacity-50">
                 {submitting ? "Envoi…" : "Soumettre la demande"}
               </Button>
               <Button type="button" variant="ghost" onClick={() => { setShowForm(false); setError("") }}
@@ -608,17 +689,47 @@ export default function WalletPage() {
               )}
 
               <div>
-                <label className="text-neutral-400 text-xs font-medium mb-1.5 block">IBAN</label>
-                <div className="relative">
-                  <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
-                  <input
-                    type="text"
-                    value={quickIban}
-                    onChange={e => { setQuickIban(e.target.value); setQuickError("") }}
-                    placeholder="PT50 0002 0000 0001 2345 6781 4"
-                    className="w-full bg-neutral-800 border border-neutral-700 rounded-xl pl-9 pr-4 py-2.5 text-sm text-white placeholder:text-neutral-600 focus:outline-none focus:border-orange-500 font-mono"
-                  />
-                </div>
+                <label className="text-neutral-400 text-xs font-medium mb-2 block">Méthode de paiement</label>
+                {payMethods.length === 0 ? (
+                  <div className="bg-amber-500/5 border border-amber-500/20 rounded-xl p-3 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                      <p className="text-neutral-400 text-xs">Aucune méthode enregistrée</p>
+                    </div>
+                    <Link href="/dashboard/settings?tab=payment" className="text-orange-400 text-xs flex items-center gap-1 hover:text-orange-300">
+                      Ajouter <ArrowRight className="w-3 h-3" />
+                    </Link>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {payMethods.map(m => (
+                      <button key={m.id} type="button" onClick={() => { setSelectedMethod(m.id); setQuickError("") }}
+                        className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-colors ${
+                          selectedMethod === m.id
+                            ? "bg-orange-500/10 border-orange-500/40"
+                            : "bg-neutral-800 border-neutral-700 hover:border-neutral-600"
+                        }`}>
+                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                          m.type === "bank" ? "bg-blue-500/15" : m.type === "wise" ? "bg-green-500/15" : "bg-purple-500/15"
+                        }`}>
+                          {m.type === "bank" ? <Building2 className="w-3.5 h-3.5 text-blue-400" />
+                            : m.type === "wise" ? <ArrowRight className="w-3.5 h-3.5 text-green-400" />
+                            : <Bitcoin className="w-3.5 h-3.5 text-purple-400" />}
+                        </div>
+                        <div className="text-left min-w-0 flex-1">
+                          <p className="text-white text-xs font-medium">{m.label}</p>
+                          <p className="text-neutral-500 text-xs truncate">
+                            {m.type === "bank" ? (m.iban ?? "") : m.type === "wise" ? `${m.wiseEmail ?? ""} · ${m.wiseCurrency ?? "EUR"}` : `${m.cryptoNetwork ?? ""} · ${m.cryptoAddress?.slice(0, 8) ?? ""}…`}
+                          </p>
+                        </div>
+                        {selectedMethod === m.id && <CheckCircle2 className="w-3.5 h-3.5 text-orange-400 flex-shrink-0" />}
+                      </button>
+                    ))}
+                    <Link href="/dashboard/settings?tab=payment" className="flex items-center gap-1 text-xs text-neutral-600 hover:text-orange-400 transition-colors">
+                      <Plus className="w-3 h-3" />Ajouter une méthode
+                    </Link>
+                  </div>
+                )}
               </div>
 
               <div>
@@ -663,7 +774,7 @@ export default function WalletPage() {
 
               <Button
                 onClick={submitQuick}
-                disabled={quickSub || !quickAmount || parseFloat(quickAmount) <= 0 || !quickIban.trim()}
+                disabled={quickSub || !quickAmount || parseFloat(quickAmount) <= 0 || !selectedMethod}
                 className="w-full bg-orange-500 hover:bg-orange-600 text-white gap-2 disabled:opacity-50"
               >
                 <ArrowUpRight className="w-4 h-4" />
@@ -701,7 +812,7 @@ export default function WalletPage() {
                           <cfg.Icon className={`w-5 h-5 ${cfg.color}`} />
                         </div>
                         <div className="min-w-0">
-                          <p className="text-white text-sm font-medium">Retrait — <code className="text-indigo-400 text-xs font-mono">{w.iban}</code></p>
+                          <p className="text-white text-sm font-medium">{getWithdrawalLabel(w)}</p>
                           <p className="text-neutral-500 text-xs mt-0.5">Demandé le {w.requestedAt}{w.processedAt && ` · Traité le ${w.processedAt}`}</p>
                           {w.adminNote && <p className="text-neutral-400 text-xs mt-1 italic">"{w.adminNote}"</p>}
                         </div>

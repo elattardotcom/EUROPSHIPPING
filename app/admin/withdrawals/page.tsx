@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useCallback } from "react"
 import {
-  Clock, CheckCircle, XCircle, DollarSign, ArrowDownLeft,
+  Clock, CheckCircle, XCircle, DollarSign,
   RefreshCw, ChevronDown, Search, AlertCircle, Zap,
+  Building2, Bitcoin, ArrowRight,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import type { Withdrawal, WithdrawalStatus } from "@/lib/db"
@@ -60,8 +61,21 @@ export default function AdminWithdrawals() {
     load()
   }
 
+  function payMethodLabel(w: Withdrawal) {
+    if (w.paymentMethodType === "wise" && w.paymentDetails) {
+      const [email, currency] = w.paymentDetails.split("|")
+      return { type: "wise", line1: email ?? "", line2: currency ?? "EUR" }
+    }
+    if (w.paymentMethodType === "crypto" && w.paymentDetails) {
+      const [network, addr] = w.paymentDetails.split("|")
+      return { type: "crypto", line1: network ?? "", line2: addr ? `${addr.slice(0, 8)}…${addr.slice(-4)}` : "" }
+    }
+    const raw = (w.paymentDetails || w.iban).replace(/\s/g, "")
+    return { type: "bank", line1: w.paymentDetails || w.iban, line2: raw.length > 4 ? `***${raw.slice(-4)}` : raw }
+  }
+
   const filtered = withdrawals.filter(w => {
-    const ms = `${w.clientName} ${w.clientEmail} ${w.iban}`.toLowerCase().includes(search.toLowerCase())
+    const ms = `${w.clientName} ${w.clientEmail} ${w.iban} ${w.paymentDetails ?? ""}`.toLowerCase().includes(search.toLowerCase())
     return ms && (filter === "ALL" || w.status === filter)
   })
 
@@ -137,7 +151,7 @@ export default function AdminWithdrawals() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-neutral-800">
-                {[t("with_th_client"),t("with_th_amount"),t("with_th_iban"),t("with_th_status"),t("with_th_requested"),t("with_th_processed"),"Note",t("with_th_actions")].map(h => (
+                {[t("with_th_client"),t("with_th_amount"),"Méthode de paiement",t("with_th_status"),t("with_th_requested"),t("with_th_processed"),"Note",t("with_th_actions")].map(h => (
                   <th key={h} className="text-left p-4 text-xs font-semibold text-neutral-500 uppercase tracking-wider whitespace-nowrap">{h}</th>
                 ))}
               </tr>
@@ -161,7 +175,24 @@ export default function AdminWithdrawals() {
                       <span className="text-neutral-500 text-xs ml-1">{w.currency}</span>
                     </td>
                     <td className="p-4">
-                      <code className="text-xs text-orange-400 bg-orange-500/10 px-2 py-1 rounded">{w.iban}</code>
+                      {(() => {
+                        const pm = payMethodLabel(w)
+                        const icon = pm.type === "bank"
+                          ? <Building2 className="w-3.5 h-3.5 text-blue-400" />
+                          : pm.type === "wise"
+                          ? <ArrowRight className="w-3.5 h-3.5 text-green-400" />
+                          : <Bitcoin className="w-3.5 h-3.5 text-purple-400" />
+                        const bg = pm.type === "bank" ? "bg-blue-500/10" : pm.type === "wise" ? "bg-green-500/10" : "bg-purple-500/10"
+                        return (
+                          <div className="flex items-start gap-2">
+                            <div className={`w-6 h-6 rounded flex items-center justify-center flex-shrink-0 mt-0.5 ${bg}`}>{icon}</div>
+                            <div>
+                              <p className="text-xs text-white font-mono leading-snug">{pm.line1}</p>
+                              {pm.line2 && <p className="text-xs text-neutral-500">{pm.line2}</p>}
+                            </div>
+                          </div>
+                        )
+                      })()}
                     </td>
                     <td className="p-4">
                       <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${cfg.bg} ${cfg.color}`}>
