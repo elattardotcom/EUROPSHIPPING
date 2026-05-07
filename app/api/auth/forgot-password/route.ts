@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
   const from    = process.env.RESEND_FROM_EMAIL ?? "CODShip <onboarding@resend.dev>"
 
   if (apiKey && apiKey !== "re_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx") {
-    await fetch("https://api.resend.com/emails", {
+    const emailRes = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${apiKey}`,
@@ -88,7 +88,14 @@ export async function POST(req: NextRequest) {
 </body>
 </html>`,
       }),
-    }).catch(() => {}) // silently fail — token still works if user copies the link
+    })
+    const emailData = await emailRes.json().catch(() => ({}))
+    console.log("[forgot-password] resend status:", emailRes.status, JSON.stringify(emailData))
+    if (!emailRes.ok) {
+      console.error("[forgot-password] resend error:", emailData)
+    }
+  } else {
+    console.warn("[forgot-password] RESEND_API_KEY missing or placeholder — email not sent")
   }
 
   return NextResponse.json({ success: true })
