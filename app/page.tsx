@@ -9,6 +9,7 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Logo } from "@/components/logo"
+import Link from "next/link"
 
 const INPUT = "w-full bg-[#111] border border-white/10 rounded-xl px-3.5 py-2.5 text-white text-sm placeholder:text-neutral-600 focus:outline-none focus:border-orange-500 transition-colors"
 
@@ -857,15 +858,43 @@ export default function LandingPage() {
               </div>
             </div>
             {[
-              { title: "Produit", links: ["Fonctionnalités","Tarifs","Roadmap","Changelog","API"] },
-              { title: "Ressources", links: ["Documentation","Blog","Tutoriels","Support","Status"] },
-              { title: "Légal", links: ["Conditions d'utilisation","Confidentialité","RGPD","Mentions légales"] },
+              {
+                title: "Produit",
+                links: [
+                  { label: "Fonctionnalités", href: "/#features" },
+                  { label: "Tarifs",          href: "/#pricing" },
+                  { label: "Comment ça marche", href: "/#how" },
+                  { label: "Témoignages",     href: "/#testimonials" },
+                ],
+              },
+              {
+                title: "Ressources",
+                links: [
+                  { label: "Support",         href: "mailto:support@codship.com" },
+                  { label: "Contact",         href: "mailto:contact@codship.com" },
+                  { label: "Confidentialité", href: "/confidentialite" },
+                  { label: "RGPD",            href: "/rgpd" },
+                ],
+              },
+              {
+                title: "Légal",
+                links: [
+                  { label: "Conditions d'utilisation", href: "/conditions" },
+                  { label: "Politique de confidentialité", href: "/confidentialite" },
+                  { label: "RGPD",            href: "/rgpd" },
+                  { label: "Mentions légales", href: "/mentions-legales" },
+                ],
+              },
             ].map(col => (
               <div key={col.title}>
                 <h4 className="text-neutral-400 font-bold text-xs mb-4 uppercase tracking-widest">{col.title}</h4>
                 <ul className="space-y-2.5">
                   {col.links.map(l => (
-                    <li key={l}><a href="#" className="text-neutral-700 hover:text-orange-400 text-xs transition-colors">{l}</a></li>
+                    <li key={l.label}>
+                      <Link href={l.href} className="text-neutral-700 hover:text-orange-400 text-xs transition-colors">
+                        {l.label}
+                      </Link>
+                    </li>
                   ))}
                 </ul>
               </div>
