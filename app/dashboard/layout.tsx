@@ -10,6 +10,7 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { getClientIdFromCookie } from "@/lib/client-cookie"
+import { Logo } from "@/components/logo"
 interface NavItem {
   href: string
   icon: React.ElementType
@@ -162,9 +163,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <div className="p-4 flex items-center justify-between border-b border-neutral-800 h-16">
           {!collapsed && (
             <Link href="/dashboard" className="flex items-center gap-2.5">
-              <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                <Store className="w-4 h-4 text-white" />
-              </div>
+              <Logo size={36} showBg={false} />
               <div>
                 <p className="text-white font-bold text-base leading-none">CODShip</p>
                 <p className="text-neutral-400 text-xs">Pro Platform</p>
