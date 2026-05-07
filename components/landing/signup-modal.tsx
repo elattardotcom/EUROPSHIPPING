@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Eye, EyeOff, ArrowRight, X, Store } from "lucide-react"
+import { Eye, EyeOff, ArrowRight, X, ArrowLeft, CheckCircle } from "lucide-react"
 import { Logo } from "@/components/logo"
 
 const INPUT = "w-full bg-[#111] border border-white/10 rounded-xl px-3.5 py-2.5 text-white text-sm placeholder:text-neutral-600 focus:outline-none focus:border-orange-500 transition-colors"
@@ -14,7 +14,7 @@ const Spinner = () => (
 )
 
 export function SignupModal({ onClose, initialStep = "signup" }: { onClose: () => void; initialStep?: "signup" | "login" }) {
-  const [step,         setStep]        = useState<"signup" | "login">(initialStep)
+  const [step,         setStep]        = useState<"signup" | "login" | "forgot">(initialStep)
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading,    setIsLoading]   = useState(false)
   const [error,        setError]       = useState("")
@@ -23,12 +23,27 @@ export function SignupModal({ onClose, initialStep = "signup" }: { onClose: () =
     firstName: "", lastName: "", email: "", phone: "",
     company: "", countryCode: "", password: "",
   })
-  const [login, setLogin] = useState({ email: "", password: "" })
+  const [login,        setLogin]       = useState({ email: "", password: "" })
+  const [forgotEmail,  setForgotEmail] = useState("")
+  const [forgotSent,   setForgotSent]  = useState(false)
 
   const su = (k: keyof typeof signup) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
     setSignup(f => ({ ...f, [k]: e.target.value }))
   const lg = (k: keyof typeof login) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setLogin(f => ({ ...f, [k]: e.target.value }))
+
+  const handleForgot = async (e: React.FormEvent) => {
+    e.preventDefault(); setError(""); setIsLoading(true)
+    try {
+      await fetch("/api/auth/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: forgotEmail }),
+      })
+      setForgotSent(true)
+    } catch { setError("Erreur de connexion au serveur") }
+    setIsLoading(false)
+  }
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault(); setError(""); setIsLoading(true)
@@ -65,14 +80,16 @@ export function SignupModal({ onClose, initialStep = "signup" }: { onClose: () =
           </div>
         </div>
 
-        <div className="flex gap-1 bg-white/[0.04] p-1 rounded-xl mb-6 border border-white/[0.05]">
-          {(["signup","login"] as const).map(s => (
-            <button key={s} onClick={() => { setStep(s); setError("") }}
-              className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-all ${step === s ? "bg-orange-500 text-white" : "text-neutral-500 hover:text-white"}`}>
-              {s === "signup" ? "Créer un compte" : "Se connecter"}
-            </button>
-          ))}
-        </div>
+        {step !== "forgot" && (
+          <div className="flex gap-1 bg-white/[0.04] p-1 rounded-xl mb-6 border border-white/[0.05]">
+            {(["signup","login"] as const).map(s => (
+              <button key={s} onClick={() => { setStep(s); setError("") }}
+                className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-all ${step === s ? "bg-orange-500 text-white" : "text-neutral-500 hover:text-white"}`}>
+                {s === "signup" ? "Créer un compte" : "Se connecter"}
+              </button>
+            ))}
+          </div>
+        )}
 
         {error && <div className="mb-4 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 text-red-400 text-sm">{error}</div>}
 
@@ -150,7 +167,8 @@ export function SignupModal({ onClose, initialStep = "signup" }: { onClose: () =
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label className="text-xs font-medium text-neutral-500">Mot de passe</label>
-                <span className="text-xs text-orange-400 hover:underline cursor-pointer">Oublié ?</span>
+                <button type="button" onClick={() => { setStep("forgot"); setError(""); setForgotEmail(login.email) }}
+                  className="text-xs text-orange-400 hover:underline">Oublié ?</button>
               </div>
               <div className="relative">
                 <input type={showPassword ? "text" : "password"} placeholder="••••••••" required value={login.password} onChange={lg("password")} className={INPUT + " pr-11"} />
@@ -165,6 +183,49 @@ export function SignupModal({ onClose, initialStep = "signup" }: { onClose: () =
               {isLoading ? <><Spinner />Connexion...</> : <>Se connecter <ArrowRight className="w-4 h-4" /></>}
             </button>
           </form>
+        )}
+
+        {step === "forgot" && (
+          forgotSent ? (
+            <div className="text-center space-y-4 py-2">
+              <div className="w-14 h-14 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto">
+                <CheckCircle className="w-7 h-7 text-emerald-400" />
+              </div>
+              <h3 className="text-white font-bold text-lg">Email envoyé !</h3>
+              <p className="text-neutral-500 text-sm leading-relaxed">
+                Si un compte existe pour <span className="text-white">{forgotEmail}</span>,<br />
+                vous recevrez un lien de réinitialisation.
+              </p>
+              <p className="text-neutral-600 text-xs">Vérifiez aussi vos spams.</p>
+              <button onClick={() => { setStep("login"); setForgotSent(false); setError("") }}
+                className="flex items-center justify-center gap-2 mx-auto text-orange-400 text-sm hover:text-orange-300 transition-colors">
+                <ArrowLeft className="w-3.5 h-3.5" />Retour à la connexion
+              </button>
+            </div>
+          ) : (
+            <>
+              <button onClick={() => { setStep("login"); setError("") }}
+                className="flex items-center gap-1.5 text-neutral-500 hover:text-white text-sm mb-5 transition-colors">
+                <ArrowLeft className="w-3.5 h-3.5" />Retour
+              </button>
+              <h3 className="text-white font-bold text-xl mb-1">Mot de passe oublié ?</h3>
+              <p className="text-neutral-500 text-sm mb-6 leading-relaxed">
+                Entrez votre adresse email et nous vous enverrons un lien pour réinitialiser votre mot de passe.
+              </p>
+              <form onSubmit={handleForgot} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-medium text-neutral-500 mb-1.5">Adresse email</label>
+                  <input type="email" placeholder="vous@exemple.com" required
+                    value={forgotEmail} onChange={e => setForgotEmail(e.target.value)} className={INPUT} />
+                </div>
+                <button type="submit" disabled={isLoading}
+                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm text-white transition-all disabled:opacity-60"
+                  style={{ background: "linear-gradient(135deg,#f97316,#dc2626)", boxShadow: "0 8px 24px rgba(249,115,22,0.3)" }}>
+                  {isLoading ? <><Spinner />Envoi...</> : <>Envoyer le lien <ArrowRight className="w-4 h-4" /></>}
+                </button>
+              </form>
+            </>
+          )
         )}
       </div>
     </div>
