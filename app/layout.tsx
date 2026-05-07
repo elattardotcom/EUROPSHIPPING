@@ -41,21 +41,12 @@ export const metadata: Metadata = {
     title: "CODShip — Plateforme COD Shopify en Europe",
     description:
       "Gérez vos commandes Cash on Delivery en Europe. Connectez Shopify, confirmez, livrez, encaissez en 48h.",
-    images: [
-      {
-        url: "/og-image.png",
-        width: 1200,
-        height: 630,
-        alt: "CODShip — Plateforme Cash on Delivery",
-      },
-    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "CODShip — Plateforme COD Shopify en Europe",
     description:
       "Gérez vos commandes Cash on Delivery en Europe. Connectez Shopify, confirmez, livrez, encaissez en 48h.",
-    images: ["/og-image.png"],
   },
   alternates: {
     canonical: "https://codship.com",
@@ -68,9 +59,52 @@ export const viewport: Viewport = {
   initialScale: 1,
 }
 
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: "CODShip",
+  applicationCategory: "BusinessApplication",
+  operatingSystem: "Web",
+  url: "https://codship.com",
+  description:
+    "Plateforme SaaS Cash on Delivery pour dropshippers Shopify en Europe. Gestion des commandes, confirmations d'appel, suivi des livraisons et virements en 48h.",
+  offers: {
+    "@type": "AggregateOffer",
+    priceCurrency: "EUR",
+    lowPrice: "29",
+    highPrice: "89",
+    offerCount: "3",
+  },
+  aggregateRating: {
+    "@type": "AggregateRating",
+    ratingValue: "4.9",
+    reviewCount: "2500",
+    bestRating: "5",
+  },
+  provider: {
+    "@type": "Organization",
+    name: "CODShip",
+    url: "https://codship.com",
+    logo: "https://codship.com/icon.svg",
+    contactPoint: {
+      "@type": "ContactPoint",
+      email: "support@codship.com",
+      contactType: "customer support",
+      availableLanguage: ["French", "English", "Arabic"],
+    },
+    areaServed: ["ES", "IT", "PT", "RO", "BG", "HU", "GR", "SK", "SI", "CZ"],
+  },
+}
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="fr" className="dark">
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      </head>
       <body className={`${inter.className} antialiased`}>{children}</body>
     </html>
   )
