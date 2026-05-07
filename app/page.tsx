@@ -2,12 +2,13 @@
 
 import { useState } from "react"
 import {
-  Store, CheckCircle, ArrowRight, Users, Truck, BarChart3, Zap, Shield,
+  CheckCircle, ArrowRight, Users, Truck, BarChart3, Zap, Shield,
   Star, X, Eye, EyeOff, Wallet, Link2, Gift, Phone, Mail, MapPin,
   Instagram, Facebook, Twitter, Package, ChevronRight,
   Banknote, PhoneCall, TrendingUp, Clock, BadgeCheck, Globe2, Layers,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Logo } from "@/components/logo"
 
 const INPUT = "w-full bg-[#111] border border-white/10 rounded-xl px-3.5 py-2.5 text-white text-sm placeholder:text-neutral-600 focus:outline-none focus:border-orange-500 transition-colors"
 
@@ -35,8 +36,8 @@ const TICKER = [
   "🚚 COD-7819 EN ROUTE · Bucarest",
 ]
 
-function SignupModal({ onClose }: { onClose: () => void }) {
-  const [step,         setStep]        = useState<"signup" | "login">("signup")
+function SignupModal({ onClose, initialStep = "signup" }: { onClose: () => void; initialStep?: "signup" | "login" }) {
+  const [step,         setStep]        = useState<"signup" | "login">(initialStep)
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading,    setIsLoading]   = useState(false)
   const [error,        setError]       = useState("")
@@ -87,9 +88,7 @@ function SignupModal({ onClose }: { onClose: () => void }) {
         <button onClick={onClose} className="absolute top-4 right-4 text-neutral-600 hover:text-white transition-colors"><X className="w-5 h-5" /></button>
 
         <div className="flex items-center gap-3 mb-8">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "linear-gradient(135deg,#f97316,#dc2626)", boxShadow: "0 4px 20px rgba(249,115,22,0.4)" }}>
-            <Store className="w-5 h-5 text-white" />
-          </div>
+          <Logo size={40} showBg={true} />
           <div>
             <h1 className="text-white font-black text-lg tracking-tight">CODShip</h1>
             <p className="text-neutral-600 text-xs">Pro Platform</p>
@@ -203,9 +202,10 @@ function SignupModal({ onClose }: { onClose: () => void }) {
 }
 
 export default function LandingPage() {
-  const [showModal, setShowModal] = useState(false)
-  const openSignup = () => setShowModal(true)
-  const openLogin  = () => setShowModal(true)
+  const [showModal,    setShowModal]    = useState(false)
+  const [modalStep,    setModalStep]    = useState<"signup" | "login">("signup")
+  const openSignup = () => { setModalStep("signup"); setShowModal(true) }
+  const openLogin  = () => { setModalStep("login");  setShowModal(true) }
 
   return (
     <div className="min-h-screen bg-[#080808] text-white overflow-x-hidden">
@@ -289,10 +289,7 @@ export default function LandingPage() {
         style={{ background: "rgba(8,8,8,0.92)", backdropFilter: "blur(20px)" }}>
         <div className="max-w-7xl mx-auto px-6 w-full flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center"
-              style={{ background: "linear-gradient(135deg,#f97316,#dc2626)", boxShadow: "0 0 20px rgba(249,115,22,0.35)" }}>
-              <Store className="w-4.5 h-4.5 text-white" />
-            </div>
+            <Logo size={36} showBg={true} />
             <span className="font-black text-xl tracking-tight">CODShip</span>
             <div className="hidden sm:flex items-center gap-1.5 text-[10px] font-bold text-emerald-400 border border-emerald-500/25 bg-emerald-500/8 px-2.5 py-1 rounded-full uppercase tracking-widest">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-dot" />
@@ -845,9 +842,7 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-10">
             <div>
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "linear-gradient(135deg,#f97316,#dc2626)", boxShadow: "0 0 20px rgba(249,115,22,0.25)" }}>
-                  <Store className="w-4 h-4 text-white" />
-                </div>
+                <Logo size={36} showBg={true} />
                 <span className="font-black text-lg">CODShip</span>
               </div>
               <p className="text-neutral-700 text-xs leading-relaxed mb-5">
@@ -887,7 +882,7 @@ export default function LandingPage() {
         </div>
       </footer>
 
-      {showModal && <SignupModal onClose={() => setShowModal(false)} />}
+      {showModal && <SignupModal onClose={() => setShowModal(false)} initialStep={modalStep} />}
     </div>
   )
 }
