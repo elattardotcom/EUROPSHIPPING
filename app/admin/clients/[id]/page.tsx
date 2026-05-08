@@ -6,9 +6,10 @@ import {
   ArrowLeft, Mail, Phone, Globe, Store, ShoppingCart, Users,
   DollarSign, CheckCircle, Clock, Truck, XCircle, AlertCircle, PhoneMissed,
   PlusCircle, MinusCircle, Loader2, TrendingUp, TrendingDown,
+  Building2, Bitcoin, ArrowRight, Star, Wallet,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import type { Client, AdminOrder, AdminLead, AdminStore, BalanceAdjustment } from "@/lib/db"
+import type { Client, AdminOrder, AdminLead, AdminStore, BalanceAdjustment, PaymentMethod } from "@/lib/db"
 import { useI18n } from "@/lib/admin-i18n"
 
 const FLAGS: Record<string, string> = { PT:"🇵🇹", ES:"🇪🇸", FR:"🇫🇷", MA:"🇲🇦", BE:"🇧🇪", TN:"🇹🇳" }
@@ -53,6 +54,8 @@ export default function ClientDetail({ params }: { params: Promise<{ id: string 
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
 
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([])
+
   const [adjustments, setAdjustments] = useState<BalanceAdjustment[]>([])
   const [adjAmount,   setAdjAmount]   = useState("")
   const [adjType,     setAdjType]     = useState<"credit" | "debit">("credit")
@@ -75,6 +78,7 @@ export default function ClientDetail({ params }: { params: Promise<{ id: string 
         setOrders(d.orders ?? [])
         setLeads(d.leads ?? [])
         setStores(d.stores ?? [])
+        setPaymentMethods(d.paymentMethods ?? [])
         setEditPlan(d.client.plan ?? "starter")
         setEditStatus(d.client.status ?? "active")
         setLoading(false)
@@ -372,6 +376,50 @@ export default function ClientDetail({ params }: { params: Promise<{ id: string 
             )}
           </div>
         </div>
+      </div>
+
+      <div className="bg-neutral-900 border border-neutral-800 rounded-2xl overflow-hidden">
+        <div className="px-5 py-4 border-b border-neutral-800 flex items-center gap-2">
+          <Wallet className="w-4 h-4 text-orange-400" />
+          <h2 className="font-semibold text-white">Méthodes de paiement ({paymentMethods.length})</h2>
+        </div>
+        {paymentMethods.length === 0
+          ? <p className="p-5 text-neutral-500 text-sm">Aucune méthode de paiement enregistrée.</p>
+          : <div className="divide-y divide-neutral-800">
+              {paymentMethods.map(m => {
+                const Icon = m.type === "bank" ? Building2 : m.type === "crypto" ? Bitcoin : ArrowRight
+                const line1 = m.type === "bank"
+                  ? (m.iban ? `IBAN: ${m.iban.slice(0,4)}****${m.iban.slice(-4)}` : "")
+                  : m.type === "wise"
+                  ? (m.wiseEmail ?? "")
+                  : `${m.cryptoNetwork ?? ""}`
+                const line2 = m.type === "bank"
+                  ? (m.accountHolder ?? "")
+                  : m.type === "wise"
+                  ? (m.wiseCurrency ?? "")
+                  : (m.cryptoAddress ? `${m.cryptoAddress.slice(0,6)}…${m.cryptoAddress.slice(-4)}` : "")
+                return (
+                  <div key={m.id} className="px-5 py-3.5 flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-8 h-8 rounded-lg bg-neutral-800 flex items-center justify-center flex-shrink-0">
+                        <Icon className="w-4 h-4 text-orange-400" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm text-white font-medium flex items-center gap-1.5">
+                          {m.label}
+                          {m.isDefault && <Star className="w-3 h-3 text-amber-400 fill-amber-400" />}
+                        </p>
+                        <p className="text-xs text-neutral-500 truncate">{line1}{line2 ? ` · ${line2}` : ""}</p>
+                      </div>
+                    </div>
+                    <span className="text-xs px-2 py-1 rounded-full bg-neutral-800 text-neutral-400 flex-shrink-0 capitalize">
+                      {m.type}
+                    </span>
+                  </div>
+                )
+              })}
+            </div>
+        }
       </div>
 
       <div className="bg-neutral-900 border border-neutral-800 rounded-2xl overflow-hidden">
