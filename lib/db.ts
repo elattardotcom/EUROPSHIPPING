@@ -480,19 +480,30 @@ export async function createWithdrawal(
   const sb = getSupabaseAdmin()
   if (!sb) return memCreate(payload)
 
+  const base = {
+    client_id:    payload.clientId,
+    client_name:  payload.clientName,
+    client_email: payload.clientEmail,
+    amount:       payload.amount,
+    currency:     payload.currency,
+    iban:         payload.iban,
+  }
+
   try {
+    // Try with payment method columns (requires migration)
     const { data, error } = await sb.from("withdrawals").insert({
-      client_id:            payload.clientId,
-      client_name:          payload.clientName,
-      client_email:         payload.clientEmail,
-      amount:               payload.amount,
-      currency:             payload.currency,
-      iban:                 payload.iban,
-      payment_method_type:  payload.paymentMethodType ?? null,
-      payment_details:      payload.paymentDetails ?? null,
+      ...base,
+      payment_method_type: payload.paymentMethodType ?? null,
+      payment_details:     payload.paymentDetails    ?? null,
     }).select().single()
-    if (error || !data) return memCreate(payload)
-    return mapWithdrawal(data)
+
+    if (!error && data) return mapWithdrawal(data)
+
+    // Fallback: insert without new columns (migration not yet run)
+    const { data: data2, error: error2 } = await sb.from("withdrawals").insert(base).select().single()
+    if (!error2 && data2) return mapWithdrawal(data2)
+
+    return memCreate(payload)
   } catch { return memCreate(payload) }
 }
 
