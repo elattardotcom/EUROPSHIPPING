@@ -584,7 +584,6 @@ export async function createPaymentMethod(
     return newMethod
   }
   try {
-    // Unset default on others if this is default
     if (payload.isDefault) {
       await sb.from("payment_methods").update({ is_default: false }).eq("client_id", payload.clientId)
     }
@@ -602,16 +601,16 @@ export async function createPaymentMethod(
       is_default:     payload.isDefault,
       created_at:     now,
     }).select().single()
-    if (error || !data) {
-      // file fallback
-      const list = readPaymentMethods()
-      const newMethod: PaymentMethod = { ...payload, id: `pm_${Date.now()}`, createdAt: now }
-      list.push(newMethod)
-      writePaymentMethods(list)
-      return newMethod
+    if (error) {
+      console.error("[createPaymentMethod] supabase error:", JSON.stringify(error))
+      return null
     }
+    if (!data) return null
     return mapPaymentMethod(data)
-  } catch { return null }
+  } catch (e) {
+    console.error("[createPaymentMethod] exception:", e)
+    return null
+  }
 }
 
 export async function deletePaymentMethod(id: string, clientId: string): Promise<boolean> {

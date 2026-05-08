@@ -10,6 +10,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   const clientId = req.cookies.get("client_id")?.value
+  console.log("[payment-methods POST] clientId from cookie:", clientId ?? "MISSING")
   if (!clientId) return NextResponse.json({ error: "Non authentifié" }, { status: 401 })
 
   const body = await req.json()
@@ -33,6 +34,10 @@ export async function POST(req: NextRequest) {
     isDefault:     isDefault     ?? false,
   })
 
-  if (!method) return NextResponse.json({ error: "Erreur lors de la création" }, { status: 500 })
+  if (!method) {
+    console.error("[payment-methods POST] createPaymentMethod returned null for clientId:", clientId)
+    return NextResponse.json({ error: "Erreur lors de la création — vérifiez les logs serveur" }, { status: 500 })
+  }
+  console.log("[payment-methods POST] created method id:", method.id)
   return NextResponse.json(method, { status: 201 })
 }
