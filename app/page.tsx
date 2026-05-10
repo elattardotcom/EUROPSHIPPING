@@ -6,8 +6,11 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { Logo } from "@/components/logo"
-import { OpenModalButton } from "@/components/landing/open-modal-button"
-import { ModalListener }   from "@/components/landing/modal-listener"
+import { OpenModalButton }    from "@/components/landing/open-modal-button"
+import { ModalListener }      from "@/components/landing/modal-listener"
+import { LiveToast }          from "@/components/landing/live-toast"
+import { AnimatedCounter }    from "@/components/landing/animated-counter"
+import { FaqSection }         from "@/components/landing/faq-section"
 
 const LIVE_ORDERS = [
   { ref: "COD-7821", city: "Madrid",    product: "Montre Premium",   amount: "€48", status: "LIVRÉ",    flag: "🇪🇸", color: "#10b981" },
@@ -149,12 +152,14 @@ export default function LandingPage() {
 
               <div className="animate-slide-r d5 flex items-center gap-6 text-sm">
                 {[
-                  { n: "2 500+", l: "marchands", color: "#f97316" },
-                  { n: "€1.2M",  l: "/ mois",   color: "#10b981" },
-                  { n: "94%",    l: "livraison", color: "#6366f1" },
+                  { to: 2500, suffix: "+", l: "marchands", color: "#f97316" },
+                  { to: 1.2,  prefix: "€", suffix: "M", l: "/ mois", color: "#10b981", decimals: 1 },
+                  { to: 94,   suffix: "%", l: "livraison", color: "#6366f1" },
                 ].map(s => (
                   <div key={s.l} className="flex flex-col">
-                    <span className="text-xl font-black" style={{ color: s.color }}>{s.n}</span>
+                    <span className="text-xl font-black">
+                      <AnimatedCounter to={s.to} prefix={s.prefix} suffix={s.suffix} decimals={s.decimals} color={s.color} />
+                    </span>
                     <span className="text-xs text-neutral-600 uppercase tracking-wide">{s.l}</span>
                   </div>
                 ))}
@@ -491,6 +496,54 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ── Global Stats ───────────────────────────────────────── */}
+      <section className="py-20 px-6 border-y border-white/[0.04]" style={{ background: "linear-gradient(180deg,#0c0c0c,#090909)" }}>
+        <div className="max-w-5xl mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+            {[
+              { to: 2500,  suffix: "+",  label: "Marchands actifs",      color: "#f97316", sub: "dans 10 pays" },
+              { to: 1200000, prefix: "€", label: "Encaissés / mois",     color: "#10b981", sub: "reversés en 48h" },
+              { to: 94,    suffix: "%",  label: "Taux de livraison",      color: "#6366f1", sub: "moyenne plateforme" },
+              { to: 48,    suffix: "h",  label: "Délai virement",         color: "#f59e0b", sub: "garanti" },
+            ].map(s => (
+              <div key={s.label} className="text-center">
+                <div className="text-4xl md:text-5xl font-black mb-1">
+                  <AnimatedCounter to={s.to} prefix={s.prefix ?? ""} suffix={s.suffix} color={s.color} duration={2000} />
+                </div>
+                <p className="text-white text-sm font-semibold mb-0.5">{s.label}</p>
+                <p className="text-neutral-600 text-xs">{s.sub}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Integrations ───────────────────────────────────────── */}
+      <section className="py-16 px-6" style={{ background: "#080808" }}>
+        <div className="max-w-4xl mx-auto text-center">
+          <p className="text-neutral-600 text-xs font-semibold uppercase tracking-widest mb-8">Compatible & intégré avec</p>
+          <div className="flex flex-wrap items-center justify-center gap-6">
+            {[
+              { name: "Shopify",   color: "#96bf48", bg: "rgba(150,191,72,0.08)",   border: "rgba(150,191,72,0.2)"  },
+              { name: "DPD",       color: "#dc2626", bg: "rgba(220,38,38,0.08)",    border: "rgba(220,38,38,0.2)"   },
+              { name: "GLS",       color: "#f59e0b", bg: "rgba(245,158,11,0.08)",   border: "rgba(245,158,11,0.2)"  },
+              { name: "Wise",      color: "#9fcd39", bg: "rgba(159,205,57,0.08)",   border: "rgba(159,205,57,0.2)"  },
+              { name: "IBAN",      color: "#6366f1", bg: "rgba(99,102,241,0.08)",   border: "rgba(99,102,241,0.2)"  },
+              { name: "USDT/BTC",  color: "#f7931a", bg: "rgba(247,147,26,0.08)",   border: "rgba(247,147,26,0.2)"  },
+            ].map(i => (
+              <div key={i.name}
+                className="px-5 py-2.5 rounded-xl text-sm font-bold transition-all hover:scale-105"
+                style={{ background: i.bg, border: `1px solid ${i.border}`, color: i.color }}>
+                {i.name}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── FAQ ────────────────────────────────────────────────── */}
+      <FaqSection />
+
       {/* ── CTA ────────────────────────────────────────────────── */}
       <section className="py-28 px-6 relative overflow-hidden" style={{ background: "linear-gradient(160deg,#0d0d0d,#080808)" }}>
         <div className="absolute inset-0 pointer-events-none"
@@ -593,6 +646,7 @@ export default function LandingPage() {
         </div>
       </footer>
 
+      <LiveToast />
       <ModalListener />
     </div>
   )
