@@ -455,10 +455,15 @@ export async function getBalanceSummary(clientId: string): Promise<BalanceSummar
   ])
   const sb = getSupabaseAdmin()
 
-  const rows: { amount: number; status: string }[] = sb
-    ? await sb.from("withdrawals").select("amount, status").eq("client_id", clientId)
-        .then(r => r.data ?? []).catch(() => readWithdrawals().filter(w => w.clientId === clientId))
-    : readWithdrawals().filter(w => w.clientId === clientId)
+  let rows: { amount: number; status: string }[] = []
+  if (sb) {
+    try {
+      const { data } = await sb.from("withdrawals").select("amount, status").eq("client_id", clientId)
+      rows = data ?? []
+    } catch { rows = readWithdrawals().filter(w => w.clientId === clientId) }
+  } else {
+    rows = readWithdrawals().filter(w => w.clientId === clientId)
+  }
 
   const adjustments = Math.round(adjList.reduce((s, a) => s + a.amount, 0) * 100) / 100
   const approved    = Math.round(rows.filter(r => r.status === "approved").reduce((s, r) => s + r.amount, 0) * 100) / 100

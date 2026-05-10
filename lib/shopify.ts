@@ -50,7 +50,7 @@ export async function fetchShopifyProducts(shop: string, accessToken: string) {
     `https://${shop}/admin/api/${API_VERSION}/products.json?limit=250&published_status=any&fields=id,title,images,variants`
 
   while (url) {
-    const res = await fetch(url, {
+    const res: Response = await fetch(url, {
       headers: { "X-Shopify-Access-Token": accessToken },
     })
     if (!res.ok) throw new Error(`Shopify API error: ${res.status}`)
@@ -58,9 +58,8 @@ export async function fetchShopifyProducts(shop: string, accessToken: string) {
     const data = await res.json()
     allProducts.push(...(data.products ?? []))
 
-    // Pagination via Link header
-    const linkHeader = res.headers.get("Link") ?? ""
-    const nextMatch  = linkHeader.match(/<([^>]+)>;\s*rel="next"/)
+    const linkHeader: string = res.headers.get("Link") ?? ""
+    const nextMatch: RegExpMatchArray | null = linkHeader.match(/<([^>]+)>;\s*rel="next"/)
     url = nextMatch ? nextMatch[1] : null
   }
 
