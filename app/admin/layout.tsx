@@ -1,11 +1,12 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import {
-  Shield, LayoutDashboard, Users, ShoppingCart, UserCheck,
-  BarChart3, LogOut, ChevronRight, Bell, Store, ArrowDownLeft, Settings, Radio, ClipboardList,
+  LayoutDashboard, Users, ShoppingCart, UserCheck,
+  BarChart3, LogOut, ChevronRight, Bell, Store,
+  ArrowDownLeft, Settings, Radio, ClipboardList, Menu, X,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { AdminI18nProvider, useI18n } from "@/lib/admin-i18n"
@@ -17,8 +18,10 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
   const pathname  = usePathname()
   const router    = useRouter()
   const { t, lang, toggle } = useI18n()
-  const [collapsed, setCollapsed] = useState(false)
-  const [counts,    setCounts]    = useState<Counts>({ clients: 0, orders: 0, leads: 0, withdrawals: 0, requests: 0 })
+  const [collapsed,    setCollapsed]    = useState(false)
+  const [drawerOpen,   setDrawerOpen]   = useState(false)
+  const [counts,       setCounts]       = useState<Counts>({ clients: 0, orders: 0, leads: 0, withdrawals: 0, requests: 0 })
+  const drawerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const load = () =>
@@ -30,6 +33,9 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
     const interval = setInterval(load, 5_000)
     return () => clearInterval(interval)
   }, [])
+
+  // Close drawer on route change
+  useEffect(() => { setDrawerOpen(false) }, [pathname])
 
   if (pathname === "/admin/login") return <>{children}</>
 
@@ -52,11 +58,45 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
     { href: "/admin/analytics",   icon: BarChart3,       label: t("nav_analytics"),   badge: 0 },
   ]
 
+  // Bottom tabs: 4 main + more
+  const BOTTOM_TABS = [
+    { href: "/admin",          icon: LayoutDashboard, label: "Accueil",   badge: 0 },
+    { href: "/admin/clients",  icon: Users,           label: "Clients",   badge: 0 },
+    { href: "/admin/orders",   icon: ShoppingCart,    label: "Commandes", badge: counts.orders },
+    { href: "/admin/requests", icon: ClipboardList,   label: "Demandes",  badge: counts.requests },
+  ]
+
+  const currentPage = NAV.find(n => isActive(n.href))?.label
+    ?? (pathname.startsWith("/admin/settings") ? t("nav_settings") : "Panel")
+
+  const NavLink = ({ item, onClick }: { item: typeof NAV[0]; onClick?: () => void }) => {
+    const active = isActive(item.href)
+    return (
+      <Link href={item.href} onClick={onClick}
+        className={`flex items-center justify-between px-3 py-2.5 rounded-xl transition-all text-sm group ${
+          active
+            ? "bg-orange-500/15 text-orange-400 border border-orange-500/20"
+            : "text-neutral-500 hover:text-white hover:bg-neutral-800 border border-transparent"
+        }`}
+      >
+        <div className="flex items-center gap-3">
+          <item.icon className={`w-4 h-4 flex-shrink-0 ${active ? "text-orange-400" : ""}`} />
+          <span>{item.label}</span>
+        </div>
+        {item.badge > 0 && (
+          <span className="bg-orange-500/20 text-orange-400 text-[10px] px-1.5 py-0.5 rounded-full font-medium min-w-[18px] text-center">
+            {item.badge}
+          </span>
+        )}
+      </Link>
+    )
+  }
+
   return (
     <div className="flex h-screen bg-neutral-950 overflow-hidden">
 
-      {/* Sidebar */}
-      <aside className={`${collapsed ? "w-16" : "w-60"} flex-shrink-0 bg-neutral-900 border-r border-neutral-800 transition-all duration-300 flex flex-col`}>
+      {/* ── Desktop Sidebar ─────────────────────────────────────── */}
+      <aside className={`hidden md:flex ${collapsed ? "w-16" : "w-60"} flex-shrink-0 bg-neutral-900 border-r border-neutral-800 transition-all duration-300 flex-col`}>
 
         {/* Logo */}
         <div className="h-16 flex items-center justify-between px-4 border-b border-neutral-800">
@@ -121,35 +161,92 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
         </div>
       </aside>
 
-      {/* Main */}
-      <div className="flex-1 flex flex-col overflow-hidden min-w-0">
-        {/* Topbar */}
-        <header className="h-16 bg-neutral-900 border-b border-neutral-800 flex items-center justify-between px-6 flex-shrink-0">
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-neutral-600 uppercase tracking-widest">Admin</span>
-            <ChevronRight className="w-3 h-3 text-neutral-700" />
-            <span className="text-sm text-white font-medium">
-              {NAV.find(n => isActive(n.href))?.label ?? "Panel"}
-            </span>
+      {/* ── Mobile Drawer overlay ───────────────────────────────── */}
+      {drawerOpen && (
+        <div className="md:hidden fixed inset-0 z-50 flex">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setDrawerOpen(false)} />
+          <div ref={drawerRef} className="relative w-72 max-w-[85vw] bg-neutral-900 border-r border-neutral-800 flex flex-col h-full">
+
+            {/* Drawer header */}
+            <div className="h-14 flex items-center justify-between px-4 border-b border-neutral-800">
+              <div className="flex items-center gap-2.5">
+                <Logo size={30} showBg={false} />
+                <div>
+                  <p className="text-white font-bold text-sm leading-none">CODShip</p>
+                  <p className="text-orange-400/60 text-[10px]">Admin Panel</p>
+                </div>
+              </div>
+              <button onClick={() => setDrawerOpen(false)}
+                className="w-8 h-8 rounded-lg bg-neutral-800 flex items-center justify-center text-neutral-400">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Drawer nav */}
+            <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
+              {NAV.map(item => <NavLink key={item.href} item={item} />)}
+            </nav>
+
+            {/* Drawer bottom */}
+            <div className="p-3 border-t border-neutral-800 space-y-0.5">
+              <NavLink item={{ href: "/admin/settings", icon: Settings, label: t("nav_settings"), badge: 0 }} />
+              <button onClick={logout}
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-red-500/70 hover:text-red-400 hover:bg-red-500/10 transition-all text-sm">
+                <LogOut className="w-4 h-4 flex-shrink-0" />
+                <span>{t("nav_logout")}</span>
+              </button>
+
+              {/* Language toggle in drawer */}
+              <button onClick={toggle}
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-neutral-500 hover:text-white hover:bg-neutral-800 transition-all text-sm">
+                <span className="text-base leading-none">{lang === "en" ? "🇫🇷" : "🇬🇧"}</span>
+                <span>{lang === "en" ? "Passer en Français" : "Switch to English"}</span>
+              </button>
+            </div>
           </div>
-          <div className="flex items-center gap-3">
+        </div>
+      )}
+
+      {/* ── Main area ──────────────────────────────────────────── */}
+      <div className="flex-1 flex flex-col overflow-hidden min-w-0">
+
+        {/* Topbar */}
+        <header className="h-14 md:h-16 bg-neutral-900 border-b border-neutral-800 flex items-center justify-between px-4 md:px-6 flex-shrink-0">
+          {/* Left: hamburger (mobile) + breadcrumb */}
+          <div className="flex items-center gap-2 md:gap-3 min-w-0">
+            <button onClick={() => setDrawerOpen(true)}
+              className="md:hidden w-9 h-9 rounded-lg bg-neutral-800 flex items-center justify-center text-neutral-400 hover:text-white flex-shrink-0">
+              <Menu className="w-4 h-4" />
+            </button>
+            <div className="flex items-center gap-1.5 min-w-0">
+              <span className="hidden sm:block text-xs text-neutral-600 uppercase tracking-widest">Admin</span>
+              <ChevronRight className="hidden sm:block w-3 h-3 text-neutral-700" />
+              <span className="text-sm text-white font-medium truncate">{currentPage}</span>
+            </div>
+          </div>
+
+          {/* Right */}
+          <div className="flex items-center gap-2 md:gap-3 flex-shrink-0">
             <span className="hidden sm:flex items-center gap-1.5 text-xs text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-full">
               <Radio className="w-3 h-3 animate-pulse" />{t("live")}
             </span>
-            {/* Language toggle */}
+
+            {/* Language toggle — desktop only */}
             <button onClick={toggle}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-neutral-700 bg-neutral-800 hover:bg-neutral-700 transition-colors text-xs font-bold text-neutral-300 hover:text-white">
+              className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-neutral-700 bg-neutral-800 hover:bg-neutral-700 transition-colors text-xs font-bold text-neutral-300 hover:text-white">
               <span className="text-base leading-none">{lang === "en" ? "🇫🇷" : "🇬🇧"}</span>
               {lang === "en" ? "FR" : "EN"}
             </button>
-            <Button variant="ghost" size="icon" className="relative text-neutral-500 hover:text-white hover:bg-neutral-800">
-              <Bell className="w-5 h-5" />
-              {(counts.orders + counts.withdrawals) > 0 && (
+
+            <Button variant="ghost" size="icon" className="relative text-neutral-500 hover:text-white hover:bg-neutral-800 w-9 h-9">
+              <Bell className="w-4 h-4 md:w-5 md:h-5" />
+              {(counts.orders + counts.withdrawals + counts.requests) > 0 && (
                 <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-orange-500 rounded-full" />
               )}
             </Button>
+
             <div className="flex items-center gap-2 pl-2 border-l border-neutral-800">
-              <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-red-600 rounded-full flex items-center justify-center text-white font-bold text-xs">A</div>
+              <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-red-600 rounded-full flex items-center justify-center text-white font-bold text-xs flex-shrink-0">A</div>
               <div className="hidden sm:block">
                 <p className="text-white text-sm font-medium leading-none">Admin</p>
                 <p className="text-orange-400/60 text-xs">Super Admin</p>
@@ -158,10 +255,41 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
           </div>
         </header>
 
-        <main className="flex-1 overflow-auto bg-neutral-950 relative">
+        {/* Page content */}
+        <main className="flex-1 overflow-auto bg-neutral-950 relative pb-16 md:pb-0">
           {children}
         </main>
       </div>
+
+      {/* ── Mobile Bottom Tab Bar ───────────────────────────────── */}
+      <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-neutral-900 border-t border-neutral-800 flex items-stretch h-16 safe-area-bottom">
+        {BOTTOM_TABS.map(tab => {
+          const active = isActive(tab.href)
+          return (
+            <Link key={tab.href} href={tab.href}
+              className={`flex-1 flex flex-col items-center justify-center gap-0.5 relative transition-colors ${
+                active ? "text-orange-400" : "text-neutral-600 hover:text-neutral-400"
+              }`}
+            >
+              {tab.badge > 0 && (
+                <span className="absolute top-2 right-1/2 translate-x-3 w-4 h-4 bg-orange-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
+                  {tab.badge > 9 ? "9+" : tab.badge}
+                </span>
+              )}
+              <tab.icon className={`w-5 h-5 ${active ? "text-orange-400" : ""}`} />
+              <span className="text-[10px] font-medium">{tab.label}</span>
+            </Link>
+          )
+        })}
+
+        {/* More button */}
+        <button onClick={() => setDrawerOpen(true)}
+          className="flex-1 flex flex-col items-center justify-center gap-0.5 text-neutral-600 hover:text-neutral-400 transition-colors">
+          <Menu className="w-5 h-5" />
+          <span className="text-[10px] font-medium">Menu</span>
+        </button>
+      </nav>
+
     </div>
   )
 }

@@ -86,10 +86,10 @@ export default function AdminWithdrawals() {
   const fmt = (n: number) => n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 md:p-6 space-y-4 md:space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">{t("with_title")}</h1>
+          <h1 className="text-xl md:text-2xl font-bold text-white">{t("with_title")}</h1>
           <div className="flex items-center gap-2 mt-0.5">
             <p className="text-sm text-neutral-500">{t("with_sub")}</p>
             <span className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full transition-all duration-500 ${
@@ -129,7 +129,7 @@ export default function AdminWithdrawals() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
           <input value={search} onChange={e => setSearch(e.target.value)}
             placeholder={t("with_search")}
-            className="w-64 bg-neutral-900 border border-neutral-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder:text-neutral-600 focus:outline-none focus:border-orange-500" />
+            className="w-full sm:w-64 bg-neutral-900 border border-neutral-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder:text-neutral-600 focus:outline-none focus:border-orange-500" />
         </div>
         <div className="relative">
           <select value={filter} onChange={e => setFilter(e.target.value as WithdrawalStatus | "ALL")}

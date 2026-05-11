@@ -24,31 +24,36 @@ export async function PATCH(
   const sb = getSupabaseAdmin()
   if (!sb) return NextResponse.json({ error: "Service unavailable" }, { status: 503 })
 
-  // Fetch the request
-  const { data: req_, error: fetchErr } = await sb
+  // Fetch the pending request
+  const { data: regReq, error: fetchErr } = await sb
     .from("registration_requests")
     .select("*")
     .eq("id", id)
-    .single()
+    .maybeSingle()
 
-  if (fetchErr || !req_) return NextResponse.json({ error: "Request not found" }, { status: 404 })
-  if (req_.status !== "pending") return NextResponse.json({ error: "Already processed" }, { status: 409 })
+  if (fetchErr)  return NextResponse.json({ error: fetchErr.message }, { status: 500 })
+  if (!regReq)   return NextResponse.json({ error: "Request not found" }, { status: 404 })
+  if (regReq.status !== "pending") return NextResponse.json({ error: "Already processed" }, { status: 409 })
 
   if (action === "reject") {
-    await sb.from("registration_requests").update({ status: "rejected", admin_note: adminNote ?? null }).eq("id", id)
+    await sb.from("registration_requests")
+      .update({ status: "rejected", admin_note: adminNote ?? null })
+      .eq("id", id)
     return NextResponse.json({ success: true, action: "rejected" })
   }
 
-  // Approve: create the client account
+  // ── Approve: create the client ──────────────────────────────
   const avatarColor = AVATAR_COLORS[Math.floor(Math.random() * AVATAR_COLORS.length)]
-  const { data: client, error: clientErr } = await sb.from("clients").insert({
-    first_name:      req_.first_name,
-    last_name:       req_.last_name,
-    email:           req_.email,
-    phone:           req_.phone        ?? "",
-    company:         req_.company      ?? "",
-    country:         req_.country      ?? "",
-    country_code:    req_.country_code ?? "",
+
+  // Insert without password_hash first (avoids "no rows returned" if column differs)
+  const { error: insertErr } = await sb.from("clients").insert({
+    first_name:      regReq.first_name,
+    last_name:       regReq.last_name,
+    email:           regReq.email,
+    phone:           regReq.phone        ?? "",
+    company:         regReq.company      ?? "",
+    country:         regReq.country      ?? "",
+    country_code:    regReq.country_code ?? "",
     plan:            "starter",
     status:          "trial",
     joined_at:       new Date().toISOString(),
@@ -59,24 +64,38 @@ export async function PATCH(
     leads_count:     0,
     last_active:     new Date().toISOString(),
     avatar_color:    avatarColor,
-    password_hash:   req_.password_hash,
-  }).select().single()
+  })
 
-  if (clientErr || !client) {
-    return NextResponse.json({ error: clientErr?.message ?? "Failed to create client" }, { status: 500 })
+  if (insertErr) return NextResponse.json({ error: insertErr.message }, { status: 500 })
+
+  // Fetch the newly created client id
+  const { data: newClient } = await sb
+    .from("clients")
+    .select("id")
+    .eq("email", regReq.email)
+    .maybeSingle()
+
+  const clientId = newClient?.id ?? null
+
+  if (clientId) {
+    // Try storing password_hash in clients row (column added via migration)
+    await sb.from("clients")
+      .update({ password_hash: regReq.password_hash })
+      .eq("id", clientId)
+
+    // Always upsert into auth_credentials as fallback
+    try {
+      await sb.from("auth_credentials").upsert(
+        { client_id: clientId, email: regReq.email, hash: regReq.password_hash },
+        { onConflict: "email" }
+      )
+    } catch { /* table may not exist — clients.password_hash is enough */ }
   }
 
-  // password_hash is already stored in the clients row (inserted above)
-  // Also upsert into auth_credentials table as a fallback index
-  try {
-    await sb.from("auth_credentials").upsert(
-      { client_id: client.id, email: req_.email, hash: req_.password_hash },
-      { onConflict: "email" }
-    )
-  } catch { /* table may not exist */ }
-
   // Mark request approved
-  await sb.from("registration_requests").update({ status: "approved", admin_note: adminNote ?? null }).eq("id", id)
+  await sb.from("registration_requests")
+    .update({ status: "approved", admin_note: adminNote ?? null })
+    .eq("id", id)
 
-  return NextResponse.json({ success: true, action: "approved", clientId: client.id })
+  return NextResponse.json({ success: true, action: "approved", clientId })
 }

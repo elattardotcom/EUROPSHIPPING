@@ -144,7 +144,7 @@ export default function RequestsPage() {
   const pendingCount = requests.filter(r => r.status === "pending").length
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 md:p-6 space-y-4 md:space-y-6">
       {modal && (
         <ActionModal
           req={modal.req}
@@ -157,7 +157,7 @@ export default function RequestsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white flex items-center gap-3">
+          <h1 className="text-xl md:text-2xl font-bold text-white flex items-center gap-2 flex-wrap">
             Demandes d'inscription
             {pendingCount > 0 && (
               <span className="text-sm bg-orange-500 text-white px-2.5 py-0.5 rounded-full font-semibold">
@@ -165,7 +165,7 @@ export default function RequestsPage() {
               </span>
             )}
           </h1>
-          <p className="text-sm text-neutral-500 mt-0.5">Approuvez ou rejetez les demandes de création de compte</p>
+          <p className="text-xs md:text-sm text-neutral-500 mt-0.5">Approuvez ou rejetez les demandes de création de compte</p>
         </div>
         <button onClick={load} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-neutral-400 hover:text-white text-sm transition-colors">
           <RefreshCw className="w-3.5 h-3.5" />Actualiser
@@ -248,21 +248,21 @@ export default function RequestsPage() {
               </div>
 
               {/* Status + actions */}
-              <div className="flex items-center gap-3 flex-shrink-0">
+              <div className="flex flex-wrap items-center gap-3 flex-shrink-0">
                 <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border ${cfg.bg} ${cfg.color}`}>
                   <StatusIcon className="w-3.5 h-3.5" />{cfg.label}
                 </span>
                 {req.status === "pending" && (
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 w-full sm:w-auto">
                     <button
                       onClick={() => setModal({ req, action: "approve" })}
-                      className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold transition-colors"
+                      className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold transition-colors"
                     >
                       <CheckCircle className="w-3.5 h-3.5" />Approuver
                     </button>
                     <button
                       onClick={() => setModal({ req, action: "reject" })}
-                      className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-neutral-800 hover:bg-red-600/20 text-red-400 hover:text-red-300 text-sm font-semibold transition-colors border border-neutral-700 hover:border-red-500/30"
+                      className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-neutral-800 hover:bg-red-600/20 text-red-400 hover:text-red-300 text-sm font-semibold transition-colors border border-neutral-700 hover:border-red-500/30"
                     >
                       <XCircle className="w-3.5 h-3.5" />Rejeter
                     </button>

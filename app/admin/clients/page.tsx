@@ -72,10 +72,10 @@ export default function AdminClients() {
   const totalMRR   = clients.filter(c => c.status === "active").reduce((s,c) => s + c.monthlyRevenue, 0)
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 md:p-6 space-y-4 md:space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">{t("clients_title")}</h1>
+          <h1 className="text-xl md:text-2xl font-bold text-white">{t("clients_title")}</h1>
           <p className="text-sm text-neutral-500 mt-0.5">{t("clients_sub")}</p>
         </div>
         <button onClick={load}
@@ -99,32 +99,34 @@ export default function AdminClients() {
         ))}
       </div>
 
-      <div className="flex flex-wrap gap-3">
-        <div className="relative">
+      <div className="flex flex-col sm:flex-row flex-wrap gap-3">
+        <div className="relative flex-1 sm:flex-none">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
           <input value={search} onChange={e=>{setSearch(e.target.value);setPage(1)}}
             placeholder={t("clients_search")}
-            className="w-64 bg-neutral-900 border border-neutral-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder:text-neutral-600 focus:outline-none focus:border-orange-500" />
+            className="w-full sm:w-64 bg-neutral-900 border border-neutral-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder:text-neutral-600 focus:outline-none focus:border-orange-500" />
         </div>
-        <div className="relative">
-          <select value={planF} onChange={e=>{setPlan(e.target.value as Plan|"ALL");setPage(1)}}
-            className="appearance-none bg-neutral-900 border border-neutral-800 rounded-xl pl-4 pr-9 py-2.5 text-sm text-neutral-300 focus:outline-none focus:border-orange-500 cursor-pointer">
-            <option value="ALL">{t("clients_all_plans")}</option>
-            <option value="enterprise">Enterprise</option>
-            <option value="pro">Pro</option>
-            <option value="starter">Starter</option>
-          </select>
-          <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-neutral-500 pointer-events-none" />
-        </div>
-        <div className="relative">
-          <select value={statF} onChange={e=>{setStat(e.target.value as UserStatus|"ALL");setPage(1)}}
-            className="appearance-none bg-neutral-900 border border-neutral-800 rounded-xl pl-4 pr-9 py-2.5 text-sm text-neutral-300 focus:outline-none focus:border-orange-500 cursor-pointer">
-            <option value="ALL">{t("clients_all_status")}</option>
-            {(Object.entries(STATUS_LABELS) as [UserStatus, string][]).map(([k,v]) => (
-              <option key={k} value={k}>{v}</option>
-            ))}
-          </select>
-          <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-neutral-500 pointer-events-none" />
+        <div className="flex gap-3">
+          <div className="relative flex-1 sm:flex-none">
+            <select value={planF} onChange={e=>{setPlan(e.target.value as Plan|"ALL");setPage(1)}}
+              className="w-full appearance-none bg-neutral-900 border border-neutral-800 rounded-xl pl-4 pr-9 py-2.5 text-sm text-neutral-300 focus:outline-none focus:border-orange-500 cursor-pointer">
+              <option value="ALL">{t("clients_all_plans")}</option>
+              <option value="enterprise">Enterprise</option>
+              <option value="pro">Pro</option>
+              <option value="starter">Starter</option>
+            </select>
+            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-neutral-500 pointer-events-none" />
+          </div>
+          <div className="relative flex-1 sm:flex-none">
+            <select value={statF} onChange={e=>{setStat(e.target.value as UserStatus|"ALL");setPage(1)}}
+              className="w-full appearance-none bg-neutral-900 border border-neutral-800 rounded-xl pl-4 pr-9 py-2.5 text-sm text-neutral-300 focus:outline-none focus:border-orange-500 cursor-pointer">
+              <option value="ALL">{t("clients_all_status")}</option>
+              {(Object.entries(STATUS_LABELS) as [UserStatus, string][]).map(([k,v]) => (
+                <option key={k} value={k}>{v}</option>
+              ))}
+            </select>
+            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-neutral-500 pointer-events-none" />
+          </div>
         </div>
       </div>
 

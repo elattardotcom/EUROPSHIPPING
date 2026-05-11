@@ -73,16 +73,16 @@ export default function AdminDashboard() {
   )
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 md:p-6 space-y-4 md:space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">{t("dash_title")}</h1>
-          <p className="text-neutral-500 text-sm mt-0.5">{t("updated_at")} {fmt(lastRefresh)}</p>
+          <h1 className="text-xl md:text-2xl font-bold text-white">{t("dash_title")}</h1>
+          <p className="text-neutral-500 text-xs md:text-sm mt-0.5">{t("updated_at")} {fmt(lastRefresh)}</p>
         </div>
-        <div className="flex items-center gap-3">
-          <span className="flex items-center gap-1.5 text-xs text-emerald-400"><Radio className="w-3 h-3 animate-pulse"/>{t("live")}</span>
-          <button onClick={load} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-neutral-400 hover:text-white text-sm transition-colors">
-            <RefreshCw className="w-3.5 h-3.5"/>{t("refresh")}
+        <div className="flex items-center gap-2 md:gap-3">
+          <span className="hidden sm:flex items-center gap-1.5 text-xs text-emerald-400"><Radio className="w-3 h-3 animate-pulse"/>{t("live")}</span>
+          <button onClick={load} className="flex items-center gap-1.5 md:gap-2 px-2.5 md:px-3 py-2 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-neutral-400 hover:text-white text-sm transition-colors">
+            <RefreshCw className="w-3.5 h-3.5"/><span className="hidden sm:inline">{t("refresh")}</span>
           </button>
         </div>
       </div>
@@ -173,7 +173,7 @@ export default function AdminDashboard() {
                 </div>
                 <div className="flex items-center gap-1.5 flex-shrink-0 ml-2">
                   <span className="text-base">{FLAGS[c.countryCode]??"🏳️"}</span>
-                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium border ${PLAN_COLORS[c.plan]??PLAN_COLORS.starter}`}>{c.plan}</span>
+                  <span className={`hidden sm:inline text-[10px] px-2 py-0.5 rounded-full font-medium border ${PLAN_COLORS[c.plan]??PLAN_COLORS.starter}`}>{c.plan}</span>
                   <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${STATUS_COLORS[c.status]??""}`}>{CLIENT_STATUS_LABELS[c.status]??c.status}</span>
                 </div>
               </Link>
@@ -186,7 +186,7 @@ export default function AdminDashboard() {
       {/* Revenue by plan */}
       <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-5">
         <h2 className="font-semibold text-white mb-5">{t("dash_revenue_plan")}</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {[
             { plan:"Enterprise", key:"enterprise", price:89, color:"from-orange-500 to-red-600",      bar:"bg-orange-500" },
             { plan:"Pro",        key:"pro",        price:59, color:"from-amber-500 to-orange-500",    bar:"bg-amber-500"  },

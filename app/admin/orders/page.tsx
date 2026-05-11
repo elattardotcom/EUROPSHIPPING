@@ -211,7 +211,7 @@ export default function AdminOrders() {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 md:p-6 space-y-4 md:space-y-6">
       {editing && (
         <EditModal
           order={editing}
@@ -223,7 +223,7 @@ export default function AdminOrders() {
 
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">{t("orders_title")}</h1>
+          <h1 className="text-xl md:text-2xl font-bold text-white">{t("orders_title")}</h1>
           <p className="text-sm text-neutral-500 mt-0.5">{t("orders_sub")}</p>
         </div>
         <div className="flex items-center gap-3">
@@ -264,16 +264,16 @@ export default function AdminOrders() {
         <CheckCircle className="w-12 h-12 text-emerald-500/30" />
       </div>
 
-      <div className="flex flex-wrap gap-3">
-        <div className="relative">
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1 sm:flex-none">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
           <input value={search} onChange={e=>{setSearch(e.target.value);setPage(1)}}
             placeholder={t("orders_search")}
-            className="w-64 bg-neutral-900 border border-neutral-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder:text-neutral-600 focus:outline-none focus:border-orange-500" />
+            className="w-full sm:w-64 bg-neutral-900 border border-neutral-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder:text-neutral-600 focus:outline-none focus:border-orange-500" />
         </div>
         <div className="relative">
           <select value={statF} onChange={e=>{setStat(e.target.value as OrderStatus|"ALL");setPage(1)}}
-            className="appearance-none bg-neutral-900 border border-neutral-800 rounded-xl pl-4 pr-9 py-2.5 text-sm text-neutral-300 focus:outline-none focus:border-orange-500 cursor-pointer">
+            className="w-full sm:w-auto appearance-none bg-neutral-900 border border-neutral-800 rounded-xl pl-4 pr-9 py-2.5 text-sm text-neutral-300 focus:outline-none focus:border-orange-500 cursor-pointer">
             <option value="ALL">{t("orders_all_status")}</option>
             {(Object.entries(STATUS_LABELS) as [OrderStatus, string][]).map(([k,v])=>(
               <option key={k} value={k}>{v}</option>
