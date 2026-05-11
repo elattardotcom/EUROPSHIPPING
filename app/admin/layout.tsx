@@ -111,11 +111,7 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
             <Settings className="w-4 h-4 flex-shrink-0" />
             {!collapsed && <span>{t("nav_settings")}</span>}
           </Link>
-          <Link href="/dashboard"
-            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-neutral-500 hover:text-white hover:bg-neutral-800 transition-all text-sm">
-            <Store className="w-4 h-4 flex-shrink-0" />
-            {!collapsed && <span>{t("nav_viewsite")}</span>}
-          </Link>
+
           <button onClick={logout}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-red-500/70 hover:text-red-400 hover:bg-red-500/10 transition-all text-sm">
             <LogOut className="w-4 h-4 flex-shrink-0" />
