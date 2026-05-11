@@ -6,7 +6,7 @@ import { usePathname, useRouter } from "next/navigation"
 import {
   ChevronRight, ChevronDown, LayoutDashboard, Settings, Package,
   Users, Store, ShoppingCart, Wallet, HelpCircle, Bell, RefreshCw,
-  Link2, ListOrdered, Gift, Boxes, X,
+  Link2, ListOrdered, Gift, Boxes, X, Menu,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { getClientIdFromCookie } from "@/lib/client-cookie"
@@ -71,25 +71,33 @@ const NOTIFICATIONS = [
   { id: 4, text: "Synchronisation Shopify terminée",      time: "Il y a 2h",     dot: "bg-teal-500" },
 ]
 
+const BOTTOM_TABS = [
+  { href: "/dashboard",        icon: LayoutDashboard, label: "Home" },
+  { href: "/dashboard/leads",  icon: Users,           label: "Leads" },
+  { href: "/dashboard/orders", icon: ShoppingCart,    label: "Commandes" },
+  { href: "/dashboard/wallet", icon: Wallet,          label: "Finances" },
+]
+
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const router   = useRouter()
 
-  const [collapsed,     setCollapsed]     = useState(false)
-  const [expandedMenus, setExpandedMenus] = useState<string[]>(["leads", "orders", "affiliates", "cod-drop", "wallet", "stores"])
-  const [showNotifs,    setShowNotifs]    = useState(false)
-  const [balance,       setBalance]       = useState<string | null>(null)
-  const [refreshing,    setRefreshing]    = useState(false)
-  const [clientId,      setClientId]      = useState(getClientIdFromCookie)
-  const [leadsCount,    setLeadsCount]    = useState(0)
-  const [ordersCount,   setOrdersCount]   = useState(0)
+  const [collapsed,      setCollapsed]      = useState(false)
+  const [mobileOpen,     setMobileOpen]     = useState(false)
+  const [expandedMenus,  setExpandedMenus]  = useState<string[]>(["leads", "orders", "affiliates", "cod-drop", "wallet", "stores"])
+  const [showNotifs,     setShowNotifs]     = useState(false)
+  const [balance,        setBalance]        = useState<string | null>(null)
+  const [refreshing,     setRefreshing]     = useState(false)
+  const [clientId,       setClientId]       = useState(getClientIdFromCookie)
+  const [leadsCount,     setLeadsCount]     = useState(0)
+  const [ordersCount,    setOrdersCount]    = useState(0)
 
   const navItems = buildNavItems(leadsCount, ordersCount)
 
-  const [clientName,    setClientName]    = useState("")
-  const [clientPlan,    setClientPlan]    = useState("")
-  const [clientInitials,setClientInitials]= useState("")
-  const [clientColor,   setClientColor]   = useState("from-orange-500 to-red-600")
+  const [clientName,     setClientName]     = useState("")
+  const [clientPlan,     setClientPlan]     = useState("")
+  const [clientInitials, setClientInitials] = useState("")
+  const [clientColor,    setClientColor]    = useState("from-orange-500 to-red-600")
 
   const fetchBalance = (id: string) => {
     fetch(`/api/wallet/${id}`)
@@ -140,6 +148,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     return () => window.removeEventListener("wallet:updated", handler)
   }, [clientId])
 
+  // Close mobile drawer on route change
+  useEffect(() => { setMobileOpen(false) }, [pathname])
+
   const handleRefresh = () => {
     setRefreshing(true)
     router.refresh()
@@ -153,23 +164,24 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const isParentActive = (item: NavItem) =>
     pathname === item.href || item.children?.some(c => pathname === c.href)
 
-  return (
-    <div className="flex h-screen bg-neutral-950 overflow-hidden">
-
-      {/* ── Sidebar ─────────────────────────────────────── */}
-      <aside className={`${collapsed ? "w-16" : "w-64"} flex-shrink-0 bg-neutral-900 border-r border-neutral-800 transition-all duration-300 flex flex-col h-full z-30`}>
-
-        {/* Logo */}
-        <div className="p-4 flex items-center justify-between border-b border-neutral-800 h-16">
-          {!collapsed && (
-            <Link href="/dashboard" className="flex items-center gap-2.5">
-              <Logo size={36} showBg={false} />
-              <div>
-                <p className="text-white font-bold text-base leading-none">CODShip</p>
-                <p className="text-neutral-400 text-xs">Pro Platform</p>
-              </div>
-            </Link>
-          )}
+  const SidebarContent = ({ inDrawer = false }: { inDrawer?: boolean }) => (
+    <>
+      {/* Logo */}
+      <div className="p-4 flex items-center justify-between border-b border-neutral-800 h-16">
+        {(!collapsed || inDrawer) && (
+          <Link href="/dashboard" className="flex items-center gap-2.5">
+            <Logo size={36} showBg={false} />
+            <div>
+              <p className="text-white font-bold text-base leading-none">CODShip</p>
+              <p className="text-neutral-400 text-xs">Pro Platform</p>
+            </div>
+          </Link>
+        )}
+        {inDrawer ? (
+          <button onClick={() => setMobileOpen(false)} className="text-neutral-400 hover:text-orange-500 ml-auto">
+            <X className="w-5 h-5" />
+          </button>
+        ) : (
           <Button
             variant="ghost" size="icon"
             onClick={() => setCollapsed(!collapsed)}
@@ -177,123 +189,160 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           >
             <ChevronRight className={`w-4 h-4 transition-transform duration-300 ${collapsed ? "" : "rotate-180"}`} />
           </Button>
-        </div>
+        )}
+      </div>
 
-        {/* Nav */}
-        <nav className="flex-1 overflow-y-auto p-3 space-y-0.5">
-          {!collapsed && (
-            <p className="text-neutral-600 text-[10px] uppercase tracking-widest px-3 py-2">Navigation</p>
-          )}
-
-          {navItems.map((item) => {
-            const active = isParentActive(item)
-            return (
-              <div key={item.href}>
-                {item.children ? (
-                  <button
-                    onClick={() => toggleMenu(item.href)}
-                    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors text-sm ${
-                      active
-                        ? "bg-orange-500/10 text-orange-400"
-                        : "text-neutral-400 hover:bg-neutral-800 hover:text-white"
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <item.icon className="w-4 h-4 flex-shrink-0" />
-                      {!collapsed && <span>{item.label}</span>}
-                    </div>
-                    {!collapsed && (
-                      <div className="flex items-center gap-2">
-                        {item.badge !== undefined && (
-                          <span className="bg-orange-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-medium">
-                            {item.badge}
-                          </span>
-                        )}
-                        <ChevronDown className={`w-3.5 h-3.5 transition-transform ${expandedMenus.includes(item.href) ? "rotate-180" : ""}`} />
-                      </div>
-                    )}
-                  </button>
-                ) : (
-                  <Link
-                    href={item.href}
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-sm ${
-                      isActive(item.href)
-                        ? "bg-orange-500/10 text-orange-400"
-                        : "text-neutral-400 hover:bg-neutral-800 hover:text-white"
-                    }`}
-                  >
-                    <item.icon className="w-4 h-4 flex-shrink-0" />
-                    {!collapsed && <span>{item.label}</span>}
-                  </Link>
-                )}
-
-                {/* Children */}
-                {!collapsed && item.children && expandedMenus.includes(item.href) && (
-                  <div className="ml-7 mt-0.5 space-y-0.5 border-l border-neutral-800 pl-3">
-                    {item.children.map((child) => (
-                      <Link
-                        key={child.href}
-                        href={child.href}
-                        className={`flex items-center gap-2 px-2 py-2 rounded-lg text-xs transition-colors ${
-                          isActive(child.href)
-                            ? "text-orange-400 bg-orange-500/5"
-                            : "text-neutral-400 hover:bg-neutral-800 hover:text-white"
-                        }`}
-                      >
-                        <ListOrdered className="w-3.5 h-3.5" />
-                        {child.label}
-                      </Link>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )
-          })}
-        </nav>
-
-        {/* Wallet balance */}
-        {!collapsed && balance !== null && (
-          <div className="mx-3 mb-2 px-3 py-2.5 rounded-xl bg-orange-500/10 border border-orange-500/20">
-            <p className="text-[10px] uppercase tracking-wider text-orange-400/60 mb-0.5">Solde disponible</p>
-            <p className="text-orange-400 font-bold text-base">{balance}</p>
-          </div>
+      {/* Nav */}
+      <nav className="flex-1 overflow-y-auto p-3 space-y-0.5">
+        {(!collapsed || inDrawer) && (
+          <p className="text-neutral-600 text-[10px] uppercase tracking-widest px-3 py-2">Navigation</p>
         )}
 
-        {/* Bottom */}
-        <div className="p-3 border-t border-neutral-800 space-y-0.5">
-          {!collapsed && (
-            <p className="text-neutral-600 text-[10px] uppercase tracking-widest px-3 py-1">Aide</p>
-          )}
-          <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-neutral-400 hover:bg-neutral-800 hover:text-white transition-colors text-sm">
-            <HelpCircle className="w-4 h-4 flex-shrink-0" />
-            {!collapsed && <span>Contact</span>}
-          </button>
-          <Link
-            href="/dashboard/settings"
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-sm ${
-              pathname === "/dashboard/settings"
-                ? "bg-orange-500/10 text-orange-400"
-                : "text-neutral-400 hover:bg-neutral-800 hover:text-white"
-            }`}
-          >
-            <Settings className="w-4 h-4 flex-shrink-0" />
-            {!collapsed && <span>Paramètres</span>}
-          </Link>
+        {navItems.map((item) => {
+          const active = isParentActive(item)
+          const showText = !collapsed || inDrawer
+          return (
+            <div key={item.href}>
+              {item.children ? (
+                <button
+                  onClick={() => toggleMenu(item.href)}
+                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors text-sm ${
+                    active
+                      ? "bg-orange-500/10 text-orange-400"
+                      : "text-neutral-400 hover:bg-neutral-800 hover:text-white"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <item.icon className="w-4 h-4 flex-shrink-0" />
+                    {showText && <span>{item.label}</span>}
+                  </div>
+                  {showText && (
+                    <div className="flex items-center gap-2">
+                      {item.badge !== undefined && (
+                        <span className="bg-orange-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-medium">
+                          {item.badge}
+                        </span>
+                      )}
+                      <ChevronDown className={`w-3.5 h-3.5 transition-transform ${expandedMenus.includes(item.href) ? "rotate-180" : ""}`} />
+                    </div>
+                  )}
+                </button>
+              ) : (
+                <Link
+                  href={item.href}
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-sm ${
+                    isActive(item.href)
+                      ? "bg-orange-500/10 text-orange-400"
+                      : "text-neutral-400 hover:bg-neutral-800 hover:text-white"
+                  }`}
+                >
+                  <item.icon className="w-4 h-4 flex-shrink-0" />
+                  {showText && <span>{item.label}</span>}
+                </Link>
+              )}
+
+              {/* Children */}
+              {showText && item.children && expandedMenus.includes(item.href) && (
+                <div className="ml-7 mt-0.5 space-y-0.5 border-l border-neutral-800 pl-3">
+                  {item.children.map((child) => (
+                    <Link
+                      key={child.href}
+                      href={child.href}
+                      className={`flex items-center gap-2 px-2 py-2 rounded-lg text-xs transition-colors ${
+                        isActive(child.href)
+                          ? "text-orange-400 bg-orange-500/5"
+                          : "text-neutral-400 hover:bg-neutral-800 hover:text-white"
+                      }`}
+                    >
+                      <ListOrdered className="w-3.5 h-3.5" />
+                      {child.label}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </nav>
+
+      {/* Wallet balance */}
+      {(!collapsed || inDrawer) && balance !== null && (
+        <div className="mx-3 mb-2 px-3 py-2.5 rounded-xl bg-orange-500/10 border border-orange-500/20">
+          <p className="text-[10px] uppercase tracking-wider text-orange-400/60 mb-0.5">Solde disponible</p>
+          <p className="text-orange-400 font-bold text-base">{balance}</p>
         </div>
+      )}
+
+      {/* Bottom */}
+      <div className="p-3 border-t border-neutral-800 space-y-0.5">
+        {(!collapsed || inDrawer) && (
+          <p className="text-neutral-600 text-[10px] uppercase tracking-widest px-3 py-1">Aide</p>
+        )}
+        <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-neutral-400 hover:bg-neutral-800 hover:text-white transition-colors text-sm">
+          <HelpCircle className="w-4 h-4 flex-shrink-0" />
+          {(!collapsed || inDrawer) && <span>Contact</span>}
+        </button>
+        <Link
+          href="/dashboard/settings"
+          className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-sm ${
+            pathname === "/dashboard/settings"
+              ? "bg-orange-500/10 text-orange-400"
+              : "text-neutral-400 hover:bg-neutral-800 hover:text-white"
+          }`}
+        >
+          <Settings className="w-4 h-4 flex-shrink-0" />
+          {(!collapsed || inDrawer) && <span>Paramètres</span>}
+        </Link>
+      </div>
+    </>
+  )
+
+  return (
+    <div className="flex h-screen bg-neutral-950 overflow-hidden">
+
+      {/* ── Desktop Sidebar ─────────────────────────────────── */}
+      <aside className={`${collapsed ? "w-16" : "w-64"} hidden md:flex flex-shrink-0 bg-neutral-900 border-r border-neutral-800 transition-all duration-300 flex-col h-full z-30`}>
+        <SidebarContent />
       </aside>
 
-      {/* ── Main ────────────────────────────────────────── */}
+      {/* ── Mobile Drawer Backdrop ──────────────────────────── */}
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 bg-black/60 z-40 md:hidden"
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
+
+      {/* ── Mobile Drawer ───────────────────────────────────── */}
+      <aside
+        className={`fixed top-0 left-0 h-full w-72 bg-neutral-900 border-r border-neutral-800 flex flex-col z-50 md:hidden transition-transform duration-300 ${
+          mobileOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        <SidebarContent inDrawer />
+      </aside>
+
+      {/* ── Main ────────────────────────────────────────────── */}
       <div className="flex-1 flex flex-col overflow-hidden min-w-0">
 
         {/* Topbar */}
-        <header className="h-16 bg-neutral-900 border-b border-neutral-800 flex items-center justify-between px-6 flex-shrink-0 relative">
+        <header className="h-14 md:h-16 bg-neutral-900 border-b border-neutral-800 flex items-center justify-between px-4 md:px-6 flex-shrink-0 relative">
           <div className="flex items-center gap-3">
-            <button onClick={() => setCollapsed(!collapsed)} className="md:hidden text-neutral-400 hover:text-orange-500">
-              <ChevronRight className="w-5 h-5" />
+            {/* Mobile hamburger */}
+            <button
+              onClick={() => setMobileOpen(true)}
+              className="md:hidden text-neutral-400 hover:text-orange-500 p-1"
+            >
+              <Menu className="w-5 h-5" />
             </button>
+            {/* Mobile logo */}
+            <Link href="/dashboard" className="md:hidden flex items-center gap-2">
+              <Logo size={28} showBg={false} />
+              <span className="text-white font-bold text-sm">CODShip</span>
+            </Link>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 md:gap-2">
             {/* Refresh */}
             <Button
               variant="ghost" size="icon"
@@ -316,7 +365,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </Button>
 
               {showNotifs && (
-                <div className="absolute right-0 top-12 w-80 bg-neutral-900 border border-neutral-800 rounded-xl shadow-2xl z-50">
+                <div className="absolute right-0 top-12 w-[calc(100vw-2rem)] max-w-[320px] bg-neutral-900 border border-neutral-800 rounded-xl shadow-2xl z-50">
                   <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-800">
                     <p className="text-sm font-semibold text-white">Notifications</p>
                     <button onClick={() => setShowNotifs(false)} className="text-neutral-400 hover:text-orange-500">
@@ -355,10 +404,36 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </header>
 
         {/* Page content */}
-        <main className="flex-1 overflow-auto bg-neutral-950">
+        <main className="flex-1 overflow-auto bg-neutral-950 pb-16 md:pb-0">
           {children}
         </main>
       </div>
+
+      {/* ── Mobile Bottom Tab Bar ───────────────────────────── */}
+      <nav className="fixed bottom-0 left-0 right-0 h-16 bg-neutral-900 border-t border-neutral-800 flex md:hidden z-30">
+        {BOTTOM_TABS.map(tab => {
+          const active = pathname === tab.href || (tab.href !== "/dashboard" && pathname.startsWith(tab.href))
+          return (
+            <Link
+              key={tab.href}
+              href={tab.href}
+              className={`flex-1 flex flex-col items-center justify-center gap-1 transition-colors ${
+                active ? "text-orange-400" : "text-neutral-500"
+              }`}
+            >
+              <tab.icon className="w-5 h-5" />
+              <span className="text-[10px] font-medium">{tab.label}</span>
+            </Link>
+          )
+        })}
+        <button
+          onClick={() => setMobileOpen(true)}
+          className="flex-1 flex flex-col items-center justify-center gap-1 text-neutral-500"
+        >
+          <Menu className="w-5 h-5" />
+          <span className="text-[10px] font-medium">Menu</span>
+        </button>
+      </nav>
     </div>
   )
 }

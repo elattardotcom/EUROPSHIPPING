@@ -33,7 +33,7 @@ export default function DashboardHome() {
       .join(":")
 
   return (
-    <div className="p-6">
+    <div className="p-4 md:p-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div className="flex items-center gap-4">
           <div className={`w-12 h-12 bg-gradient-to-br ${clientColor} rounded-full flex items-center justify-center text-white font-semibold text-lg flex-shrink-0`}>
