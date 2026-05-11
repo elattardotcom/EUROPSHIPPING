@@ -157,7 +157,7 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
           </div>
         </header>
 
-        <main className="flex-1 overflow-auto bg-neutral-950">
+        <main className="flex-1 overflow-auto bg-neutral-950 relative">
           {children}
         </main>
       </div>

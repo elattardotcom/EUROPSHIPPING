@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useMemo, useEffect, useCallback } from "react"
+import { createPortal } from "react-dom"
 import {
   Search, ChevronDown, ChevronLeft, ChevronRight,
   CheckCircle, Clock, Truck, XCircle, AlertCircle,
@@ -74,8 +75,8 @@ function EditModal({
     }
   }
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
       <div className="relative w-full max-w-md bg-neutral-900 border border-neutral-800 rounded-2xl shadow-2xl overflow-hidden">
 
@@ -154,7 +155,8 @@ function EditModal({
           </Button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
 
@@ -329,7 +331,7 @@ export default function AdminOrders() {
                           <td className="p-4">
                             <button
                               onClick={() => setEditing(o)}
-                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neutral-800 hover:bg-orange-500/15 hover:text-orange-400 text-neutral-400 text-xs font-medium transition-colors border border-neutral-700 hover:border-orange-500/30"
+                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-orange-500/15 hover:bg-orange-500/30 text-orange-400 text-xs font-semibold transition-colors border border-orange-500/30"
                             >
                               <Pencil className="w-3 h-3" />
                               Éditer
