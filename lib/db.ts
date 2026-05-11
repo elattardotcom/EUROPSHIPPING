@@ -295,6 +295,21 @@ export async function getAllOrders(): Promise<AdminOrder[]> {
   } catch { return [] }
 }
 
+export async function updateOrder(
+  id: string,
+  fields: { status?: OrderStatus; trackingNumber?: string }
+): Promise<AdminOrder | null> {
+  try {
+    const sb = getSupabaseAdmin(); if (!sb) return null
+    const patch: Record<string, unknown> = {}
+    if (fields.status         !== undefined) patch.status          = fields.status
+    if (fields.trackingNumber !== undefined) patch.tracking_number = fields.trackingNumber || null
+    const { data, error } = await sb.from("orders").update(patch).eq("id", id).select().single()
+    if (error) throw error
+    return mapOrder(data)
+  } catch { return null }
+}
+
 export async function getClientOrders(clientId: string): Promise<AdminOrder[]> {
   try {
     const sb = getSupabaseAdmin(); if (!sb) return []

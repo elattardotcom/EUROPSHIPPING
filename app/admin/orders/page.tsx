@@ -1,7 +1,11 @@
 "use client"
 
 import { useState, useMemo, useEffect, useCallback } from "react"
-import { Search, ChevronDown, ChevronLeft, ChevronRight, CheckCircle, Clock, Truck, XCircle, AlertCircle, ShoppingCart, RefreshCw, Radio } from "lucide-react"
+import {
+  Search, ChevronDown, ChevronLeft, ChevronRight,
+  CheckCircle, Clock, Truck, XCircle, AlertCircle,
+  ShoppingCart, RefreshCw, Radio, Pencil, X, Save, Loader2,
+} from "lucide-react"
 import { Button } from "@/components/ui/button"
 import type { AdminOrder, OrderStatus } from "@/lib/db"
 import { useI18n } from "@/lib/admin-i18n"
@@ -22,8 +26,139 @@ const STATUS_COLORS: Record<OrderStatus, string> = {
   RETURNED:  "text-red-400",
   ERROR:     "text-rose-400",
 }
+const STATUS_BG: Record<OrderStatus, string> = {
+  PENDING:   "bg-amber-500/10 border-amber-500/20",
+  SHIPPED:   "bg-blue-500/10 border-blue-500/20",
+  DELIVERED: "bg-emerald-500/10 border-emerald-500/20",
+  RETURNED:  "bg-red-500/10 border-red-500/20",
+  ERROR:     "bg-rose-500/10 border-rose-500/20",
+}
 
+const ALL_STATUSES: OrderStatus[] = ["PENDING", "SHIPPED", "DELIVERED", "RETURNED", "ERROR"]
 const PER_PAGE = 10
+
+/* ── Edit modal ─────────────────────────────────────────────── */
+
+function EditModal({
+  order,
+  statusLabels,
+  onClose,
+  onSaved,
+}: {
+  order: AdminOrder
+  statusLabels: Record<OrderStatus, string>
+  onClose: () => void
+  onSaved: (updated: AdminOrder) => void
+}) {
+  const [status,         setStatus]         = useState<OrderStatus>(order.status)
+  const [trackingNumber, setTrackingNumber] = useState(order.trackingNumber ?? "")
+  const [saving,         setSaving]         = useState(false)
+  const [error,          setError]          = useState("")
+
+  const save = async () => {
+    setSaving(true)
+    setError("")
+    try {
+      const res = await fetch(`/api/admin/orders/${order.id}`, {
+        method:  "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ status, trackingNumber: trackingNumber.trim() || undefined }),
+      })
+      if (!res.ok) { setError("Erreur lors de la mise à jour"); return }
+      const updated: AdminOrder = await res.json()
+      onSaved(updated)
+    } catch {
+      setError("Erreur réseau")
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative w-full max-w-md bg-neutral-900 border border-neutral-800 rounded-2xl shadow-2xl overflow-hidden">
+
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-neutral-800">
+          <div>
+            <h2 className="text-base font-semibold text-white">Modifier la commande</h2>
+            <p className="text-xs text-neutral-500 mt-0.5">{order.customerName} · {order.product}</p>
+          </div>
+          <button onClick={onClose} className="text-neutral-500 hover:text-white transition-colors">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Body */}
+        <div className="p-6 space-y-5">
+
+          {/* Status */}
+          <div>
+            <label className="block text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-3">
+              Statut
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              {ALL_STATUSES.map(s => {
+                const Icon = STATUS_ICONS[s]
+                const active = status === s
+                return (
+                  <button
+                    key={s}
+                    onClick={() => setStatus(s)}
+                    className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl border text-sm font-medium transition-all ${
+                      active
+                        ? `${STATUS_BG[s]} ${STATUS_COLORS[s]} border-current`
+                        : "bg-neutral-800 border-neutral-700 text-neutral-400 hover:border-neutral-600 hover:text-white"
+                    }`}
+                  >
+                    <Icon className="w-4 h-4 flex-shrink-0" />
+                    {statusLabels[s]}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Tracking number */}
+          <div>
+            <label className="block text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-2">
+              Numéro de suivi
+            </label>
+            <input
+              value={trackingNumber}
+              onChange={e => setTrackingNumber(e.target.value)}
+              placeholder="ex: 1Z999AA10123456784"
+              className="w-full bg-neutral-800 border border-neutral-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-neutral-600 focus:outline-none focus:border-orange-500 font-mono"
+            />
+            <p className="text-xs text-neutral-600 mt-1.5">Laisser vide pour effacer le numéro existant</p>
+          </div>
+
+          {error && (
+            <p className="text-sm text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg px-4 py-2.5">{error}</p>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="px-6 py-4 border-t border-neutral-800 flex items-center justify-end gap-3">
+          <Button variant="ghost" onClick={onClose} className="text-neutral-400 hover:text-white">
+            Annuler
+          </Button>
+          <Button
+            onClick={save}
+            disabled={saving}
+            className="bg-orange-500 hover:bg-orange-600 text-white gap-2"
+          >
+            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+            Enregistrer
+          </Button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* ── Page ───────────────────────────────────────────────────── */
 
 export default function AdminOrders() {
   const { t } = useI18n()
@@ -33,6 +168,7 @@ export default function AdminOrders() {
   const [statF,   setStat]    = useState<OrderStatus | "ALL">("ALL")
   const [page,    setPage]    = useState(1)
   const [live,    setLive]    = useState(false)
+  const [editing, setEditing] = useState<AdminOrder | null>(null)
 
   const STATUS_LABELS: Record<OrderStatus, string> = {
     PENDING:   t("status_pending"),
@@ -67,8 +203,22 @@ export default function AdminOrders() {
   const rows         = filtered.slice((cur-1)*PER_PAGE, cur*PER_PAGE)
   const totalRevenue = orders.filter(o=>o.status==="DELIVERED").reduce((s,o)=>s+o.value,0)
 
+  const handleSaved = (updated: AdminOrder) => {
+    setOrders(prev => prev.map(o => o.id === updated.id ? updated : o))
+    setEditing(null)
+  }
+
   return (
     <div className="p-6 space-y-6">
+      {editing && (
+        <EditModal
+          order={editing}
+          statusLabels={STATUS_LABELS}
+          onClose={() => setEditing(null)}
+          onSaved={handleSaved}
+        />
+      )}
+
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-white">{t("orders_title")}</h1>
@@ -139,16 +289,16 @@ export default function AdminOrders() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-neutral-800">
-                {[t("orders_th_customer"),t("orders_th_merchant"),t("orders_th_country"),t("orders_th_product"),t("orders_th_value"),t("orders_th_tracking"),t("orders_th_status"),t("orders_th_date")].map(h=>(
-                  <th key={h} className="text-left p-4 text-xs font-semibold text-neutral-500 uppercase tracking-wider whitespace-nowrap">{h}</th>
+                {[t("orders_th_customer"),t("orders_th_merchant"),t("orders_th_country"),t("orders_th_product"),t("orders_th_value"),t("orders_th_tracking"),t("orders_th_status"),t("orders_th_date"),""].map((h,i)=>(
+                  <th key={i} className="text-left p-4 text-xs font-semibold text-neutral-500 uppercase tracking-wider whitespace-nowrap">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {loading
-                ? <tr><td colSpan={8} className="py-12 text-center text-neutral-500 text-sm">{t("loading")}</td></tr>
+                ? <tr><td colSpan={9} className="py-12 text-center text-neutral-500 text-sm">{t("loading")}</td></tr>
                 : rows.length === 0
-                  ? <tr><td colSpan={8} className="py-12 text-center text-neutral-500 text-sm">{t("orders_none")}</td></tr>
+                  ? <tr><td colSpan={9} className="py-12 text-center text-neutral-500 text-sm">{t("orders_none")}</td></tr>
                   : rows.map(o=>{
                       const Icon  = STATUS_ICONS[o.status] ?? AlertCircle
                       const color = STATUS_COLORS[o.status] ?? "text-rose-400"
@@ -176,6 +326,15 @@ export default function AdminOrders() {
                             </span>
                           </td>
                           <td className="p-4 text-sm text-neutral-500 whitespace-nowrap">{o.createdAt}</td>
+                          <td className="p-4">
+                            <button
+                              onClick={() => setEditing(o)}
+                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neutral-800 hover:bg-orange-500/15 hover:text-orange-400 text-neutral-400 text-xs font-medium transition-colors border border-neutral-700 hover:border-orange-500/30"
+                            >
+                              <Pencil className="w-3 h-3" />
+                              Éditer
+                            </button>
+                          </td>
                         </tr>
                       )
                     })
