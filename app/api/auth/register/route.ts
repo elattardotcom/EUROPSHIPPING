@@ -1,24 +1,34 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getSupabaseAdmin }         from "@/lib/supabase"
-import { readClients, writeClients } from "@/lib/clients-store"
-import { createAuthRecordDb, findByEmailDb, hashPassword } from "@/lib/auth-store"
-import type { Client } from "@/lib/db"
+import { hashPassword, findByEmailDb } from "@/lib/auth-store"
+
+/*
+  SQL to run once in Supabase:
+
+  CREATE TABLE IF NOT EXISTS registration_requests (
+    id           UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    first_name   TEXT NOT NULL,
+    last_name    TEXT NOT NULL,
+    email        TEXT NOT NULL,
+    phone        TEXT,
+    company      TEXT,
+    country      TEXT,
+    country_code TEXT,
+    password_hash TEXT NOT NULL,
+    status       TEXT DEFAULT 'pending' CHECK (status IN ('pending','approved','rejected')),
+    admin_note   TEXT,
+    created_at   TIMESTAMPTZ DEFAULT NOW()
+  );
+*/
 
 const COUNTRY_NAMES: Record<string, string> = {
   PT: "Portugal", ES: "Espagne",  FR: "France",        MA: "Maroc",
-  DZ: "Algérie",  TN: "Tunisie", IT: "Italie",        DE: "Allemagne",
+  DZ: "Algérie",  TN: "Tunisie", IT: "Italie",         DE: "Allemagne",
   BE: "Belgique", GB: "Royaume-Uni", SN: "Sénégal",   CI: "Côte d'Ivoire",
   NL: "Pays-Bas", CH: "Suisse",  LU: "Luxembourg",
+  RO: "Roumanie", BG: "Bulgarie", HU: "Hongrie",       GR: "Grèce",
+  SK: "Slovaquie", SI: "Slovénie", CZ: "République Tchèque",
 }
-
-const AVATAR_COLORS = [
-  "from-orange-500 to-red-600",
-  "from-teal-500 to-emerald-600",
-  "from-violet-500 to-purple-600",
-  "from-blue-500 to-cyan-600",
-  "from-pink-500 to-rose-600",
-  "from-indigo-500 to-purple-600",
-]
 
 export async function POST(req: NextRequest) {
   try {
@@ -33,81 +43,46 @@ export async function POST(req: NextRequest) {
     }
 
     const normalizedEmail = email.trim().toLowerCase()
-    const avatarColor = AVATAR_COLORS[Math.floor(Math.random() * AVATAR_COLORS.length)]
     const sb = getSupabaseAdmin()
 
-    if (sb) {
-      // Check duplicate via auth_credentials (faster than full clients scan)
-      const existing = await findByEmailDb(normalizedEmail)
-      if (existing) return NextResponse.json({ error: "Un compte avec cet email existe déjà" }, { status: 409 })
-
-      const { data, error } = await sb.from("clients").insert({
-        first_name:      firstName.trim(),
-        last_name:       lastName.trim(),
-        email:           normalizedEmail,
-        phone:           phone?.trim()    ?? "",
-        company:         company?.trim()  ?? "",
-        country:         COUNTRY_NAMES[countryCode] ?? countryCode ?? "",
-        country_code:    countryCode ?? "",
-        plan:            "starter",
-        status:          "trial",
-        joined_at:       new Date().toISOString(),
-        monthly_revenue: 0,
-        total_revenue:   0,
-        stores_count:    0,
-        orders_count:    0,
-        leads_count:     0,
-        last_active:     new Date().toISOString(),
-        avatar_color:    avatarColor,
-        password_hash:   hashPassword(password),
-      }).select().single()
-
-      if (error) return NextResponse.json({ error: error.message }, { status: 400 })
-      await createAuthRecordDb(data.id, normalizedEmail, password)
-      const res = NextResponse.json({ success: true, clientId: data.id })
-      res.cookies.set("client_id", data.id, { path: "/", maxAge: 60 * 60 * 24 * 30 })
-      return res
+    if (!sb) {
+      return NextResponse.json({ error: "Service temporairement indisponible" }, { status: 503 })
     }
 
-    // File-based fallback
-    const existingFile = await findByEmailDb(normalizedEmail)
-    if (existingFile) {
+    // Check for duplicate email in existing clients
+    const existing = await findByEmailDb(normalizedEmail)
+    if (existing) {
       return NextResponse.json({ error: "Un compte avec cet email existe déjà" }, { status: 409 })
     }
 
-    const clients = readClients()
-    if (clients.some(c => c.email === normalizedEmail)) {
-      return NextResponse.json({ error: "Un compte avec cet email existe déjà" }, { status: 409 })
+    // Check for duplicate pending request
+    const { data: dup } = await sb
+      .from("registration_requests")
+      .select("id")
+      .eq("email", normalizedEmail)
+      .eq("status", "pending")
+      .maybeSingle()
+
+    if (dup) {
+      return NextResponse.json({ error: "Une demande est déjà en cours pour cet email" }, { status: 409 })
     }
 
-    const client: Client = {
-      id:             `c_${Date.now()}`,
-      firstName:      firstName.trim(),
-      lastName:       lastName.trim(),
-      email:          normalizedEmail,
-      phone:          phone?.trim()   ?? "",
-      company:        company?.trim() ?? "",
-      country:        COUNTRY_NAMES[countryCode] ?? countryCode ?? "",
-      countryCode:    countryCode ?? "",
-      plan:           "starter",
-      status:         "trial",
-      joinedAt:       new Date().toISOString(),
-      monthlyRevenue: 0,
-      totalRevenue:   0,
-      storesCount:    0,
-      ordersCount:    0,
-      leadsCount:     0,
-      lastActive:     new Date().toISOString(),
-      avatarColor:    avatarColor,
-    }
+    // Store the registration request — admin will approve later
+    const { error } = await sb.from("registration_requests").insert({
+      first_name:    firstName.trim(),
+      last_name:     lastName.trim(),
+      email:         normalizedEmail,
+      phone:         phone?.trim()   ?? "",
+      company:       company?.trim() ?? "",
+      country:       COUNTRY_NAMES[countryCode] ?? countryCode ?? "",
+      country_code:  countryCode ?? "",
+      password_hash: hashPassword(password),
+      status:        "pending",
+    })
 
-    clients.unshift(client)
-    writeClients(clients)
-    await createAuthRecordDb(client.id, normalizedEmail, password)
+    if (error) return NextResponse.json({ error: error.message }, { status: 400 })
 
-    const res = NextResponse.json({ success: true, clientId: client.id })
-    res.cookies.set("client_id", client.id, { path: "/", maxAge: 60 * 60 * 24 * 30 })
-    return res
+    return NextResponse.json({ success: true, pending: true })
   } catch (err) {
     console.error("Register error:", err)
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 })

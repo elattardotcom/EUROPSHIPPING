@@ -59,10 +59,15 @@
       "WebFetch(domain:europship.com)",
       "WebFetch(domain:www.instagram.com)",
       "WebFetch(domain:www.trustpilot.com)",
-      "WebFetch(domain:www.zoominfo.com)"
+      "WebFetch(domain:www.zoominfo.com)",
+      "Bash(pnpm build *)",
+      "Bash(node -e \"const l = require\\('/Users/m1/Downloads/b_9v36uilKVHe/node_modules/lucide-react'\\); console.log\\('Pencil:', !!l.Pencil, 'Save:', !!l.Save, 'Loader2:', !!l.Loader2\\)\")",
+      "Bash(grep \"\\\\.tsx$\")"
     ],
     "additionalDirectories": [
-      "/Users/m1/Downloads/b_9v36uilKVHe/app/api/client/leads"
+      "/Users/m1/Downloads/b_9v36uilKVHe/app/api/client/leads",
+      "/Users/m1/Downloads/b_9v36uilKVHe/app/api/admin/orders",
+      "/Users/m1/Downloads/b_9v36uilKVHe/app/api/admin/registration-requests"
     ]
   }
 }

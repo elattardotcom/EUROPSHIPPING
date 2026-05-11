@@ -5,20 +5,20 @@ import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import {
   Shield, LayoutDashboard, Users, ShoppingCart, UserCheck,
-  BarChart3, LogOut, ChevronRight, Bell, Store, ArrowDownLeft, Settings, Radio,
+  BarChart3, LogOut, ChevronRight, Bell, Store, ArrowDownLeft, Settings, Radio, ClipboardList,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { AdminI18nProvider, useI18n } from "@/lib/admin-i18n"
 import { Logo } from "@/components/logo"
 
-interface Counts { clients: number; orders: number; leads: number; withdrawals: number }
+interface Counts { clients: number; orders: number; leads: number; withdrawals: number; requests: number }
 
 function AdminLayoutInner({ children }: { children: React.ReactNode }) {
   const pathname  = usePathname()
   const router    = useRouter()
   const { t, lang, toggle } = useI18n()
   const [collapsed, setCollapsed] = useState(false)
-  const [counts,    setCounts]    = useState<Counts>({ clients: 0, orders: 0, leads: 0, withdrawals: 0 })
+  const [counts,    setCounts]    = useState<Counts>({ clients: 0, orders: 0, leads: 0, withdrawals: 0, requests: 0 })
 
   useEffect(() => {
     const load = () =>
@@ -48,6 +48,7 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
     { href: "/admin/orders",      icon: ShoppingCart,    label: t("nav_orders"),      badge: counts.orders },
     { href: "/admin/stores",      icon: Store,           label: t("nav_stores"),      badge: 0 },
     { href: "/admin/withdrawals", icon: ArrowDownLeft,   label: t("nav_withdrawals"), badge: counts.withdrawals },
+    { href: "/admin/requests",    icon: ClipboardList,   label: "Demandes",           badge: counts.requests },
     { href: "/admin/analytics",   icon: BarChart3,       label: t("nav_analytics"),   badge: 0 },
   ]
 

@@ -14,7 +14,7 @@ const Spinner = () => (
 )
 
 export function SignupModal({ onClose, initialStep = "signup" }: { onClose: () => void; initialStep?: "signup" | "login" }) {
-  const [step,         setStep]        = useState<"signup" | "login" | "forgot">(initialStep)
+  const [step,         setStep]        = useState<"signup" | "login" | "forgot" | "pending">(initialStep)
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading,    setIsLoading]   = useState(false)
   const [error,        setError]       = useState("")
@@ -51,8 +51,9 @@ export function SignupModal({ onClose, initialStep = "signup" }: { onClose: () =
       const res  = await fetch("/api/auth/register", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(signup) })
       const data = await res.json()
       if (!res.ok) { setError(data.error || "Erreur lors de l'inscription"); setIsLoading(false); return }
-      window.location.href = "/dashboard"
+      setStep("pending")
     } catch { setError("Erreur de connexion au serveur"); setIsLoading(false) }
+    setIsLoading(false)
   }
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -80,7 +81,41 @@ export function SignupModal({ onClose, initialStep = "signup" }: { onClose: () =
           </div>
         </div>
 
-        {step !== "forgot" && (
+        {step === "pending" && (
+          <div className="text-center space-y-5 py-4">
+            <div className="w-16 h-16 bg-orange-500/10 border border-orange-500/20 rounded-full flex items-center justify-center mx-auto">
+              <CheckCircle className="w-8 h-8 text-orange-400" />
+            </div>
+            <div>
+              <h3 className="text-white font-bold text-xl mb-2">Demande envoyée !</h3>
+              <p className="text-neutral-400 text-sm leading-relaxed">
+                Votre demande d'inscription a bien été reçue.<br />
+                Un administrateur va examiner votre dossier et vous activera votre compte sous peu.
+              </p>
+            </div>
+            <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-4 text-left space-y-2">
+              <div className="flex items-center gap-2 text-xs text-neutral-500">
+                <div className="w-1.5 h-1.5 rounded-full bg-orange-500" />
+                Examen sous 24–48h ouvrées
+              </div>
+              <div className="flex items-center gap-2 text-xs text-neutral-500">
+                <div className="w-1.5 h-1.5 rounded-full bg-orange-500" />
+                Vous recevrez un email dès l&apos;activation
+              </div>
+              <div className="flex items-center gap-2 text-xs text-neutral-500">
+                <div className="w-1.5 h-1.5 rounded-full bg-orange-500" />
+                Aucune action requise de votre part
+              </div>
+            </div>
+            <button onClick={onClose}
+              className="w-full py-3 rounded-xl font-semibold text-sm text-white transition-all"
+              style={{ background: "linear-gradient(135deg,#f97316,#dc2626)" }}>
+              Fermer
+            </button>
+          </div>
+        )}
+
+        {step !== "forgot" && step !== "pending" && (
           <div className="flex gap-1 bg-white/[0.04] p-1 rounded-xl mb-6 border border-white/[0.05]">
             {(["signup","login"] as const).map(s => (
               <button key={s} onClick={() => { setStep(s); setError("") }}
@@ -91,7 +126,7 @@ export function SignupModal({ onClose, initialStep = "signup" }: { onClose: () =
           </div>
         )}
 
-        {error && <div className="mb-4 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 text-red-400 text-sm">{error}</div>}
+        {error && step !== "pending" && <div className="mb-4 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 text-red-400 text-sm">{error}</div>}
 
         {step === "signup" && (
           <form onSubmit={handleSignup} className="space-y-4">
