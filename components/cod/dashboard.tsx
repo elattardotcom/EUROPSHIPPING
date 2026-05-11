@@ -108,9 +108,11 @@ function ChartCard({ title, subtitle, children }: { title: string; subtitle?: st
   )
 }
 
-const TICK  = "#737373"
-const GRID  = "#262626"
-const TT_BG = "#171717"
+const TICK   = "#737373"
+const GRID   = "#262626"
+const TT_BG  = "#1a1a1a"
+const TT_LBL = { color: "#ffffff", fontWeight: 600, marginBottom: 4 }
+const TT_ITM = { color: "#d4d4d4" }
 
 /* ── page ───────────────────────────────────────────────── */
 
@@ -256,7 +258,7 @@ export default function DashboardPage({
               <XAxis dataKey="day" tick={{ fill: TICK, fontSize: 11 }} tickLine={false} axisLine={false} />
               <YAxis yAxisId="revenue" tick={{ fill: TICK, fontSize: 11 }} tickLine={false} axisLine={false} />
               <YAxis yAxisId="count" orientation="right" tick={{ fill: TICK, fontSize: 11 }} tickLine={false} axisLine={false} allowDecimals={false} />
-              <Tooltip contentStyle={{ background: TT_BG, border: "1px solid #333", borderRadius: 8, fontSize: 12 }} />
+              <Tooltip contentStyle={{ background: TT_BG, border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, fontSize: 12 }} labelStyle={TT_LBL} itemStyle={TT_ITM} />
               <Legend wrapperStyle={{ fontSize: 12, color: TICK }} />
               <Line yAxisId="revenue" type="monotone" dataKey="revenue" stroke="#f97316" strokeWidth={2} dot={false} name="Revenus (€)" />
               <Line yAxisId="count"   type="monotone" dataKey="leads"   stroke="#14b8a6" strokeWidth={2} dot={false} name="Leads" />
@@ -281,13 +283,13 @@ export default function DashboardPage({
         </div>
         <div className="mt-4">
           <ChartCard title="Répartition des leads par statut">
-            <ResponsiveContainer width="100%" height={180}>
-              <BarChart data={leadsChartData} margin={{ top: 0, right: 16, left: -10, bottom: 0 }}>
+            <ResponsiveContainer width="100%" height={240}>
+              <BarChart data={leadsChartData} margin={{ top: 4, right: 16, left: -10, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke={GRID} />
                 <XAxis dataKey="name" tick={{ fill: TICK, fontSize: 11 }} tickLine={false} axisLine={false} />
                 <YAxis tick={{ fill: TICK, fontSize: 11 }} tickLine={false} axisLine={false} allowDecimals={false} />
-                <Tooltip contentStyle={{ background: TT_BG, border: "1px solid #333", borderRadius: 8, fontSize: 12 }} cursor={{ fill: "rgba(255,255,255,0.04)" }} />
-                <Bar dataKey="value" name="Leads" radius={[4, 4, 0, 0]}>
+                <Tooltip contentStyle={{ background: TT_BG, border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, fontSize: 12 }} labelStyle={TT_LBL} itemStyle={TT_ITM} cursor={{ fill: "rgba(255,255,255,0.04)" }} />
+                <Bar dataKey="value" name="Leads" radius={[4, 4, 0, 0]} maxBarSize={60}>
                   {leadsChartData.map((entry, i) => <Cell key={i} fill={entry.fill} />)}
                 </Bar>
               </BarChart>
@@ -311,13 +313,13 @@ export default function DashboardPage({
         </div>
         <div className="mt-4">
           <ChartCard title="Répartition des commandes par statut">
-            <ResponsiveContainer width="100%" height={180}>
-              <BarChart data={ordersChartData} margin={{ top: 0, right: 16, left: -10, bottom: 0 }}>
+            <ResponsiveContainer width="100%" height={240}>
+              <BarChart data={ordersChartData} margin={{ top: 4, right: 16, left: -10, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke={GRID} />
                 <XAxis dataKey="name" tick={{ fill: TICK, fontSize: 11 }} tickLine={false} axisLine={false} />
                 <YAxis tick={{ fill: TICK, fontSize: 11 }} tickLine={false} axisLine={false} allowDecimals={false} />
-                <Tooltip contentStyle={{ background: TT_BG, border: "1px solid #333", borderRadius: 8, fontSize: 12 }} cursor={{ fill: "rgba(255,255,255,0.04)" }} />
-                <Bar dataKey="value" name="Commandes" radius={[4, 4, 0, 0]}>
+                <Tooltip contentStyle={{ background: TT_BG, border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, fontSize: 12 }} labelStyle={TT_LBL} itemStyle={TT_ITM} cursor={{ fill: "rgba(255,255,255,0.04)" }} />
+                <Bar dataKey="value" name="Commandes" radius={[4, 4, 0, 0]} maxBarSize={60}>
                   {ordersChartData.map((entry, i) => <Cell key={i} fill={entry.fill} />)}
                 </Bar>
               </BarChart>
