@@ -523,69 +523,75 @@ export default function LandingPage() {
       </section>
 
       {/* ── Integrations ───────────────────────────────────────── */}
-      <section className="py-20 px-6" style={{ background: "#080808" }}>
+      <section className="py-10 px-6 border-y border-white/[0.04]" style={{ background: "#080808" }}>
         <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-12">
-            <p className="text-neutral-600 text-xs font-semibold uppercase tracking-widest mb-3">Compatible & intégré avec</p>
-            <div className="w-16 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent mx-auto" />
-          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="border-b border-white/[0.05]">
+                  {[
+                    { label: "E-commerce",         color: "#96bf48" },
+                    { label: "Transporteurs COD",  color: "#f97316" },
+                    { label: "Moyens de retrait",  color: "#6366f1" },
+                  ].map(h => (
+                    <th key={h.label} className="text-left pb-3 pr-8 font-semibold uppercase tracking-widest whitespace-nowrap"
+                      style={{ color: h.color }}>
+                      {h.label}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  {/* E-commerce */}
+                  <td className="pt-4 pr-8 align-top">
+                    <div className="flex items-center gap-2.5 opacity-80 hover:opacity-100 transition-opacity w-fit">
+                      <div className="rounded-lg p-1.5" style={{ background: "rgba(150,191,72,0.08)", border: "1px solid rgba(150,191,72,0.15)" }}>
+                        <ShopifyLogo size={20} />
+                      </div>
+                      <span className="text-neutral-400 font-medium">Shopify</span>
+                    </div>
+                  </td>
 
-          {/* E-commerce */}
-          <div className="mb-10">
-            <p className="text-[10px] font-bold text-neutral-700 uppercase tracking-widest text-center mb-5">E-commerce</p>
-            <div className="flex flex-wrap items-center justify-center gap-6">
-              <div className="flex flex-col items-center gap-2 opacity-80 hover:opacity-100 transition-opacity">
-                <div className="rounded-xl p-3" style={{ background: "rgba(150,191,72,0.08)", border: "1px solid rgba(150,191,72,0.15)" }}>
-                  <ShopifyLogo size={32} />
-                </div>
-                <span className="text-[10px] text-neutral-600">Shopify</span>
-              </div>
-            </div>
-          </div>
+                  {/* Transporteurs */}
+                  <td className="pt-4 pr-8 align-top">
+                    <div className="flex flex-col gap-2.5">
+                      {[
+                        { Logo: DpdLogo,       name: "DPD",       bg: "rgba(220,0,50,0.06)",  border: "rgba(220,0,50,0.2)"  },
+                        { Logo: GlsLogo,       name: "GLS",       bg: "rgba(255,209,0,0.06)", border: "rgba(255,209,0,0.2)" },
+                        { Logo: ColissimoLogo, name: "Colissimo", bg: "rgba(0,49,137,0.06)",  border: "rgba(0,49,137,0.2)"  },
+                        { Logo: BrtLogo,       name: "BRT",       bg: "rgba(227,6,19,0.06)",  border: "rgba(227,6,19,0.2)"  },
+                      ].map(({ Logo, name, bg, border }) => (
+                        <div key={name} className="flex items-center gap-2.5 opacity-75 hover:opacity-100 transition-opacity w-fit">
+                          <div className="rounded-lg px-2 py-1.5 flex items-center" style={{ background: bg, border: `1px solid ${border}` }}>
+                            <Logo size={20} />
+                          </div>
+                          <span className="text-neutral-400 font-medium">{name}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </td>
 
-          {/* Transporteurs */}
-          <div className="mb-10">
-            <p className="text-[10px] font-bold text-neutral-700 uppercase tracking-widest text-center mb-5">Transporteurs COD</p>
-            <div className="flex flex-wrap items-center justify-center gap-6">
-              {[
-                { Logo: DpdLogo,       name: "DPD",       bg: "rgba(220,0,50,0.06)",   border: "rgba(220,0,50,0.15)"   },
-                { Logo: GlsLogo,       name: "GLS",       bg: "rgba(255,209,0,0.06)",  border: "rgba(255,209,0,0.15)"  },
-                { Logo: ColissimoLogo, name: "Colissimo", bg: "rgba(255,204,0,0.06)",  border: "rgba(0,49,137,0.2)"    },
-                { Logo: BrtLogo,       name: "BRT",       bg: "rgba(227,6,19,0.06)",   border: "rgba(227,6,19,0.15)"   },
-              ].map(({ Logo, name, bg, border }) => (
-                <div key={name} className="flex flex-col items-center gap-2 opacity-75 hover:opacity-100 transition-opacity">
-                  <div className="rounded-xl px-4 py-3 flex items-center justify-center" style={{ background: bg, border: `1px solid ${border}` }}>
-                    <Logo size={28} />
-                  </div>
-                  <span className="text-[10px] text-neutral-600">{name}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Retraits */}
-          <div>
-            <p className="text-[10px] font-bold text-neutral-700 uppercase tracking-widest text-center mb-5">Moyens de retrait</p>
-            <div className="flex flex-wrap items-center justify-center gap-6">
-              <div className="flex flex-col items-center gap-2 opacity-75 hover:opacity-100 transition-opacity">
-                <div className="rounded-xl p-3" style={{ background: "rgba(159,232,112,0.08)", border: "1px solid rgba(159,232,112,0.2)" }}>
-                  <WiseLogo size={32} />
-                </div>
-                <span className="text-[10px] text-neutral-600">Wise</span>
-              </div>
-              <div className="flex flex-col items-center gap-2 opacity-75 hover:opacity-100 transition-opacity">
-                <div className="rounded-xl p-3" style={{ background: "rgba(243,186,47,0.08)", border: "1px solid rgba(243,186,47,0.2)" }}>
-                  <BinanceLogo size={32} />
-                </div>
-                <span className="text-[10px] text-neutral-600">Binance / Crypto</span>
-              </div>
-              <div className="flex flex-col items-center gap-2 opacity-75 hover:opacity-100 transition-opacity">
-                <div className="rounded-xl p-3" style={{ background: "rgba(99,102,241,0.08)", border: "1px solid rgba(99,102,241,0.2)" }}>
-                  <BankLogo size={32} />
-                </div>
-                <span className="text-[10px] text-neutral-600">Virement bancaire</span>
-              </div>
-            </div>
+                  {/* Retraits */}
+                  <td className="pt-4 align-top">
+                    <div className="flex flex-col gap-2.5">
+                      {[
+                        { Logo: WiseLogo,    name: "Wise",             bg: "rgba(159,232,112,0.08)", border: "rgba(159,232,112,0.2)" },
+                        { Logo: BinanceLogo, name: "Binance / Crypto", bg: "rgba(243,186,47,0.08)",  border: "rgba(243,186,47,0.2)"  },
+                        { Logo: BankLogo,    name: "Virement bancaire",bg: "rgba(99,102,241,0.08)",  border: "rgba(99,102,241,0.2)"  },
+                      ].map(({ Logo, name, bg, border }) => (
+                        <div key={name} className="flex items-center gap-2.5 opacity-75 hover:opacity-100 transition-opacity w-fit">
+                          <div className="rounded-lg p-1.5" style={{ background: bg, border: `1px solid ${border}` }}>
+                            <Logo size={20} />
+                          </div>
+                          <span className="text-neutral-400 font-medium">{name}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
       </section>
