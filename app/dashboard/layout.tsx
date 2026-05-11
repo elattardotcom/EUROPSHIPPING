@@ -1,16 +1,17 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import {
   ChevronRight, ChevronDown, LayoutDashboard, Settings, Package,
-  Users, Store, ShoppingCart, Wallet, HelpCircle, Bell, RefreshCw,
+  Users, ShoppingCart, Wallet, HelpCircle, Bell, RefreshCw,
   Link2, ListOrdered, Gift, Boxes, X, Menu,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { getClientIdFromCookie } from "@/lib/client-cookie"
 import { Logo } from "@/components/logo"
+import { useRealtime, type RealtimeEvent } from "@/hooks/useSse"
 interface NavItem {
   href: string
   icon: React.ElementType
@@ -64,12 +65,33 @@ function buildNavItems(leadsCount: number, ordersCount: number): NavItem[] {
   ]
 }
 
-const NOTIFICATIONS = [
-  { id: 1, text: "Nouveau lead confirmé — José António",  time: "Il y a 2 min",  dot: "bg-emerald-500" },
-  { id: 2, text: "Commande livrée — Ana Cristina",        time: "Il y a 15 min", dot: "bg-blue-500" },
-  { id: 3, text: "Retrait approuvé — 250 EUR",            time: "Il y a 1h",     dot: "bg-orange-500" },
-  { id: 4, text: "Synchronisation Shopify terminée",      time: "Il y a 2h",     dot: "bg-teal-500" },
-]
+interface Notif {
+  id: string
+  text: string
+  time: string
+  dot: string
+  read: boolean
+}
+
+function relativeTime(isoOrFr: string): string {
+  try {
+    // Try ISO first
+    let d = new Date(isoOrFr)
+    if (isNaN(d.getTime())) {
+      // Try "dd/mm/yyyy" French format
+      const parts = isoOrFr.split("/")
+      if (parts.length === 3) d = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`)
+    }
+    if (isNaN(d.getTime())) return isoOrFr
+    const diff = Date.now() - d.getTime()
+    const mins = Math.floor(diff / 60000)
+    if (mins < 1)  return "À l'instant"
+    if (mins < 60) return `Il y a ${mins} min`
+    const hrs = Math.floor(mins / 60)
+    if (hrs < 24)  return `Il y a ${hrs}h`
+    return `Il y a ${Math.floor(hrs / 24)}j`
+  } catch { return isoOrFr }
+}
 
 const BOTTOM_TABS = [
   { href: "/dashboard",        icon: LayoutDashboard, label: "Home" },
@@ -86,11 +108,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [mobileOpen,     setMobileOpen]     = useState(false)
   const [expandedMenus,  setExpandedMenus]  = useState<string[]>(["leads", "orders", "affiliates", "cod-drop", "wallet", "stores"])
   const [showNotifs,     setShowNotifs]     = useState(false)
+  const [notifs,         setNotifs]         = useState<Notif[]>([])
   const [balance,        setBalance]        = useState<string | null>(null)
   const [refreshing,     setRefreshing]     = useState(false)
   const [clientId,       setClientId]       = useState(getClientIdFromCookie)
   const [leadsCount,     setLeadsCount]     = useState(0)
   const [ordersCount,    setOrdersCount]    = useState(0)
+
+  const unreadCount = notifs.filter(n => !n.read).length
+
+  const pushNotif = useCallback((n: Omit<Notif, "id" | "read">) => {
+    setNotifs(prev => [{ ...n, id: `rt-${Date.now()}`, read: false }, ...prev].slice(0, 20))
+  }, [])
 
   const navItems = buildNavItems(leadsCount, ordersCount)
 
@@ -110,17 +139,51 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       .catch(() => {})
   }
 
-  const fetchCounts = () => {
+  const fetchCounts = useCallback(() => {
     Promise.all([
       fetch("/api/client/leads").then(r => r.json()),
       fetch("/api/client/orders").then(r => r.json()),
     ]).then(([leads, orders]) => {
-      setLeadsCount(Array.isArray(leads) ? leads.length : 0)
-      setOrdersCount(Array.isArray(orders)
-        ? orders.filter((o: { status: string }) => o.status === "PENDING" || o.status === "SHIPPED").length
-        : 0)
+      if (Array.isArray(leads)) {
+        setLeadsCount(leads.length)
+        // Build initial notifications from recent confirmed leads
+        const recent: Notif[] = leads
+          .filter((l: { status: string }) => l.status === "CONFIRMED")
+          .slice(0, 4)
+          .map((l: { id: string; name: string; createdAt?: string; createdTime?: string }) => ({
+            id:   `lead-${l.id}`,
+            text: `Lead confirmé — ${l.name}`,
+            time: l.createdAt ? relativeTime(l.createdAt) : "Récemment",
+            dot:  "bg-emerald-500",
+            read: true,
+          }))
+        setNotifs(prev => {
+          const existingIds = new Set(prev.map(n => n.id))
+          const fresh = recent.filter(n => !existingIds.has(n.id))
+          return [...prev, ...fresh].slice(0, 20)
+        })
+      }
+      if (Array.isArray(orders)) {
+        setOrdersCount(orders.filter((o: { status: string }) => o.status === "PENDING" || o.status === "SHIPPED").length)
+        // Add recent delivered orders as notifications
+        const recent: Notif[] = orders
+          .filter((o: { status: string }) => o.status === "DELIVERED")
+          .slice(0, 3)
+          .map((o: { id: string; name: string; createdAt?: string }) => ({
+            id:   `order-${o.id}`,
+            text: `Commande livrée — ${o.name}`,
+            time: o.createdAt ? relativeTime(o.createdAt) : "Récemment",
+            dot:  "bg-blue-500",
+            read: true,
+          }))
+        setNotifs(prev => {
+          const existingIds = new Set(prev.map(n => n.id))
+          const fresh = recent.filter(n => !existingIds.has(n.id))
+          return [...prev, ...fresh].slice(0, 20)
+        })
+      }
     }).catch(() => {})
-  }
+  }, [])
 
   useEffect(() => {
     fetch("/api/auth/me")
@@ -147,6 +210,32 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     window.addEventListener("wallet:updated", handler)
     return () => window.removeEventListener("wallet:updated", handler)
   }, [clientId])
+
+  // Realtime notifications
+  const onRealtimeEvent = useCallback((e: RealtimeEvent) => {
+    const now = "À l'instant"
+    if (e.type === "withdrawal_inserted") {
+      pushNotif({ text: `Retrait demandé — €${e.row.amount.toFixed(2)}`, time: now, dot: "bg-orange-500" })
+    } else if (e.type === "withdrawal_updated") {
+      if (e.row.status === "approved") {
+        pushNotif({ text: `Retrait approuvé — €${e.row.amount.toFixed(2)}`, time: now, dot: "bg-emerald-500" })
+      } else if (e.row.status === "rejected") {
+        pushNotif({ text: `Retrait rejeté — €${e.row.amount.toFixed(2)}`, time: now, dot: "bg-red-500" })
+      }
+    } else if (e.type === "balance_updated") {
+      pushNotif({ text: `Solde mis à jour — €${e.row.amount.toFixed(2)}`, time: now, dot: "bg-teal-500" })
+    } else if (e.type === "lead_inserted") {
+      pushNotif({ text: `Nouveau lead — ${e.row.name}`, time: now, dot: "bg-purple-500" })
+    } else if (e.type === "lead_updated" && e.row.status === "CONFIRMED") {
+      pushNotif({ text: `Lead confirmé — ${e.row.name}`, time: now, dot: "bg-emerald-500" })
+    } else if (e.type === "order_inserted") {
+      pushNotif({ text: `Nouvelle commande — ${e.row.name}`, time: now, dot: "bg-blue-500" })
+    } else if (e.type === "order_updated" && e.row.status === "DELIVERED") {
+      pushNotif({ text: `Commande livrée — ${e.row.name}`, time: now, dot: "bg-emerald-500" })
+    }
+  }, [pushNotif])
+
+  useRealtime(onRealtimeEvent)
 
   // Close mobile drawer on route change
   useEffect(() => { setMobileOpen(false) }, [pathname])
@@ -357,11 +446,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <div className="relative">
               <Button
                 variant="ghost" size="icon"
-                onClick={() => setShowNotifs(v => !v)}
+                onClick={() => {
+                  setShowNotifs(v => !v)
+                  setNotifs(prev => prev.map(n => ({ ...n, read: true })))
+                }}
                 className="relative text-neutral-400 hover:bg-neutral-800 hover:text-orange-500"
               >
                 <Bell className="w-5 h-5" />
-                <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-orange-500 rounded-full" />
+                {unreadCount > 0 ? (
+                  <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 bg-orange-500 rounded-full flex items-center justify-center text-[9px] font-bold text-white px-0.5">
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
+                ) : (
+                  <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-neutral-600 rounded-full" />
+                )}
               </Button>
 
               {showNotifs && (
@@ -372,19 +470,27 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                       <X className="w-4 h-4" />
                     </button>
                   </div>
-                  <div className="py-2">
-                    {NOTIFICATIONS.map(n => (
-                      <div key={n.id} className="flex items-start gap-3 px-4 py-3 hover:bg-neutral-800 cursor-pointer">
+                  <div className="py-2 max-h-80 overflow-y-auto">
+                    {notifs.length === 0 ? (
+                      <p className="text-center text-neutral-500 text-sm py-6">Aucune notification</p>
+                    ) : notifs.map(n => (
+                      <div key={n.id} className={`flex items-start gap-3 px-4 py-3 hover:bg-neutral-800 cursor-pointer transition-colors ${!n.read ? "bg-orange-500/5" : ""}`}>
                         <span className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${n.dot}`} />
-                        <div className="min-w-0">
-                          <p className="text-sm text-white leading-snug">{n.text}</p>
-                          <p className="text-xs text-neutral-400 mt-0.5">{n.time}</p>
+                        <div className="min-w-0 flex-1">
+                          <p className={`text-sm leading-snug ${!n.read ? "text-white font-medium" : "text-neutral-300"}`}>{n.text}</p>
+                          <p className="text-xs text-neutral-500 mt-0.5">{n.time}</p>
                         </div>
+                        {!n.read && <span className="w-1.5 h-1.5 bg-orange-500 rounded-full flex-shrink-0 mt-1.5" />}
                       </div>
                     ))}
                   </div>
                   <div className="px-4 py-2.5 border-t border-neutral-800">
-                    <button className="text-xs text-orange-400 hover:text-orange-300 font-medium">Tout marquer comme lu</button>
+                    <button
+                      onClick={() => setNotifs(prev => prev.map(n => ({ ...n, read: true })))}
+                      className="text-xs text-orange-400 hover:text-orange-300 font-medium"
+                    >
+                      Tout marquer comme lu
+                    </button>
                   </div>
                 </div>
               )}
