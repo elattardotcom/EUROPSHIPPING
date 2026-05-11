@@ -11,6 +11,10 @@ import { ModalListener }      from "@/components/landing/modal-listener"
 import { LiveToast }          from "@/components/landing/live-toast"
 import { AnimatedCounter }    from "@/components/landing/animated-counter"
 import { FaqSection }         from "@/components/landing/faq-section"
+import {
+  ShopifyLogo, DpdLogo, GlsLogo, ColissimoLogo, BrtLogo,
+  WiseLogo, BinanceLogo, BankLogo,
+} from "@/components/landing/brand-logos"
 
 const LIVE_ORDERS = [
   { ref: "COD-7821", city: "Madrid",    product: "Montre Premium",   amount: "€48", status: "LIVRÉ",    flag: "🇪🇸", color: "#10b981" },
@@ -519,24 +523,69 @@ export default function LandingPage() {
       </section>
 
       {/* ── Integrations ───────────────────────────────────────── */}
-      <section className="py-16 px-6" style={{ background: "#080808" }}>
-        <div className="max-w-4xl mx-auto text-center">
-          <p className="text-neutral-600 text-xs font-semibold uppercase tracking-widest mb-8">Compatible & intégré avec</p>
-          <div className="flex flex-wrap items-center justify-center gap-6">
-            {[
-              { name: "Shopify",   color: "#96bf48", bg: "rgba(150,191,72,0.08)",   border: "rgba(150,191,72,0.2)"  },
-              { name: "DPD",       color: "#dc2626", bg: "rgba(220,38,38,0.08)",    border: "rgba(220,38,38,0.2)"   },
-              { name: "GLS",       color: "#f59e0b", bg: "rgba(245,158,11,0.08)",   border: "rgba(245,158,11,0.2)"  },
-              { name: "Wise",      color: "#9fcd39", bg: "rgba(159,205,57,0.08)",   border: "rgba(159,205,57,0.2)"  },
-              { name: "IBAN",      color: "#6366f1", bg: "rgba(99,102,241,0.08)",   border: "rgba(99,102,241,0.2)"  },
-              { name: "USDT/BTC",  color: "#f7931a", bg: "rgba(247,147,26,0.08)",   border: "rgba(247,147,26,0.2)"  },
-            ].map(i => (
-              <div key={i.name}
-                className="px-5 py-2.5 rounded-xl text-sm font-bold transition-all hover:scale-105"
-                style={{ background: i.bg, border: `1px solid ${i.border}`, color: i.color }}>
-                {i.name}
+      <section className="py-20 px-6" style={{ background: "#080808" }}>
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-12">
+            <p className="text-neutral-600 text-xs font-semibold uppercase tracking-widest mb-3">Compatible & intégré avec</p>
+            <div className="w-16 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent mx-auto" />
+          </div>
+
+          {/* E-commerce */}
+          <div className="mb-10">
+            <p className="text-[10px] font-bold text-neutral-700 uppercase tracking-widest text-center mb-5">E-commerce</p>
+            <div className="flex flex-wrap items-center justify-center gap-6">
+              <div className="flex flex-col items-center gap-2 opacity-80 hover:opacity-100 transition-opacity">
+                <div className="rounded-xl p-3" style={{ background: "rgba(150,191,72,0.08)", border: "1px solid rgba(150,191,72,0.15)" }}>
+                  <ShopifyLogo size={32} />
+                </div>
+                <span className="text-[10px] text-neutral-600">Shopify</span>
               </div>
-            ))}
+            </div>
+          </div>
+
+          {/* Transporteurs */}
+          <div className="mb-10">
+            <p className="text-[10px] font-bold text-neutral-700 uppercase tracking-widest text-center mb-5">Transporteurs COD</p>
+            <div className="flex flex-wrap items-center justify-center gap-6">
+              {[
+                { Logo: DpdLogo,       name: "DPD",       bg: "rgba(220,0,50,0.06)",   border: "rgba(220,0,50,0.15)"   },
+                { Logo: GlsLogo,       name: "GLS",       bg: "rgba(255,209,0,0.06)",  border: "rgba(255,209,0,0.15)"  },
+                { Logo: ColissimoLogo, name: "Colissimo", bg: "rgba(255,204,0,0.06)",  border: "rgba(0,49,137,0.2)"    },
+                { Logo: BrtLogo,       name: "BRT",       bg: "rgba(227,6,19,0.06)",   border: "rgba(227,6,19,0.15)"   },
+              ].map(({ Logo, name, bg, border }) => (
+                <div key={name} className="flex flex-col items-center gap-2 opacity-75 hover:opacity-100 transition-opacity">
+                  <div className="rounded-xl px-4 py-3 flex items-center justify-center" style={{ background: bg, border: `1px solid ${border}` }}>
+                    <Logo size={28} />
+                  </div>
+                  <span className="text-[10px] text-neutral-600">{name}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Retraits */}
+          <div>
+            <p className="text-[10px] font-bold text-neutral-700 uppercase tracking-widest text-center mb-5">Moyens de retrait</p>
+            <div className="flex flex-wrap items-center justify-center gap-6">
+              <div className="flex flex-col items-center gap-2 opacity-75 hover:opacity-100 transition-opacity">
+                <div className="rounded-xl p-3" style={{ background: "rgba(159,232,112,0.08)", border: "1px solid rgba(159,232,112,0.2)" }}>
+                  <WiseLogo size={32} />
+                </div>
+                <span className="text-[10px] text-neutral-600">Wise</span>
+              </div>
+              <div className="flex flex-col items-center gap-2 opacity-75 hover:opacity-100 transition-opacity">
+                <div className="rounded-xl p-3" style={{ background: "rgba(243,186,47,0.08)", border: "1px solid rgba(243,186,47,0.2)" }}>
+                  <BinanceLogo size={32} />
+                </div>
+                <span className="text-[10px] text-neutral-600">Binance / Crypto</span>
+              </div>
+              <div className="flex flex-col items-center gap-2 opacity-75 hover:opacity-100 transition-opacity">
+                <div className="rounded-xl p-3" style={{ background: "rgba(99,102,241,0.08)", border: "1px solid rgba(99,102,241,0.2)" }}>
+                  <BankLogo size={32} />
+                </div>
+                <span className="text-[10px] text-neutral-600">Virement bancaire</span>
+              </div>
+            </div>
           </div>
         </div>
       </section>
