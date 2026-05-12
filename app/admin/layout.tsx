@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef, useCallback } from "react"
+import { createPortal } from "react-dom"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import {
@@ -147,8 +148,8 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
 
   return (
     <>
-    {/* ── Session expiry warning ───────────────────────────────── */}
-    {showWarning && (
+    {/* ── Session expiry warning (portal to escape overflow-hidden) */}
+    {showWarning && typeof document !== "undefined" && createPortal(
       <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
         <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
         <div className="relative w-full max-w-sm bg-neutral-900 border border-orange-500/30 rounded-2xl shadow-2xl p-6 text-center">
@@ -156,10 +157,8 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
             <LogOut className="w-6 h-6 text-orange-400" />
           </div>
           <h2 className="text-white font-bold text-lg mb-2">Session sur le point d'expirer</h2>
-          <p className="text-neutral-400 text-sm mb-1">
-            Vous serez déconnecté dans
-          </p>
-          <p className="text-3xl font-black text-orange-400 mb-5">{fmtCountdown(countdown)}</p>
+          <p className="text-neutral-400 text-sm mb-1">Vous serez déconnecté dans</p>
+          <p className="text-4xl font-black text-orange-400 mb-5 tabular-nums">{fmtCountdown(countdown)}</p>
           <div className="flex gap-3">
             <button
               onClick={doLogout}
@@ -175,7 +174,8 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
             </button>
           </div>
         </div>
-      </div>
+      </div>,
+      document.body
     )}
     <div className="flex h-screen bg-neutral-950 overflow-hidden">
 
