@@ -146,6 +146,57 @@
   background: #525252;
 }
 
+/* ─── Light Mode — Dashboard Overrides ─────────────────────────────────── */
+/* Scoped to [data-dashboard] so the dark landing page is never affected.   */
+
+/* Page backgrounds */
+html.light [data-dashboard] .bg-neutral-950 { background-color: #f1f5f9 !important; }
+html.light [data-dashboard] .bg-neutral-900 { background-color: #ffffff !important; }
+html.light [data-dashboard] .bg-neutral-800 { background-color: #f8fafc !important; }
+html.light [data-dashboard] .bg-neutral-700 { background-color: #e2e8f0 !important; }
+
+/* Opacity variants */
+html.light [data-dashboard] .bg-neutral-800\/50 { background-color: rgba(248,250,252,0.9) !important; }
+html.light [data-dashboard] .bg-neutral-800\/40 { background-color: rgba(248,250,252,0.7) !important; }
+html.light [data-dashboard] .bg-neutral-900\/60 { background-color: rgba(255,255,255,0.7) !important; }
+html.light [data-dashboard] .bg-black\/60       { background-color: rgba(0,0,0,0.4)       !important; }
+
+/* Text colors */
+html.light [data-dashboard] .text-white       { color: #0f172a !important; }
+html.light [data-dashboard] .text-neutral-300 { color: #334155 !important; }
+html.light [data-dashboard] .text-neutral-400 { color: #475569 !important; }
+html.light [data-dashboard] .text-neutral-500 { color: #64748b !important; }
+html.light [data-dashboard] .text-neutral-600 { color: #94a3b8 !important; }
+html.light [data-dashboard] .text-neutral-700 { color: #94a3b8 !important; }
+html.light [data-dashboard] .text-neutral-800 { color: #cbd5e1 !important; }
+
+/* Border colors */
+html.light [data-dashboard] .border-neutral-800 { border-color: #e2e8f0 !important; }
+html.light [data-dashboard] .border-neutral-700 { border-color: #cbd5e1 !important; }
+
+/* Hover backgrounds */
+html.light [data-dashboard] .hover\:bg-neutral-800:hover { background-color: #f1f5f9 !important; }
+html.light [data-dashboard] .hover\:bg-neutral-700:hover { background-color: #e2e8f0 !important; }
+html.light [data-dashboard] .hover\:text-white:hover     { color: #0f172a  !important; }
+html.light [data-dashboard] .hover\:border-neutral-600:hover { border-color: #94a3b8 !important; }
+
+/* Table row hover */
+html.light [data-dashboard] .table-row-hover:hover {
+  background-color: rgba(241, 245, 249, 0.8) !important;
+}
+
+/* Input placeholders & selects */
+html.light [data-dashboard] input::placeholder { color: #94a3b8; }
+html.light [data-dashboard] select option      { background-color: #ffffff; color: #0f172a; }
+
+/* Divide (table separators) */
+html.light [data-dashboard] .divide-neutral-800 > * + * { border-color: #e2e8f0 !important; }
+
+/* Scrollbar inside dashboard */
+html.light [data-dashboard] ::-webkit-scrollbar-track { background: #f1f5f9; }
+html.light [data-dashboard] ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+html.light [data-dashboard] ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
 /* Custom checkbox styling */
 input[type="checkbox"] {
   accent-color: #f97316;

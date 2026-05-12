@@ -387,7 +387,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   )
 
   return (
-    <div className="flex h-screen bg-neutral-950 overflow-hidden">
+    <div data-dashboard className="flex h-screen bg-neutral-950 overflow-hidden">
 
       {/* ── Desktop Sidebar ─────────────────────────────────── */}
       <aside className={`${collapsed ? "w-16" : "w-64"} hidden md:flex flex-shrink-0 bg-neutral-900 border-r border-neutral-800 transition-all duration-300 flex-col h-full z-30`}>

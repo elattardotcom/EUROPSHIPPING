@@ -11,6 +11,7 @@ import type { PaymentMethod, PaymentMethodType } from "@/lib/db"
 import { Button } from "@/components/ui/button"
 import { getPlanLimits } from "@/lib/plan-limits"
 import { getClientIdFromCookie } from "@/lib/client-cookie"
+import { useTheme } from "next-themes"
 
 const INPUT = "w-full bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-orange-500 disabled:opacity-50"
 
@@ -65,7 +66,8 @@ export default function SettingsPage() {
   const [loggingOut,    setLoggingOut]    = useState(false)
 
   // ── Appearance state ───────────────────────────────────
-  const [theme, setTheme] = useState<"dark" | "light" | "system">("dark")
+  const { theme: currentTheme, setTheme, resolvedTheme } = useTheme()
+  const theme = (currentTheme ?? "dark") as "dark" | "light" | "system"
 
   // ── Payment methods state ──────────────────────────────
   const [payMethods,    setPayMethods]    = useState<PaymentMethod[]>([])
@@ -880,14 +882,23 @@ export default function SettingsPage() {
               <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-6">
                 <h2 className="text-lg font-medium text-white mb-6">Thème</h2>
                 <div className="grid grid-cols-3 gap-4">
-                  {[
-                    { id: "dark",   label: "Sombre",  icon: Moon,    preview: "bg-neutral-950 border-neutral-800" },
-                    { id: "light",  label: "Clair",   icon: Sun,     preview: "bg-gray-100 border-gray-300" },
-                    { id: "system", label: "Système", icon: Monitor, preview: "bg-gradient-to-br from-neutral-950 to-gray-100 border-neutral-500" },
-                  ].map((opt) => (
+                  {([
+                    {
+                      id: "dark",   label: "Sombre",  icon: Moon,
+                      previewStyle: { background: "#0a0a0a", border: "1px solid #404040" } as React.CSSProperties,
+                    },
+                    {
+                      id: "light",  label: "Clair",   icon: Sun,
+                      previewStyle: { background: "#f1f5f9", border: "1px solid #d1d5db" } as React.CSSProperties,
+                    },
+                    {
+                      id: "system", label: "Système", icon: Monitor,
+                      previewStyle: { background: "linear-gradient(135deg, #0a0a0a 50%, #f1f5f9 50%)", border: "1px solid #737373" } as React.CSSProperties,
+                    },
+                  ] as const).map((opt) => (
                     <button
                       key={opt.id}
-                      onClick={() => setTheme(opt.id as typeof theme)}
+                      onClick={() => setTheme(opt.id)}
                       className={`relative flex flex-col items-center gap-3 p-4 rounded-xl border-2 transition-colors ${
                         theme === opt.id
                           ? "border-orange-500 bg-orange-500/5"
@@ -899,7 +910,7 @@ export default function SettingsPage() {
                           <Check className="w-3 h-3 text-white" />
                         </div>
                       )}
-                      <div className={`w-full h-14 rounded-lg border ${opt.preview}`} />
+                      <div className="w-full h-14 rounded-lg overflow-hidden" style={opt.previewStyle} />
                       <div className="flex items-center gap-2">
                         <opt.icon className="w-4 h-4 text-neutral-400" />
                         <span className="text-sm text-neutral-300">{opt.label}</span>
