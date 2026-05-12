@@ -1,41 +1,44 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { T, Lang } from "@/lib/landing-translations"
 
 function rnd(min: number, max: number) {
   return Math.floor(Math.random() * (max - min + 1)) + min
 }
 
-function buildTicker() {
-  const orders   = rnd(150, 280)
-  const colis    = rnd(60, 120)
-  const encaisse = rnd(8000, 18000).toLocaleString("fr-FR")
-  const num1     = `COD-${rnd(7800, 7900)}`
-  const num2     = `COD-${rnd(7800, 7900)}`
-  const amt1     = rnd(25, 95)
-  const amt2     = rnd(25, 95)
-  const cities   = ["Madrid", "Milan", "Porto", "Bucarest", "Sofia", "Athènes", "Budapest", "Prague", "Barcelone"]
-  const city     = cities[rnd(0, cities.length - 1)]
+function buildTicker(lang: Lang) {
+  const t      = T[lang]
+  const orders  = rnd(150, 280)
+  const colis   = rnd(60, 120)
+  const encaisse = rnd(8000, 18000).toLocaleString(lang === "fr" ? "fr-FR" : "en-US")
+  const num1    = `COD-${rnd(7800, 7900)}`
+  const num2    = `COD-${rnd(7800, 7900)}`
+  const amt1    = rnd(25, 95)
+  const amt2    = rnd(25, 95)
+  const cities  = ["Madrid", "Milan", "Porto", "Bucharest", "Sofia", "Athens", "Budapest", "Prague", "Barcelona"]
+  const city    = cities[rnd(0, cities.length - 1)]
 
   return [
-    `📦 ${num1} LIVRÉ · +€${amt1}`,
-    `✅ ${orders} commandes confirmées aujourd'hui`,
-    `💰 €${encaisse} encaissés ce mois`,
-    `🚚 ${colis} colis en route maintenant`,
-    `📦 ${num2} LIVRÉ · +€${amt2}`,
-    `✅ Taux de livraison ${rnd(91, 97)}%`,
-    `💰 Virement reçu en 48h`,
-    `🚚 ${num1} EN ROUTE · ${city}`,
+    t.ticker_delivered(num1, amt1),
+    t.ticker_confirmed(orders),
+    t.ticker_collected(encaisse),
+    t.ticker_transit(colis),
+    t.ticker_delivered(num2, amt2),
+    t.ticker_rate(rnd(91, 97)),
+    t.ticker_transfer(),
+    t.ticker_route(num1, city),
   ]
 }
 
-export function LiveTicker() {
-  const [items, setItems] = useState<string[]>(() => buildTicker())
+export function LiveTicker({ lang }: { lang: Lang }) {
+  const [items, setItems] = useState<string[]>(() => buildTicker(lang))
 
   useEffect(() => {
-    const id = setInterval(() => setItems(buildTicker()), 25_000)
+    setItems(buildTicker(lang))
+    const id = setInterval(() => setItems(buildTicker(lang)), 25_000)
     return () => clearInterval(id)
-  }, [])
+  }, [lang])
 
   const doubled = [...items, ...items]
 
