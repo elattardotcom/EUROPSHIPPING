@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import {
@@ -14,6 +14,9 @@ import { Logo } from "@/components/logo"
 
 interface Counts { clients: number; orders: number; leads: number; withdrawals: number; requests: number }
 
+const TIMEOUT_MS  = 30 * 60 * 1000  // 30 min
+const WARNING_MS  = 25 * 60 * 1000  // warn at 25 min (5 min left)
+
 function AdminLayoutInner({ children }: { children: React.ReactNode }) {
   const pathname  = usePathname()
   const router    = useRouter()
@@ -21,7 +24,12 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
   const [collapsed,    setCollapsed]    = useState(false)
   const [drawerOpen,   setDrawerOpen]   = useState(false)
   const [counts,       setCounts]       = useState<Counts>({ clients: 0, orders: 0, leads: 0, withdrawals: 0, requests: 0 })
-  const drawerRef = useRef<HTMLDivElement>(null)
+  const [showWarning,  setShowWarning]  = useState(false)
+  const [countdown,    setCountdown]    = useState(300) // seconds remaining when warning shows
+  const drawerRef      = useRef<HTMLDivElement>(null)
+  const idleTimer      = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const warningTimer   = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const countdownRef   = useRef<ReturnType<typeof setInterval> | null>(null)
 
   useEffect(() => {
     const load = () =>
@@ -33,6 +41,49 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
     const interval = setInterval(load, 5_000)
     return () => clearInterval(interval)
   }, [])
+
+  // ── Inactivity auto-logout ────────────────────────────────────
+  const doLogout = useCallback(async () => {
+    await fetch("/api/admin/logout", { method: "POST" })
+    router.push("/admin/login")
+  }, [router])
+
+  const resetTimers = useCallback(() => {
+    setShowWarning(false)
+    if (idleTimer.current)    clearTimeout(idleTimer.current)
+    if (warningTimer.current) clearTimeout(warningTimer.current)
+    if (countdownRef.current) clearInterval(countdownRef.current)
+
+    warningTimer.current = setTimeout(() => {
+      setShowWarning(true)
+      setCountdown(300)
+      countdownRef.current = setInterval(() => {
+        setCountdown(s => {
+          if (s <= 1) {
+            clearInterval(countdownRef.current!)
+            return 0
+          }
+          return s - 1
+        })
+      }, 1_000)
+    }, WARNING_MS)
+
+    idleTimer.current = setTimeout(doLogout, TIMEOUT_MS)
+  }, [doLogout])
+
+  useEffect(() => {
+    if (pathname === "/admin/login") return
+    const events = ["mousemove", "keydown", "mousedown", "touchstart", "scroll"]
+    const onActivity = () => resetTimers()
+    events.forEach(e => window.addEventListener(e, onActivity, { passive: true }))
+    resetTimers()
+    return () => {
+      events.forEach(e => window.removeEventListener(e, onActivity))
+      if (idleTimer.current)    clearTimeout(idleTimer.current)
+      if (warningTimer.current) clearTimeout(warningTimer.current)
+      if (countdownRef.current) clearInterval(countdownRef.current)
+    }
+  }, [pathname, resetTimers])
 
   // Close drawer on route change
   useEffect(() => { setDrawerOpen(false) }, [pathname])
@@ -92,7 +143,40 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
     )
   }
 
+  const fmtCountdown = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`
+
   return (
+    <>
+    {/* ── Session expiry warning ───────────────────────────────── */}
+    {showWarning && (
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+        <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+        <div className="relative w-full max-w-sm bg-neutral-900 border border-orange-500/30 rounded-2xl shadow-2xl p-6 text-center">
+          <div className="w-14 h-14 rounded-full bg-orange-500/15 border border-orange-500/30 flex items-center justify-center mx-auto mb-4">
+            <LogOut className="w-6 h-6 text-orange-400" />
+          </div>
+          <h2 className="text-white font-bold text-lg mb-2">Session sur le point d'expirer</h2>
+          <p className="text-neutral-400 text-sm mb-1">
+            Vous serez déconnecté dans
+          </p>
+          <p className="text-3xl font-black text-orange-400 mb-5">{fmtCountdown(countdown)}</p>
+          <div className="flex gap-3">
+            <button
+              onClick={doLogout}
+              className="flex-1 py-2.5 rounded-xl border border-neutral-700 text-neutral-400 hover:text-white text-sm font-medium transition-colors"
+            >
+              Se déconnecter
+            </button>
+            <button
+              onClick={resetTimers}
+              className="flex-1 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-400 text-white text-sm font-bold transition-colors"
+            >
+              Rester connecté
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
     <div className="flex h-screen bg-neutral-950 overflow-hidden">
 
       {/* ── Desktop Sidebar ─────────────────────────────────────── */}
@@ -291,6 +375,7 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
       </nav>
 
     </div>
+    </>
   )
 }
 
