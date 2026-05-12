@@ -16,7 +16,7 @@ export default function LegalLayout({ children }: { children: React.ReactNode })
           </Link>
           <Link href="/" className="flex items-center gap-2 text-sm text-neutral-400 hover:text-white transition-colors">
             <ArrowLeft className="w-4 h-4" />
-            Retour à l'accueil
+            Back to home
           </Link>
         </div>
       </header>
@@ -26,17 +26,17 @@ export default function LegalLayout({ children }: { children: React.ReactNode })
       <footer className="border-t border-white/[0.04] py-8 text-center text-xs text-neutral-700">
         <div className="flex items-center justify-center gap-6 mb-3">
           {[
-            ["Conditions", "/conditions"],
-            ["Confidentialité", "/confidentialite"],
-            ["RGPD", "/rgpd"],
-            ["Mentions légales", "/mentions-legales"],
+            ["Terms", "/conditions"],
+            ["Privacy", "/confidentialite"],
+            ["GDPR", "/rgpd"],
+            ["Legal Notice", "/mentions-legales"],
           ].map(([l, h]) => (
             <Link key={h} href={h} className="hover:text-neutral-400 transition-colors">
               {l}
             </Link>
           ))}
         </div>
-        © 2025 CODShip. Tous droits réservés.
+        © 2025 CODShip. All rights reserved.
       </footer>
     </div>
   )
