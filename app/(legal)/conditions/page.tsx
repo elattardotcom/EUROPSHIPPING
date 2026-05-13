@@ -119,7 +119,7 @@ export default function Conditions() {
             </p>
           </Section>
           <div className="mt-12 p-4 rounded-xl border border-white/[0.05] bg-white/[0.02] text-neutral-600 text-xs">
-            For any questions regarding these ToS: <span className="text-orange-400">legal@codship.com</span>
+            For any questions regarding these ToS: <span className="text-orange-400">legal@codshipeurope.com</span>
           </div>
         </>
       ) : (
@@ -219,7 +219,7 @@ export default function Conditions() {
             </p>
           </Section>
           <div className="mt-12 p-4 rounded-xl border border-white/[0.05] bg-white/[0.02] text-neutral-600 text-xs">
-            Pour toute question relative aux présentes CGU : <span className="text-orange-400">legal@codship.com</span>
+            Pour toute question relative aux présentes CGU : <span className="text-orange-400">legal@codshipeurope.com</span>
           </div>
         </>
       )}

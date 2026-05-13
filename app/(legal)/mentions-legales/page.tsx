@@ -34,7 +34,7 @@ export default function MentionsLegales() {
             <Row label="Share capital"        value="€5,000" />
             <Row label="Tax ID"               value="PT 516 XXX XXX" />
             <Row label="Publication director" value="CODShip — General Management" />
-            <Row label="Email"                value="contact@codship.com" />
+            <Row label="Email"                value="contact@codshipeurope.com" />
             <Row label="Phone"                value="+351 912 000 000" />
           </Section>
           <Section title="2. Hosting">
@@ -95,10 +95,10 @@ export default function MentionsLegales() {
           </Section>
           <Section title="8. Contact">
             <p>For any questions, complaints, or information requests:</p>
-            <Row label="General email"     value="contact@codship.com" />
-            <Row label="Technical support" value="support@codship.com" />
-            <Row label="Data protection"   value="privacy@codship.com" />
-            <Row label="Legal notices"     value="legal@codship.com" />
+            <Row label="General email"     value="contact@codshipeurope.com" />
+            <Row label="Technical support" value="support@codshipeurope.com" />
+            <Row label="Data protection"   value="privacy@codshipeurope.com" />
+            <Row label="Legal notices"     value="legal@codshipeurope.com" />
           </Section>
         </>
       ) : (
@@ -110,7 +110,7 @@ export default function MentionsLegales() {
             <Row label="Capital social"                   value="5 000 EUR" />
             <Row label="Numéro d'identification fiscale"  value="PT 516 XXX XXX" />
             <Row label="Directeur de la publication"      value="CODShip — Direction générale" />
-            <Row label="E-mail"                           value="contact@codship.com" />
+            <Row label="E-mail"                           value="contact@codshipeurope.com" />
             <Row label="Téléphone"                        value="+351 912 000 000" />
           </Section>
           <Section title="2. Hébergeur">
@@ -175,10 +175,10 @@ export default function MentionsLegales() {
           </Section>
           <Section title="8. Contact">
             <p>Pour toute question, réclamation ou demande d'information :</p>
-            <Row label="E-mail général"       value="contact@codship.com" />
-            <Row label="Support technique"    value="support@codship.com" />
-            <Row label="Protection des données" value="privacy@codship.com" />
-            <Row label="Mentions légales"     value="legal@codship.com" />
+            <Row label="E-mail général"       value="contact@codshipeurope.com" />
+            <Row label="Support technique"    value="support@codshipeurope.com" />
+            <Row label="Protection des données" value="privacy@codshipeurope.com" />
+            <Row label="Mentions légales"     value="legal@codshipeurope.com" />
           </Section>
         </>
       )}

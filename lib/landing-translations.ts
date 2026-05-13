@@ -94,7 +94,7 @@ export const T = {
     footer_rights: "© 2025 CODShip. All rights reserved.",
     footer_cols: [
       { title: "Product",   links: [{ label: "Features", href: "/#features" }, { label: "Pricing", href: "/#pricing" }, { label: "How it works", href: "/#how" }, { label: "Testimonials", href: "/#testimonials" }] },
-      { title: "Resources", links: [{ label: "Support", href: "mailto:support@codship.com" }, { label: "Contact", href: "mailto:contact@codship.com" }, { label: "Privacy", href: "/confidentialite" }, { label: "GDPR", href: "/rgpd" }] },
+      { title: "Resources", links: [{ label: "Support", href: "mailto:support@codshipeurope.com" }, { label: "Contact", href: "mailto:contact@codshipeurope.com" }, { label: "Privacy", href: "/confidentialite" }, { label: "GDPR", href: "/rgpd" }] },
       { title: "Legal",     links: [{ label: "Terms of Service", href: "/conditions" }, { label: "Privacy Policy", href: "/confidentialite" }, { label: "GDPR", href: "/rgpd" }, { label: "Legal Notice", href: "/mentions-legales" }] },
     ],
     // Live order feed
@@ -206,7 +206,7 @@ export const T = {
     footer_rights: "© 2025 CODShip. Tous droits réservés.",
     footer_cols: [
       { title: "Produit",     links: [{ label: "Fonctionnalités", href: "/#features" }, { label: "Tarifs", href: "/#pricing" }, { label: "Comment ça marche", href: "/#how" }, { label: "Témoignages", href: "/#testimonials" }] },
-      { title: "Ressources",  links: [{ label: "Support", href: "mailto:support@codship.com" }, { label: "Contact", href: "mailto:contact@codship.com" }, { label: "Confidentialité", href: "/confidentialite" }, { label: "RGPD", href: "/rgpd" }] },
+      { title: "Ressources",  links: [{ label: "Support", href: "mailto:support@codshipeurope.com" }, { label: "Contact", href: "mailto:contact@codshipeurope.com" }, { label: "Confidentialité", href: "/confidentialite" }, { label: "RGPD", href: "/rgpd" }] },
       { title: "Légal",       links: [{ label: "Conditions d'utilisation", href: "/conditions" }, { label: "Politique de confidentialité", href: "/confidentialite" }, { label: "RGPD", href: "/rgpd" }, { label: "Mentions légales", href: "/mentions-legales" }] },
     ],
     // Live order feed

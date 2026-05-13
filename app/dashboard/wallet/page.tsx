@@ -192,7 +192,7 @@ async function downloadInvoice(inv: Invoice, clientWithdrawals: Withdrawal[], in
       <div class="party-box">
         <div class="party-label">Émetteur</div>
         <div class="party-name">CODShip Pro Platform</div>
-        <div class="party-detail">contact@codship.com<br>Plateforme de vente COD<br>N° TVA : FR00000000000</div>
+        <div class="party-detail">contact@codshipeurope.com<br>Plateforme de vente COD<br>N° TVA : FR00000000000</div>
       </div>
       <div class="party-box">
         <div class="party-label">Destinataire</div>

@@ -42,7 +42,7 @@ const g = globalThis as typeof globalThis & {
 if (!g._codship_withdrawals) {
   g._codship_withdrawals = [
     {
-      id: "w1", clientId: "c1", clientName: "Soufiane Attar",  clientEmail: "soufiane@codship.com",
+      id: "w1", clientId: "c1", clientName: "Soufiane Attar",  clientEmail: "soufiane@codshipeurope.com",
       amount: 500,   currency: "EUR", iban: "PT50 0002 0000 0001 2345 6781 4",
       status: "pending",  requestedAt: "10 Mai 2025 à 14:32",
     },

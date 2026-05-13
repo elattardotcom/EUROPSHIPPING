@@ -78,7 +78,7 @@ export async function POST(req: NextRequest) {
         <tr>
           <td style="padding:18px 36px;border-top:1px solid rgba(255,255,255,0.06)">
             <p style="margin:0;color:#444;font-size:11px;text-align:center">
-              © ${new Date().getFullYear()} CODShip Pro Platform · contact@codship.com
+              © ${new Date().getFullYear()} CODShip Pro Platform · contact@codshipeurope.com
             </p>
           </td>
         </tr>

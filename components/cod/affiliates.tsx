@@ -228,7 +228,7 @@ export default function AffiliatesPage() {
                     <span className="text-xs text-neutral-500">Affiliate Link</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <code className="text-xs text-orange-400 flex-1 truncate">codship.com/aff/{offer.id}-{offer.name.toLowerCase().replace(/ /g, "-")}</code>
+                    <code className="text-xs text-orange-400 flex-1 truncate">codshipeurope.com/aff/{offer.id}-{offer.name.toLowerCase().replace(/ /g, "-")}</code>
                     <Button variant="ghost" size="icon" className="h-6 w-6 text-neutral-500 hover:text-white">
                       <Copy className="w-3 h-3" />
                     </Button>

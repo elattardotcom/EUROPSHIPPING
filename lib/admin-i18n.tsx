@@ -186,7 +186,7 @@ const T = {
     login_loading:    "Signing in…",
     login_secure:     "Secure SSL connection",
     login_restricted: "Restricted access · CODShip Platform v2.0",
-    login_placeholder_email: "admin@codship.com",
+    login_placeholder_email: "admin@codshipeurope.com",
   },
   fr: {
     nav_overview:     "Vue d'ensemble",
@@ -358,7 +358,7 @@ const T = {
     login_loading:    "Connexion en cours…",
     login_secure:     "Connexion sécurisée SSL",
     login_restricted: "Accès restreint · CODShip Platform v2.0",
-    login_placeholder_email: "admin@codship.com",
+    login_placeholder_email: "admin@codshipeurope.com",
   },
 } as const
 

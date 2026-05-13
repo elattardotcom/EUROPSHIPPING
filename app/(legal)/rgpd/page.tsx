@@ -39,7 +39,7 @@ export default function RGPD() {
               <strong className="text-white">Data Controller:</strong> CODShip Lda<br />
               <strong className="text-white">Registered office:</strong> Lisbon, Portugal<br />
               <strong className="text-white">DPO contact:</strong>{" "}
-              <span className="text-orange-400">dpo@codship.com</span>
+              <span className="text-orange-400">dpo@codshipeurope.com</span>
             </p>
           </Section>
           <Section title="2. Data Processed and Legal Bases">
@@ -75,7 +75,7 @@ export default function RGPD() {
               ))}
             </div>
             <p className="mt-4">
-              To exercise your rights: <span className="text-orange-400">dpo@codship.com</span>. Response time: maximum 30 days.
+              To exercise your rights: <span className="text-orange-400">dpo@codshipeurope.com</span>. Response time: maximum 30 days.
             </p>
           </Section>
           <Section title="4. Retention Periods">
@@ -146,7 +146,7 @@ export default function RGPD() {
               <strong className="text-white">Responsable du traitement :</strong> CODShip Lda<br />
               <strong className="text-white">Siège social :</strong> Lisbonne, Portugal<br />
               <strong className="text-white">Contact DPO :</strong>{" "}
-              <span className="text-orange-400">dpo@codship.com</span>
+              <span className="text-orange-400">dpo@codshipeurope.com</span>
             </p>
           </Section>
           <Section title="2. Données traitées et bases légales">
@@ -182,7 +182,7 @@ export default function RGPD() {
               ))}
             </div>
             <p className="mt-4">
-              Pour exercer vos droits : <span className="text-orange-400">dpo@codship.com</span>. Délai de réponse : 30 jours maximum.
+              Pour exercer vos droits : <span className="text-orange-400">dpo@codshipeurope.com</span>. Délai de réponse : 30 jours maximum.
             </p>
           </Section>
           <Section title="4. Durées de conservation">
