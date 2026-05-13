@@ -24,7 +24,8 @@ async function sendPayoutEmail(w: {
   // Build payment details row based on method type
   let details: { label: string; value: string }[]
   const type = w.paymentMethodType ?? "bank"
-  const parsed = w.paymentDetails ? JSON.parse(w.paymentDetails).catch?.(() => ({})) ?? {} : {}
+  let parsed: Record<string, string> = {}
+  try { if (w.paymentDetails) parsed = JSON.parse(w.paymentDetails) } catch { parsed = {} }
 
   if (type === "crypto") {
     const network = parsed.cryptoNetwork ?? "—"
