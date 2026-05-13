@@ -78,7 +78,10 @@
       "Bash(git push *)",
       "Bash(git config *)",
       "Bash(xargs sed -i '' 's|https://codshipeurope\\\\.com|https://www.codshipeurope.com|g')",
-      "Bash(xargs sed -i '' 's/CODShip/CODShipEurope/g; s/Codship/CodshipEurope/g; s/codship\\\\./codshipeurope./g; s/leads_codship/leads_codshipeurope/g; s/commandes_codship/commandes_codshipeurope/g')"
+      "Bash(xargs sed -i '' 's/CODShip/CODShipEurope/g; s/Codship/CodshipEurope/g; s/codship\\\\./codshipeurope./g; s/leads_codship/leads_codshipeurope/g; s/commandes_codship/commandes_codshipeurope/g')",
+      "Bash(sed -i '' 's/label: \"Demandes\"/label: \"Requests\"/g' /Users/m1/Downloads/b_9v36uilKVHe/app/admin/layout.tsx)",
+      "Bash(sed -i '' 's/Demandes d'\\\\''inscription/Registration Requests/g' /Users/m1/Downloads/b_9v36uilKVHe/app/admin/requests/page.tsx)",
+      "Bash(sed -i '' 's/Approuvez ou rejetez les demandes de création de compte/Approve or reject account creation requests/g' /Users/m1/Downloads/b_9v36uilKVHe/app/admin/requests/page.tsx)"
     ],
     "additionalDirectories": [
       "/Users/m1/Downloads/b_9v36uilKVHe/app/api/client/leads",
