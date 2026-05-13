@@ -64,10 +64,10 @@ async function sendPayoutEmail(w: {
         <tr>
           <td style="background:linear-gradient(135deg,#f97316,#dc2626);padding:28px 36px">
             <table cellpadding="0" cellspacing="0"><tr>
-              <td style="width:44px;height:44px;background:rgba(255,255,255,0.18);border-radius:12px;text-align:center;vertical-align:middle">
-                <span style="color:#fff;font-size:18px;font-weight:900;line-height:44px">CS</span>
+              <td style="vertical-align:middle">
+                <img src="https://www.codshipeurope.com/icon.svg" width="48" height="48" alt="CODShipEurope" style="display:block;border-radius:10px" />
               </td>
-              <td style="padding-left:14px">
+              <td style="padding-left:14px;vertical-align:middle">
                 <p style="margin:0;color:#fff;font-size:20px;font-weight:800;line-height:1">CODShipEurope</p>
                 <p style="margin:4px 0 0;color:rgba(255,255,255,0.6);font-size:11px;letter-spacing:1px;text-transform:uppercase">Pro Platform</p>
               </td>
