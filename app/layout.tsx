@@ -7,7 +7,7 @@ import { ThemeProvider } from "@/components/theme-provider"
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" })
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://codshipeurope.com"),
+  metadataBase: new URL("https://www.codshipeurope.com"),
   title: {
     default: "CODShip — Plateforme COD Shopify en Europe",
     template: "%s | CODShip",
@@ -37,7 +37,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "fr_FR",
-    url: "https://codshipeurope.com",
+    url: "https://www.codshipeurope.com",
     siteName: "CODShip",
     title: "CODShip — Plateforme COD Shopify en Europe",
     description:
@@ -50,7 +50,7 @@ export const metadata: Metadata = {
       "Gérez vos commandes Cash on Delivery en Europe. Connectez Shopify, confirmez, livrez, encaissez en 48h.",
   },
   alternates: {
-    canonical: "https://codshipeurope.com",
+    canonical: "https://www.codshipeurope.com",
   },
 }
 
@@ -66,7 +66,7 @@ const jsonLd = {
   name: "CODShip",
   applicationCategory: "BusinessApplication",
   operatingSystem: "Web",
-  url: "https://codshipeurope.com",
+  url: "https://www.codshipeurope.com",
   description:
     "Plateforme SaaS Cash on Delivery pour dropshippers Shopify en Europe. Gestion des commandes, confirmations d'appel, suivi des livraisons et virements en 48h.",
   offers: {
@@ -85,8 +85,8 @@ const jsonLd = {
   provider: {
     "@type": "Organization",
     name: "CODShip",
-    url: "https://codshipeurope.com",
-    logo: "https://codshipeurope.com/icon.svg",
+    url: "https://www.codshipeurope.com",
+    logo: "https://www.codshipeurope.com/icon.svg",
     contactPoint: {
       "@type": "ContactPoint",
       email: "support@codshipeurope.com",

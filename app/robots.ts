@@ -9,7 +9,7 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ["/admin/", "/dashboard/", "/api/"],
       },
     ],
-    sitemap: "https://codshipeurope.com/sitemap.xml",
-    host: "https://codshipeurope.com",
+    sitemap: "https://www.codshipeurope.com/sitemap.xml",
+    host: "https://www.codshipeurope.com",
   }
 }
