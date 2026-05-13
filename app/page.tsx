@@ -105,7 +105,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full flex items-center justify-between">
           <div className="flex items-center gap-2 sm:gap-3">
             <Logo size={32} showBg={true} />
-            <span className="font-black text-lg sm:text-xl tracking-tight">CODShip</span>
+            <span className="font-black text-lg sm:text-xl tracking-tight">CODShipEurope</span>
             <div className="hidden sm:flex items-center gap-1.5 text-[10px] font-bold text-emerald-400 border border-emerald-500/25 bg-emerald-500/8 px-2.5 py-1 rounded-full uppercase tracking-widest">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-dot" />
               {t.live}
@@ -612,7 +612,7 @@ export default function LandingPage() {
             <div className="col-span-2 sm:col-span-1">
               <div className="flex items-center gap-3 mb-4">
                 <Logo size={32} showBg={true} />
-                <span className="font-black text-lg">CODShip</span>
+                <span className="font-black text-lg">CODShipEurope</span>
               </div>
               <p className="text-neutral-700 text-xs leading-relaxed mb-4 sm:mb-5">{t.footer_desc}</p>
               <div className="flex gap-2">

@@ -9,8 +9,8 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-inter" })
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.codshipeurope.com"),
   title: {
-    default: "CODShip — Plateforme COD Shopify en Europe",
-    template: "%s | CODShip",
+    default: "CODShipEurope — Plateforme COD Shopify en Europe",
+    template: "%s | CODShipEurope",
   },
   description:
     "Gérez vos commandes Cash on Delivery en Europe. Connectez votre boutique Shopify, confirmez par appel, suivez les livraisons et recevez vos virements en 48h. 2 500+ marchands actifs.",
@@ -26,9 +26,9 @@ export const metadata: Metadata = {
     "virement dropshipping",
     "COD Espagne Portugal Italie",
   ],
-  authors: [{ name: "CODShip" }],
-  creator: "CODShip",
-  publisher: "CODShip",
+  authors: [{ name: "CODShipEurope" }],
+  creator: "CODShipEurope",
+  publisher: "CODShipEurope",
   robots: {
     index: true,
     follow: true,
@@ -38,14 +38,14 @@ export const metadata: Metadata = {
     type: "website",
     locale: "fr_FR",
     url: "https://www.codshipeurope.com",
-    siteName: "CODShip",
-    title: "CODShip — Plateforme COD Shopify en Europe",
+    siteName: "CODShipEurope",
+    title: "CODShipEurope — Plateforme COD Shopify en Europe",
     description:
       "Gérez vos commandes Cash on Delivery en Europe. Connectez Shopify, confirmez, livrez, encaissez en 48h.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "CODShip — Plateforme COD Shopify en Europe",
+    title: "CODShipEurope — Plateforme COD Shopify en Europe",
     description:
       "Gérez vos commandes Cash on Delivery en Europe. Connectez Shopify, confirmez, livrez, encaissez en 48h.",
   },
@@ -63,7 +63,7 @@ export const viewport: Viewport = {
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
-  name: "CODShip",
+  name: "CODShipEurope",
   applicationCategory: "BusinessApplication",
   operatingSystem: "Web",
   url: "https://www.codshipeurope.com",
@@ -84,7 +84,7 @@ const jsonLd = {
   },
   provider: {
     "@type": "Organization",
-    name: "CODShip",
+    name: "CODShipEurope",
     url: "https://www.codshipeurope.com",
     logo: "https://www.codshipeurope.com/icon.svg",
     contactPoint: {

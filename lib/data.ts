@@ -79,7 +79,7 @@ export interface AdminStore {
 export const CLIENTS: Client[] = [
   {
     id: "c1", firstName: "Soufiane", lastName: "Attar",    email: "soufiane@codshipeurope.com", phone: "+351 912 000 001",
-    country: "Portugal",   countryCode: "PT", company: "CODShip Enterprise",
+    country: "Portugal",   countryCode: "PT", company: "CODShipEurope Enterprise",
     plan: "enterprise", status: "active",    joinedAt: "1 Jan 2025",
     monthlyRevenue: 89,  totalRevenue: 356,  storesCount: 3, ordersCount: 156, leadsCount: 347, lastActive: "À l'instant",
     avatarColor: "from-orange-500 to-red-600",

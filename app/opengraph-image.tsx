@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og"
 
 export const runtime = "edge"
-export const alt     = "CODShip — Plateforme COD Shopify en Europe"
+export const alt     = "CODShipEurope — Plateforme COD Shopify en Europe"
 export const size    = { width: 1200, height: 630 }
 export const contentType = "image/png"
 
@@ -46,7 +46,7 @@ export default function OGImage() {
 
         {/* Brand name */}
         <div style={{ fontSize: 72, fontWeight: 900, color: "#ffffff", letterSpacing: "-2px", marginBottom: 16 }}>
-          CODShip
+          CODShipEurope
         </div>
 
         {/* Tagline */}

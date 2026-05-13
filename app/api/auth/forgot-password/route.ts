@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
   const link    = `${baseUrl}/reset-password?token=${token}`
 
   const apiKey  = process.env.RESEND_API_KEY
-  const from    = process.env.RESEND_FROM_EMAIL ?? "CODShip <onboarding@resend.dev>"
+  const from    = process.env.RESEND_FROM_EMAIL ?? "CODShipEurope <onboarding@resend.dev>"
 
   if (apiKey && apiKey !== "re_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx") {
     const emailRes = await fetch("https://api.resend.com/emails", {
@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify({
         from,
         to:      [normalized],
-        subject: "Réinitialisation de votre mot de passe CODShip",
+        subject: "Réinitialisation de votre mot de passe CODShipEurope",
         html: `
 <!DOCTYPE html>
 <html lang="fr">
@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
                 <span style="color:#fff;font-size:18px;font-weight:900;line-height:44px">CS</span>
               </td>
               <td style="padding-left:14px">
-                <p style="margin:0;color:#fff;font-size:20px;font-weight:800;line-height:1">CODShip</p>
+                <p style="margin:0;color:#fff;font-size:20px;font-weight:800;line-height:1">CODShipEurope</p>
                 <p style="margin:4px 0 0;color:rgba(255,255,255,0.6);font-size:11px;letter-spacing:1px">PRO PLATFORM</p>
               </td>
             </tr></table>
@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
           <td style="padding:36px">
             <p style="margin:0 0 8px;color:#fff;font-size:22px;font-weight:700">Réinitialiser votre mot de passe</p>
             <p style="margin:0 0 24px;color:#888;font-size:14px;line-height:1.6">
-              Vous avez demandé la réinitialisation de votre mot de passe CODShip.<br>
+              Vous avez demandé la réinitialisation de votre mot de passe CODShipEurope.<br>
               Cliquez sur le bouton ci-dessous pour choisir un nouveau mot de passe.
             </p>
             <table cellpadding="0" cellspacing="0" style="margin:0 0 28px">
@@ -78,7 +78,7 @@ export async function POST(req: NextRequest) {
         <tr>
           <td style="padding:18px 36px;border-top:1px solid rgba(255,255,255,0.06)">
             <p style="margin:0;color:#444;font-size:11px;text-align:center">
-              © ${new Date().getFullYear()} CODShip Pro Platform · contact@codshipeurope.com
+              © ${new Date().getFullYear()} CODShipEurope Pro Platform · contact@codshipeurope.com
             </p>
           </td>
         </tr>

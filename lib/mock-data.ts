@@ -80,7 +80,7 @@ export const MOCK_CLIENT = {
   firstName: "Soufiane", lastName: "Attar",
   email: "soufianeattar7@gmail.com",
   phone: "+212 600 000 000",
-  company: "CODShip Enterprise",
+  company: "CODShipEurope Enterprise",
   country: "Maroc", countryCode: "MA",
   plan: "enterprise" as const,
   status: "active" as const,

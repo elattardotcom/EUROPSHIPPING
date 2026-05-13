@@ -77,7 +77,8 @@
       "Bash(git add *)",
       "Bash(git push *)",
       "Bash(git config *)",
-      "Bash(xargs sed -i '' 's|https://codshipeurope\\\\.com|https://www.codshipeurope.com|g')"
+      "Bash(xargs sed -i '' 's|https://codshipeurope\\\\.com|https://www.codshipeurope.com|g')",
+      "Bash(xargs sed -i '' 's/CODShip/CODShipEurope/g; s/Codship/CodshipEurope/g; s/codship\\\\./codshipeurope./g; s/leads_codship/leads_codshipeurope/g; s/commandes_codship/commandes_codshipeurope/g')"
     ],
     "additionalDirectories": [
       "/Users/m1/Downloads/b_9v36uilKVHe/app/api/client/leads",

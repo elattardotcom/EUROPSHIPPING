@@ -86,7 +86,7 @@ const STEPS = [
     num: "4",
     icon: Zap,
     title: "Synchronisation automatique",
-    desc: "Dès la connexion établie, vos commandes et leads arrivent en temps réel dans votre tableau de bord CODShip.",
+    desc: "Dès la connexion établie, vos commandes et leads arrivent en temps réel dans votre tableau de bord CODShipEurope.",
     color: "#f97316",
     bg: "rgba(249,115,22,0.08)",
     border: "rgba(249,115,22,0.2)",
@@ -352,7 +352,7 @@ export default function StoresPage() {
             <div className="float-shop text-7xl mb-6 select-none">🛍️</div>
             <h2 className="text-2xl font-black text-white mb-3">Aucune boutique connectée</h2>
             <p className="text-neutral-500 text-sm max-w-sm mx-auto leading-relaxed mb-8">
-              Connectez votre première boutique Shopify et vos commandes arriveront automatiquement dans CODShip en temps réel.
+              Connectez votre première boutique Shopify et vos commandes arriveront automatiquement dans CODShipEurope en temps réel.
             </p>
             {atStoreLimit ? (
               <div className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl border border-orange-500/30 bg-orange-500/5">

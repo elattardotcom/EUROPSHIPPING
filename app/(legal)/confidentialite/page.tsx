@@ -15,8 +15,8 @@ const C = {
         content: (
           <>
             <p>
-              CODShip Lda, a company incorporated under Portuguese law, with its registered office in Lisbon, Portugal,
-              is responsible for processing personal data collected through the CODShip platform. Contact:{" "}
+              CODShipEurope Lda, a company incorporated under Portuguese law, with its registered office in Lisbon, Portugal,
+              is responsible for processing personal data collected through the CODShipEurope platform. Contact:{" "}
               <span className="text-orange-400">privacy@codshipeurope.com</span>
             </p>
           </>
@@ -54,8 +54,8 @@ export default function Confidentialite() {
         <>
           <Section title="1. Data Controller">
             <p>
-              CODShip Lda, a company incorporated under Portuguese law, with its registered office in Lisbon, Portugal,
-              is responsible for processing personal data collected through the CODShip platform. Contact:{" "}
+              CODShipEurope Lda, a company incorporated under Portuguese law, with its registered office in Lisbon, Portugal,
+              is responsible for processing personal data collected through the CODShipEurope platform. Contact:{" "}
               <span className="text-orange-400">privacy@codshipeurope.com</span>
             </p>
           </Section>
@@ -107,7 +107,7 @@ export default function Confidentialite() {
             </ul>
           </Section>
           <Section title="6. Cookies">
-            <p>CODShip uses only strictly necessary cookies for the service to function:</p>
+            <p>CODShipEurope uses only strictly necessary cookies for the service to function:</p>
             <ul>
               <li>Authentication session cookie (duration: session)</li>
               <li>Language preference cookie (duration: 1 year)</li>
@@ -131,7 +131,7 @@ export default function Confidentialite() {
           </Section>
           <Section title="8. Security">
             <p>
-              CODShip implements appropriate technical and organizational measures to protect your data: TLS encryption in
+              CODShipEurope implements appropriate technical and organizational measures to protect your data: TLS encryption in
               transit, encryption at rest, restricted access on a least-privilege basis, secure authentication, and access logging.
             </p>
           </Section>
@@ -147,8 +147,8 @@ export default function Confidentialite() {
         <>
           <Section title="1. Responsable du traitement">
             <p>
-              CODShip Lda, société de droit portugais, dont le siège social est situé à Lisbonne, Portugal, est responsable
-              du traitement des données personnelles collectées via la plateforme CODShip. Contact :{" "}
+              CODShipEurope Lda, société de droit portugais, dont le siège social est situé à Lisbonne, Portugal, est responsable
+              du traitement des données personnelles collectées via la plateforme CODShipEurope. Contact :{" "}
               <span className="text-orange-400">privacy@codshipeurope.com</span>
             </p>
           </Section>
@@ -200,7 +200,7 @@ export default function Confidentialite() {
             </ul>
           </Section>
           <Section title="6. Cookies">
-            <p>CODShip utilise des cookies strictement nécessaires au fonctionnement du service :</p>
+            <p>CODShipEurope utilise des cookies strictement nécessaires au fonctionnement du service :</p>
             <ul>
               <li>Cookie de session d'authentification (durée : session)</li>
               <li>Cookie de préférences de langue (durée : 1 an)</li>
@@ -225,7 +225,7 @@ export default function Confidentialite() {
           </Section>
           <Section title="8. Sécurité">
             <p>
-              CODShip met en œuvre des mesures techniques et organisationnelles appropriées pour protéger vos données :
+              CODShipEurope met en œuvre des mesures techniques et organisationnelles appropriées pour protéger vos données :
               chiffrement TLS en transit, chiffrement au repos, accès restreint selon le principe du moindre privilège,
               authentification sécurisée et journalisation des accès.
             </p>

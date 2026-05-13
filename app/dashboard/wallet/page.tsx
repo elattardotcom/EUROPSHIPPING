@@ -178,7 +178,7 @@ async function downloadInvoice(inv: Invoice, clientWithdrawals: Withdrawal[], in
     <div class="hdr-logo">
       <div class="hdr-icon">CS</div>
       <div>
-        <div class="hdr-name">CODShip</div>
+        <div class="hdr-name">CODShipEurope</div>
         <div class="hdr-sub">PRO PLATFORM</div>
       </div>
     </div>
@@ -191,13 +191,13 @@ async function downloadInvoice(inv: Invoice, clientWithdrawals: Withdrawal[], in
     <div class="parties">
       <div class="party-box">
         <div class="party-label">Émetteur</div>
-        <div class="party-name">CODShip Pro Platform</div>
+        <div class="party-name">CODShipEurope Pro Platform</div>
         <div class="party-detail">contact@codshipeurope.com<br>Plateforme de vente COD<br>N° TVA : FR00000000000</div>
       </div>
       <div class="party-box">
         <div class="party-label">Destinataire</div>
         <div class="party-name">${invoiceClientName || "—"}</div>
-        <div class="party-detail">${invoiceClientEmail || "—"}<br>Vendeur partenaire CODShip<br>Réf. client : ${inv.id.slice(-8).toUpperCase()}</div>
+        <div class="party-detail">${invoiceClientEmail || "—"}<br>Vendeur partenaire CODShipEurope<br>Réf. client : ${inv.id.slice(-8).toUpperCase()}</div>
       </div>
     </div>
     <div class="date-row">
@@ -207,7 +207,7 @@ async function downloadInvoice(inv: Invoice, clientWithdrawals: Withdrawal[], in
     </div>
     <div class="objet-box">
       <div class="objet-label">Objet</div>
-      <div class="objet-text">Payout — Revenus de ventes de produits COD traités par CODShip</div>
+      <div class="objet-text">Payout — Revenus de ventes de produits COD traités par CODShipEurope</div>
     </div>
     <div>
       <table class="tbl">
@@ -243,7 +243,7 @@ async function downloadInvoice(inv: Invoice, clientWithdrawals: Withdrawal[], in
     </div>
   </div>
   <div class="ftr">
-    <div class="ftr-left">© ${today.getFullYear()} CODShip Pro Platform · Tous droits réservés</div>
+    <div class="ftr-left">© ${today.getFullYear()} CODShipEurope Pro Platform · Tous droits réservés</div>
     <div class="ftr-center">Document officiel — Ne pas modifier</div>
     <div class="ftr-right">Généré le ${dateStr}</div>
   </div>

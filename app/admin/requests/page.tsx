@@ -92,7 +92,7 @@ function ActionModal({
             <textarea
               value={note}
               onChange={e => setNote(e.target.value)}
-              placeholder={isApprove ? "Bienvenue sur CODShip !" : "Raison du rejet..."}
+              placeholder={isApprove ? "Bienvenue sur CODShipEurope !" : "Raison du rejet..."}
               rows={3}
               className="w-full bg-neutral-800 border border-neutral-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-neutral-600 focus:outline-none focus:border-orange-500 resize-none"
             />

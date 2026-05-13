@@ -12,7 +12,7 @@ export default function LegalLayout({ children }: { children: React.ReactNode })
         <div className="max-w-4xl mx-auto px-6 h-full flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
             <Logo size={32} showBg={true} />
-            <span className="font-black text-lg tracking-tight">CODShip</span>
+            <span className="font-black text-lg tracking-tight">CODShipEurope</span>
           </Link>
           <Link href="/" className="flex items-center gap-2 text-sm text-neutral-400 hover:text-white transition-colors">
             <ArrowLeft className="w-4 h-4" />
@@ -36,7 +36,7 @@ export default function LegalLayout({ children }: { children: React.ReactNode })
             </Link>
           ))}
         </div>
-        © 2025 CODShip. All rights reserved.
+        © 2025 CODShipEurope. All rights reserved.
       </footer>
     </div>
   )

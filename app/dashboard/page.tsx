@@ -49,7 +49,7 @@ export default function DashboardHome() {
         <div className="flex items-center gap-3 flex-wrap">
           <div className="flex items-center gap-2 bg-neutral-900 border border-neutral-800 px-3 py-1.5 rounded-lg">
             <Store className="w-4 h-4 text-neutral-400" />
-            <span className="text-sm text-neutral-300">CODShip Enterprise</span>
+            <span className="text-sm text-neutral-300">CODShipEurope Enterprise</span>
           </div>
           <div className="flex items-center gap-2 bg-neutral-900 border border-neutral-800 px-3 py-1.5 rounded-lg">
             <RefreshCw className="w-4 h-4 text-neutral-400" />

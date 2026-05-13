@@ -91,7 +91,7 @@ export default function OrdersPage() {
         "Valeur (EUR)": o.orderValue.toFixed(2), Boutique: o.store,
         Date: o.createdAt, Heure: o.createdTime,
       })),
-      "commandes_codship.csv"
+      "commandes_codshipeuropeeurope.csv"
     )
   }
 

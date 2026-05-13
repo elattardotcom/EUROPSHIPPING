@@ -27,16 +27,16 @@ export default function Conditions() {
         <>
           <Section title="1. Purpose">
             <p>
-              These Terms of Service ("ToS") govern access to and use of the CODShip platform, published by CODShip Lda,
-              a company incorporated under Portuguese law with its registered office in Lisbon, Portugal (hereinafter "CODShip").
+              These Terms of Service ("ToS") govern access to and use of the CODShipEurope platform, published by CODShipEurope Lda,
+              a company incorporated under Portuguese law with its registered office in Lisbon, Portugal (hereinafter "CODShipEurope").
             </p>
             <p>
-              By creating an account or using CODShip's services, you unreservedly accept these ToS. If you do not accept
+              By creating an account or using CODShipEurope's services, you unreservedly accept these ToS. If you do not accept
               these terms, please do not use the platform.
             </p>
           </Section>
           <Section title="2. Service Description">
-            <p>CODShip is a SaaS platform enabling e-commerce merchants to:</p>
+            <p>CODShipEurope is a SaaS platform enabling e-commerce merchants to:</p>
             <ul>
               <li>Connect their Shopify stores and centralize Cash on Delivery (COD) orders</li>
               <li>Manage order confirmation by phone (leads)</li>
@@ -52,13 +52,13 @@ export default function Conditions() {
               taken from their account.
             </p>
             <p>
-              CODShip reserves the right to suspend or delete any account in case of incorrect information, fraudulent
+              CODShipEurope reserves the right to suspend or delete any account in case of incorrect information, fraudulent
               behavior, or violation of these ToS.
             </p>
           </Section>
           <Section title="4. Plans and Pricing">
             <p>
-              CODShip offers three subscription plans (Starter, Pro, Enterprise) whose prices and features are detailed
+              CODShipEurope offers three subscription plans (Starter, Pro, Enterprise) whose prices and features are detailed
               on the Pricing page. All prices are in euros (EUR) excluding taxes.
             </p>
             <p>
@@ -73,40 +73,40 @@ export default function Conditions() {
           <Section title="5. User Obligations">
             <p>The user agrees to:</p>
             <ul>
-              <li>Use CODShip exclusively for legal and legitimate commercial purposes</li>
+              <li>Use CODShipEurope exclusively for legal and legitimate commercial purposes</li>
               <li>Not resell, sublicense, or transfer access to the platform to third parties without authorization</li>
               <li>Comply with applicable legislation in the countries where they conduct business</li>
               <li>Not attempt to access unauthorized data or systems</li>
-              <li>Inform CODShip of any unauthorized use of their account</li>
+              <li>Inform CODShipEurope of any unauthorized use of their account</li>
             </ul>
           </Section>
           <Section title="6. Intellectual Property">
             <p>
-              All elements of the CODShip platform (source code, interfaces, trademarks, logos, content) are the exclusive
-              property of CODShip and are protected by intellectual property laws. Any unauthorized reproduction or use
+              All elements of the CODShipEurope platform (source code, interfaces, trademarks, logos, content) are the exclusive
+              property of CODShipEurope and are protected by intellectual property laws. Any unauthorized reproduction or use
               is strictly prohibited.
             </p>
           </Section>
           <Section title="7. Limitation of Liability">
             <p>
-              CODShip is committed to maintaining optimal availability (99.9% SLA for the Enterprise plan) but cannot be
+              CODShipEurope is committed to maintaining optimal availability (99.9% SLA for the Enterprise plan) but cannot be
               held responsible for service interruptions due to events beyond its control (force majeure, network outages,
               scheduled maintenance).
             </p>
             <p>
-              In no event shall CODShip's liability exceed the amounts actually paid by the user during the three months
+              In no event shall CODShipEurope's liability exceed the amounts actually paid by the user during the three months
               preceding the incident.
             </p>
           </Section>
           <Section title="8. Termination">
             <p>
-              The user may cancel their subscription at any time from their account settings. CODShip may terminate access
+              The user may cancel their subscription at any time from their account settings. CODShipEurope may terminate access
               without notice in the event of a serious violation of these ToS or non-payment.
             </p>
           </Section>
           <Section title="9. ToS Amendments">
             <p>
-              CODShip reserves the right to amend these ToS at any time. Users will be notified by email at least 15 days
+              CODShipEurope reserves the right to amend these ToS at any time. Users will be notified by email at least 15 days
               before the amendments take effect. Continued use of the service after that date constitutes acceptance of
               the new terms.
             </p>
@@ -127,16 +127,16 @@ export default function Conditions() {
           <Section title="1. Objet">
             <p>
               Les présentes Conditions Générales d'Utilisation (CGU) régissent l'accès et l'utilisation de la plateforme
-              CODShip, éditée par CODShip Lda, société de droit portugais dont le siège social est situé à Lisbonne, Portugal
-              (ci-après « CODShip »).
+              CODShipEurope, éditée par CODShipEurope Lda, société de droit portugais dont le siège social est situé à Lisbonne, Portugal
+              (ci-après « CODShipEurope »).
             </p>
             <p>
-              En créant un compte ou en utilisant les services de CODShip, vous acceptez sans réserve les présentes CGU. Si
+              En créant un compte ou en utilisant les services de CODShipEurope, vous acceptez sans réserve les présentes CGU. Si
               vous n'acceptez pas ces conditions, veuillez ne pas utiliser la plateforme.
             </p>
           </Section>
           <Section title="2. Description du service">
-            <p>CODShip est une plateforme SaaS permettant aux marchands e-commerce de :</p>
+            <p>CODShipEurope est une plateforme SaaS permettant aux marchands e-commerce de :</p>
             <ul>
               <li>Connecter leurs boutiques Shopify et centraliser les commandes Cash on Delivery (COD)</li>
               <li>Gérer la confirmation des commandes par téléphone (leads)</li>
@@ -152,13 +152,13 @@ export default function Conditions() {
               les actions effectuées depuis son compte.
             </p>
             <p>
-              CODShip se réserve le droit de suspendre ou supprimer tout compte en cas d'informations erronées, de
+              CODShipEurope se réserve le droit de suspendre ou supprimer tout compte en cas d'informations erronées, de
               comportement frauduleux ou de violation des présentes CGU.
             </p>
           </Section>
           <Section title="4. Offres et tarification">
             <p>
-              CODShip propose trois formules d'abonnement (Starter, Pro, Enterprise) dont les prix et fonctionnalités sont
+              CODShipEurope propose trois formules d'abonnement (Starter, Pro, Enterprise) dont les prix et fonctionnalités sont
               détaillés sur la page Tarifs du site. Tous les prix sont exprimés en euros (EUR) hors taxes.
             </p>
             <p>
@@ -173,40 +173,40 @@ export default function Conditions() {
           <Section title="5. Obligations de l'utilisateur">
             <p>L'utilisateur s'engage à :</p>
             <ul>
-              <li>Utiliser CODShip exclusivement à des fins légales et commerciales légitimes</li>
+              <li>Utiliser CODShipEurope exclusivement à des fins légales et commerciales légitimes</li>
               <li>Ne pas revendre, sous-licencier ou transférer l'accès à la plateforme à des tiers sans autorisation</li>
               <li>Respecter la législation en vigueur dans les pays où il exerce son activité</li>
               <li>Ne pas tenter d'accéder à des données ou systèmes non autorisés</li>
-              <li>Informer CODShip de toute utilisation non autorisée de son compte</li>
+              <li>Informer CODShipEurope de toute utilisation non autorisée de son compte</li>
             </ul>
           </Section>
           <Section title="6. Propriété intellectuelle">
             <p>
-              L'ensemble des éléments composant la plateforme CODShip (code source, interfaces, marques, logos, contenus)
-              sont la propriété exclusive de CODShip et sont protégés par les lois sur la propriété intellectuelle. Toute
+              L'ensemble des éléments composant la plateforme CODShipEurope (code source, interfaces, marques, logos, contenus)
+              sont la propriété exclusive de CODShipEurope et sont protégés par les lois sur la propriété intellectuelle. Toute
               reproduction ou utilisation non autorisée est strictement interdite.
             </p>
           </Section>
           <Section title="7. Limitation de responsabilité">
             <p>
-              CODShip s'engage à maintenir un niveau de disponibilité optimal (SLA 99,9 % pour le plan Enterprise) mais ne
+              CODShipEurope s'engage à maintenir un niveau de disponibilité optimal (SLA 99,9 % pour le plan Enterprise) mais ne
               saurait être tenu responsable des interruptions de service liées à des événements hors de son contrôle (force
               majeure, pannes réseau, maintenances planifiées).
             </p>
             <p>
-              En aucun cas la responsabilité de CODShip ne pourra dépasser le montant des sommes effectivement payées par
+              En aucun cas la responsabilité de CODShipEurope ne pourra dépasser le montant des sommes effectivement payées par
               l'utilisateur au cours des trois derniers mois précédant l'incident.
             </p>
           </Section>
           <Section title="8. Résiliation">
             <p>
-              L'utilisateur peut résilier son abonnement à tout moment depuis les paramètres de son compte. CODShip peut
+              L'utilisateur peut résilier son abonnement à tout moment depuis les paramètres de son compte. CODShipEurope peut
               résilier l'accès sans préavis en cas de violation grave des présentes CGU ou de non-paiement.
             </p>
           </Section>
           <Section title="9. Modification des CGU">
             <p>
-              CODShip se réserve le droit de modifier les présentes CGU à tout moment. Les utilisateurs seront informés par
+              CODShipEurope se réserve le droit de modifier les présentes CGU à tout moment. Les utilisateurs seront informés par
               e-mail au moins 15 jours avant l'entrée en vigueur des modifications. La poursuite de l'utilisation du service
               après cette date vaut acceptation des nouvelles conditions.
             </p>

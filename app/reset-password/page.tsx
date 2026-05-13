@@ -57,7 +57,7 @@ function ResetForm() {
           <div className="flex items-center gap-3 mb-8">
             <Logo size={40} showBg={true} />
             <div>
-              <h1 className="text-white font-black text-lg tracking-tight">CODShip</h1>
+              <h1 className="text-white font-black text-lg tracking-tight">CODShipEurope</h1>
               <p className="text-neutral-600 text-xs">Pro Platform</p>
             </div>
           </div>

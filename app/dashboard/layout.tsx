@@ -261,7 +261,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <Link href="/dashboard" className="flex items-center gap-2.5">
             <Logo size={36} showBg={false} />
             <div>
-              <p className="text-white font-bold text-base leading-none">CODShip</p>
+              <p className="text-white font-bold text-base leading-none">CODShipEurope</p>
               <p className="text-neutral-400 text-xs">Pro Platform</p>
             </div>
           </Link>
@@ -427,7 +427,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             {/* Mobile logo */}
             <Link href="/dashboard" className="md:hidden flex items-center gap-2">
               <Logo size={28} showBg={false} />
-              <span className="text-white font-bold text-sm">CODShip</span>
+              <span className="text-white font-bold text-sm">CODShipEurope</span>
             </Link>
           </div>
 

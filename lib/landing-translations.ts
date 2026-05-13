@@ -14,7 +14,7 @@ export const T = {
     hero_line2: "delivery,",
     hero_highlight: "cash",
     hero_line3: "in your pocket",
-    hero_p: "CODShip centralizes your Shopify orders, handles call confirmations, tracks every delivery, and transfers your money — in 48h. Zero friction, 100% COD.",
+    hero_p: "CODShipEurope centralizes your Shopify orders, handles call confirmations, tracks every delivery, and transfers your money — in 48h. Zero friction, 100% COD.",
     // Hero stats
     stat_merchants: "merchants",
     stat_month: "/ month",
@@ -22,19 +22,19 @@ export const T = {
     // COD Flow
     flow_badge: "The complete COD cycle",
     flow_h2: "From order to bank transfer",
-    flow_sub: "CODShip covers the entire Cash on Delivery flow — from lead arrival to bank transfer.",
+    flow_sub: "CODShipEurope covers the entire Cash on Delivery flow — from lead arrival to bank transfer.",
     flow_steps: [
       { label: "Shopify connected",    desc: "Lead automatically imported from your Shopify store" },
       { label: "Call confirmation",    desc: "Your team confirms the order and validates the delivery address" },
       { label: "Shipping & Tracking",  desc: "The package ships, the customer receives it and pays cash" },
-      { label: "48h Bank transfer",    desc: "CODShip collects the cash and wires it to your account in 48h" },
+      { label: "48h Bank transfer",    desc: "CODShipEurope collects the cash and wires it to your account in 48h" },
     ],
     // Features
     feat_badge: "Features",
     feat_h2: "Everything you need",
     feat_sub: "A complete suite built for COD merchants. Manage, confirm, deliver, collect.",
     feat_shopify_title: "Shopify connection in 1 click",
-    feat_shopify_desc: "Install our app and connect as many Shopify stores as you want. Every new order arrives instantly in CODShip.",
+    feat_shopify_desc: "Install our app and connect as many Shopify stores as you want. Every new order arrives instantly in CODShipEurope.",
     feat_leads_title: "Lead Management",
     feat_leads_desc: "Centralize, confirm or follow up on your leads from an ultra-fast interface.",
     feat_lead_statuses: ["Confirmed", "Pending", "Refused"],
@@ -65,11 +65,11 @@ export const T = {
     // Testimonials
     testi_badge: "Testimonials",
     testi_h2: "They cash out every day",
-    testi_with: "with CODShip",
+    testi_with: "with CODShipEurope",
     testimonials: [
-      { name: "Karim B.", country: "🇵🇹 Portugal", role: "3 Shopify stores",       text: "Before CODShip, I managed everything in Excel and constantly lost leads. Now my confirmations are automatic, my deliveries tracked, and my transfers arrive in 48h.", revenue: "+€3,200/month", color: "from-orange-500 to-red-600" },
+      { name: "Karim B.", country: "🇵🇹 Portugal", role: "3 Shopify stores",       text: "Before CODShipEurope, I managed everything in Excel and constantly lost leads. Now my confirmations are automatic, my deliveries tracked, and my transfers arrive in 48h.", revenue: "+€3,200/month", color: "from-orange-500 to-red-600" },
       { name: "Sara M.",  country: "🇮🇹 Italy",   role: "Fashion & Beauty COD",    text: "The affiliate program let me double my sales without ads. The interface is clean, my team of 3 picked it up in one day. Support replies within the hour.",              revenue: "+€5,800/month", color: "from-rose-500 to-pink-600" },
-      { name: "Ahmed R.", country: "🇪🇸 Spain",   role: "COD Drop entrepreneur",   text: "I tried 3 other platforms. CODShip is the only one that understands the COD flow from A to Z. Return tracking and the wallet are perfect. I manage 6 stores from one dashboard.", revenue: "+€8,100/month", color: "from-blue-500 to-cyan-600" },
+      { name: "Ahmed R.", country: "🇪🇸 Spain",   role: "COD Drop entrepreneur",   text: "I tried 3 other platforms. CODShipEurope is the only one that understands the COD flow from A to Z. Return tracking and the wallet are perfect. I manage 6 stores from one dashboard.", revenue: "+€8,100/month", color: "from-blue-500 to-cyan-600" },
     ],
     // Global stats
     stats: [
@@ -91,7 +91,7 @@ export const T = {
     cta_trust: ["No card required", "Cancel anytime", "Secure data", "7/7 support"],
     // Footer
     footer_desc: "The all-in-one platform to manage your Cash on Delivery business, from order to bank transfer.",
-    footer_rights: "© 2025 CODShip. All rights reserved.",
+    footer_rights: "© 2025 CODShipEurope. All rights reserved.",
     footer_cols: [
       { title: "Product",   links: [{ label: "Features", href: "/#features" }, { label: "Pricing", href: "/#pricing" }, { label: "How it works", href: "/#how" }, { label: "Testimonials", href: "/#testimonials" }] },
       { title: "Resources", links: [{ label: "Support", href: "mailto:support@codshipeurope.com" }, { label: "Contact", href: "mailto:contact@codshipeurope.com" }, { label: "Privacy", href: "/confidentialite" }, { label: "GDPR", href: "/rgpd" }] },
@@ -126,7 +126,7 @@ export const T = {
     hero_line2: "livraison,",
     hero_highlight: "du cash",
     hero_line3: "dans votre poche",
-    hero_p: "CODShip centralise vos commandes Shopify, gère vos confirmations d'appel, suit chaque livraison et vire votre argent — en 48h. Zéro friction, 100% COD.",
+    hero_p: "CODShipEurope centralise vos commandes Shopify, gère vos confirmations d'appel, suit chaque livraison et vire votre argent — en 48h. Zéro friction, 100% COD.",
     // Hero stats
     stat_merchants: "marchands",
     stat_month: "/ mois",
@@ -134,19 +134,19 @@ export const T = {
     // COD Flow
     flow_badge: "Le cycle COD complet",
     flow_h2: "De la commande au virement",
-    flow_sub: "CODShip couvre l'intégralité du flux Cash on Delivery — de l'arrivée du lead jusqu'au virement bancaire.",
+    flow_sub: "CODShipEurope couvre l'intégralité du flux Cash on Delivery — de l'arrivée du lead jusqu'au virement bancaire.",
     flow_steps: [
       { label: "Shopify connecté",      desc: "Lead entrant automatiquement depuis votre boutique Shopify" },
       { label: "Confirmation d'appel",  desc: "Votre équipe confirme la commande et valide l'adresse" },
       { label: "Expédition & Suivi",    desc: "Le colis part, le client reçoit et paie en cash" },
-      { label: "Virement 48h",          desc: "CODShip collecte le cash et vous vire en 48h" },
+      { label: "Virement 48h",          desc: "CODShipEurope collecte le cash et vous vire en 48h" },
     ],
     // Features
     feat_badge: "Fonctionnalités",
     feat_h2: "Tout ce qu'il vous faut",
     feat_sub: "Une suite complète pensée pour les marchands COD. Gérez, confirmez, livrez, encaissez.",
     feat_shopify_title: "Connexion Shopify en 1 clic",
-    feat_shopify_desc: "Installez notre app et connectez autant de boutiques Shopify que vous voulez. Chaque nouvelle commande arrive instantanément dans CODShip.",
+    feat_shopify_desc: "Installez notre app et connectez autant de boutiques Shopify que vous voulez. Chaque nouvelle commande arrive instantanément dans CODShipEurope.",
     feat_leads_title: "Gestion des Leads",
     feat_leads_desc: "Centralisez, confirmez ou recontactez vos leads depuis une interface ultra-rapide.",
     feat_lead_statuses: ["Confirmé", "En attente", "Refusé"],
@@ -177,11 +177,11 @@ export const T = {
     // Testimonials
     testi_badge: "Témoignages",
     testi_h2: "Ils encaissent tous les jours",
-    testi_with: "avec CODShip",
+    testi_with: "avec CODShipEurope",
     testimonials: [
-      { name: "Karim B.", country: "🇵🇹 Portugal", role: "3 boutiques Shopify",    text: "Avant CODShip, je gérais tout sur Excel et je perdais des leads en permanence. Maintenant mes confirmations sont automatiques, mes livraisons suivies et mes virements arrivent en 48h.", revenue: "+€3,200/mois", color: "from-orange-500 to-red-600" },
+      { name: "Karim B.", country: "🇵🇹 Portugal", role: "3 boutiques Shopify",    text: "Avant CODShipEurope, je gérais tout sur Excel et je perdais des leads en permanence. Maintenant mes confirmations sont automatiques, mes livraisons suivies et mes virements arrivent en 48h.", revenue: "+€3,200/mois", color: "from-orange-500 to-red-600" },
       { name: "Sara M.",  country: "🇮🇹 Italie",   role: "Mode & Beauté COD",      text: "Le programme affilié m'a permis de doubler mes ventes sans pub. L'interface est claire, mon équipe de 3 personnes l'a pris en main en une journée. Le support répond dans l'heure.",   revenue: "+€5,800/mois", color: "from-rose-500 to-pink-600" },
-      { name: "Ahmed R.", country: "🇪🇸 Espagne",  role: "COD Drop entrepreneur",  text: "J'ai essayé 3 autres plateformes. CODShip est la seule qui comprend le flux COD de A à Z. Le suivi des retours et le wallet sont parfaits. Je gère 6 boutiques depuis un seul tableau de bord.", revenue: "+€8,100/mois", color: "from-blue-500 to-cyan-600" },
+      { name: "Ahmed R.", country: "🇪🇸 Espagne",  role: "COD Drop entrepreneur",  text: "J'ai essayé 3 autres plateformes. CODShipEurope est la seule qui comprend le flux COD de A à Z. Le suivi des retours et le wallet sont parfaits. Je gère 6 boutiques depuis un seul tableau de bord.", revenue: "+€8,100/mois", color: "from-blue-500 to-cyan-600" },
     ],
     // Global stats
     stats: [
@@ -203,7 +203,7 @@ export const T = {
     cta_trust: ["Aucune carte requise", "Annulation à tout moment", "Données sécurisées", "Support 7j/7"],
     // Footer
     footer_desc: "La plateforme tout-en-un pour gérer votre activité Cash on Delivery, de la commande au virement.",
-    footer_rights: "© 2025 CODShip. Tous droits réservés.",
+    footer_rights: "© 2025 CODShipEurope. Tous droits réservés.",
     footer_cols: [
       { title: "Produit",     links: [{ label: "Fonctionnalités", href: "/#features" }, { label: "Tarifs", href: "/#pricing" }, { label: "Comment ça marche", href: "/#how" }, { label: "Témoignages", href: "/#testimonials" }] },
       { title: "Ressources",  links: [{ label: "Support", href: "mailto:support@codshipeurope.com" }, { label: "Contact", href: "mailto:contact@codshipeurope.com" }, { label: "Confidentialité", href: "/confidentialite" }, { label: "RGPD", href: "/rgpd" }] },

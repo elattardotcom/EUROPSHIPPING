@@ -188,7 +188,7 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
             <Link href="/admin" className="flex items-center gap-2.5">
               <Logo size={36} showBg={false} />
               <div>
-                <p className="text-white font-bold text-sm leading-none">CODShip</p>
+                <p className="text-white font-bold text-sm leading-none">CODShipEurope</p>
                 <p className="text-orange-400/60 text-[10px]">Admin Panel</p>
               </div>
             </Link>
@@ -256,7 +256,7 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
               <div className="flex items-center gap-2.5">
                 <Logo size={30} showBg={false} />
                 <div>
-                  <p className="text-white font-bold text-sm leading-none">CODShip</p>
+                  <p className="text-white font-bold text-sm leading-none">CODShipEurope</p>
                   <p className="text-orange-400/60 text-[10px]">Admin Panel</p>
                 </div>
               </div>

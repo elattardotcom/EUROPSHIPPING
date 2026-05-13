@@ -30,13 +30,13 @@ export default function RGPD() {
           <div className="mb-10 p-5 rounded-2xl border border-orange-500/20 bg-orange-500/5">
             <p className="text-orange-300 text-sm font-semibold mb-1">Our commitment</p>
             <p className="text-neutral-400 text-sm leading-relaxed">
-              CODShip is fully compliant with the General Data Protection Regulation (GDPR). As a platform operating in
+              CODShipEurope is fully compliant with the General Data Protection Regulation (GDPR). As a platform operating in
               Europe, protecting your data and that of your customers is an absolute priority.
             </p>
           </div>
           <Section title="1. Who are we?">
             <p>
-              <strong className="text-white">Data Controller:</strong> CODShip Lda<br />
+              <strong className="text-white">Data Controller:</strong> CODShipEurope Lda<br />
               <strong className="text-white">Registered office:</strong> Lisbon, Portugal<br />
               <strong className="text-white">DPO contact:</strong>{" "}
               <span className="text-orange-400">dpo@codshipeurope.com</span>
@@ -44,7 +44,7 @@ export default function RGPD() {
           </Section>
           <Section title="2. Data Processed and Legal Bases">
             <p>
-              CODShip processes two categories of personal data: those of its{" "}
+              CODShipEurope processes two categories of personal data: those of its{" "}
               <strong className="text-white">merchant users</strong> (you) and those of your{" "}
               <strong className="text-white">end customers</strong> (COD buyers).
             </p>
@@ -54,7 +54,7 @@ export default function RGPD() {
             </p>
             <p>
               <strong className="text-white">End customer data:</strong> processed on the basis of the delivery contract.
-              As a merchant using CODShip, you are the data controller for your customers' data; CODShip acts as a
+              As a merchant using CODShipEurope, you are the data controller for your customers' data; CODShipEurope acts as a
               data processor.
             </p>
           </Section>
@@ -89,13 +89,13 @@ export default function RGPD() {
           </Section>
           <Section title="5. International Transfers">
             <p>
-              CODShip uses sub-processors whose servers may be located outside the European Union. These transfers are
+              CODShipEurope uses sub-processors whose servers may be located outside the European Union. These transfers are
               governed by <strong className="text-white">Standard Contractual Clauses (SCCs)</strong> approved by the
               European Commission, ensuring a level of protection equivalent to the GDPR.
             </p>
           </Section>
           <Section title="6. Sub-processors">
-            <p>CODShip engages the following sub-processors, all GDPR compliant:</p>
+            <p>CODShipEurope engages the following sub-processors, all GDPR compliant:</p>
             <ul>
               <li><strong className="text-white">Supabase:</strong> database and authentication</li>
               <li><strong className="text-white">Vercel:</strong> hosting and deployment</li>
@@ -116,7 +116,7 @@ export default function RGPD() {
           </Section>
           <Section title="8. Data Breaches">
             <p>
-              In the event of a personal data breach likely to result in a risk to your rights and freedoms, CODShip
+              In the event of a personal data breach likely to result in a risk to your rights and freedoms, CODShipEurope
               commits to notifying you within <strong className="text-white">72 hours</strong> of becoming aware of it,
               in accordance with Article 33 of the GDPR.
             </p>
@@ -137,13 +137,13 @@ export default function RGPD() {
           <div className="mb-10 p-5 rounded-2xl border border-orange-500/20 bg-orange-500/5">
             <p className="text-orange-300 text-sm font-semibold mb-1">Notre engagement</p>
             <p className="text-neutral-400 text-sm leading-relaxed">
-              CODShip est pleinement conforme au Règlement Général sur la Protection des Données (RGPD). En tant que
+              CODShipEurope est pleinement conforme au Règlement Général sur la Protection des Données (RGPD). En tant que
               plateforme opérant en Europe, la protection de vos données et celles de vos clients est une priorité absolue.
             </p>
           </div>
           <Section title="1. Qui sommes-nous ?">
             <p>
-              <strong className="text-white">Responsable du traitement :</strong> CODShip Lda<br />
+              <strong className="text-white">Responsable du traitement :</strong> CODShipEurope Lda<br />
               <strong className="text-white">Siège social :</strong> Lisbonne, Portugal<br />
               <strong className="text-white">Contact DPO :</strong>{" "}
               <span className="text-orange-400">dpo@codshipeurope.com</span>
@@ -151,7 +151,7 @@ export default function RGPD() {
           </Section>
           <Section title="2. Données traitées et bases légales">
             <p>
-              CODShip traite deux catégories de données personnelles : celles de ses{" "}
+              CODShipEurope traite deux catégories de données personnelles : celles de ses{" "}
               <strong className="text-white">utilisateurs marchands</strong> (vous) et celles de vos{" "}
               <strong className="text-white">clients finaux</strong> (acheteurs COD).
             </p>
@@ -161,8 +161,8 @@ export default function RGPD() {
             </p>
             <p>
               <strong className="text-white">Données clients finaux :</strong> traitées sur la base de l'exécution du
-              contrat de livraison. En tant que marchand utilisant CODShip, vous êtes responsable de traitement pour les
-              données de vos clients ; CODShip agit en qualité de sous-traitant.
+              contrat de livraison. En tant que marchand utilisant CODShipEurope, vous êtes responsable de traitement pour les
+              données de vos clients ; CODShipEurope agit en qualité de sous-traitant.
             </p>
           </Section>
           <Section title="3. Droits des personnes concernées">
@@ -196,14 +196,14 @@ export default function RGPD() {
           </Section>
           <Section title="5. Transferts internationaux">
             <p>
-              CODShip utilise des sous-traitants dont les serveurs peuvent être situés en dehors de l'Union Européenne.
+              CODShipEurope utilise des sous-traitants dont les serveurs peuvent être situés en dehors de l'Union Européenne.
               Ces transferts sont encadrés par des{" "}
               <strong className="text-white">Clauses Contractuelles Types (CCT)</strong> approuvées par la Commission
               Européenne, garantissant un niveau de protection équivalent au RGPD.
             </p>
           </Section>
           <Section title="6. Sous-traitants">
-            <p>CODShip fait appel aux sous-traitants suivants, tous conformes au RGPD :</p>
+            <p>CODShipEurope fait appel aux sous-traitants suivants, tous conformes au RGPD :</p>
             <ul>
               <li><strong className="text-white">Supabase :</strong> base de données et authentification</li>
               <li><strong className="text-white">Vercel :</strong> hébergement et déploiement</li>
@@ -225,7 +225,7 @@ export default function RGPD() {
           <Section title="8. Violations de données">
             <p>
               En cas de violation de données à caractère personnel susceptible d'engendrer un risque pour vos droits et
-              libertés, CODShip s'engage à vous notifier dans un délai de{" "}
+              libertés, CODShipEurope s'engage à vous notifier dans un délai de{" "}
               <strong className="text-white">72 heures</strong> après en avoir pris connaissance, conformément à l'article
               33 du RGPD.
             </p>

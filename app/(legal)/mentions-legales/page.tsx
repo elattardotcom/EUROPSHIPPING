@@ -28,12 +28,12 @@ export default function MentionsLegales() {
       {lang === "en" ? (
         <>
           <Section title="1. Website Publisher">
-            <Row label="Legal name"           value="CODShip Lda" />
+            <Row label="Legal name"           value="CODShipEurope Lda" />
             <Row label="Legal form"           value="Sociedade por Quotas (Lda) — equivalent to a limited liability company" />
             <Row label="Registered office"    value="Lisbon, Portugal" />
             <Row label="Share capital"        value="€5,000" />
             <Row label="Tax ID"               value="PT 516 XXX XXX" />
-            <Row label="Publication director" value="CODShip — General Management" />
+            <Row label="Publication director" value="CODShipEurope — General Management" />
             <Row label="Email"                value="contact@codshipeurope.com" />
             <Row label="Phone"                value="+351 912 000 000" />
           </Section>
@@ -48,39 +48,39 @@ export default function MentionsLegales() {
           </Section>
           <Section title="3. Intellectual Property">
             <p>
-              All content on the CODShip website (texts, images, logos, icons, source code, platform architecture) is
-              protected by intellectual property rights and is the exclusive property of CODShip Lda or its partners.
+              All content on the CODShipEurope website (texts, images, logos, icons, source code, platform architecture) is
+              protected by intellectual property rights and is the exclusive property of CODShipEurope Lda or its partners.
             </p>
             <p>
               Any reproduction, distribution, modification, adaptation, retransmission, or publication of these elements
-              is strictly prohibited without prior written consent from CODShip. Any violation may be subject to legal
+              is strictly prohibited without prior written consent from CODShipEurope. Any violation may be subject to legal
               proceedings.
             </p>
           </Section>
           <Section title="4. Trademarks">
             <p>
-              The trademark "CODShip" and the associated logo are registered or pending registration. Any unauthorized
+              The trademark "CODShipEurope" and the associated logo are registered or pending registration. Any unauthorized
               use constitutes infringement subject to penalties.
             </p>
             <p>
-              Shopify® is a registered trademark of Shopify Inc. CODShip is not affiliated with Shopify Inc. but
+              Shopify® is a registered trademark of Shopify Inc. CODShipEurope is not affiliated with Shopify Inc. but
               provides a technical integration with the Shopify platform via its official API.
             </p>
           </Section>
           <Section title="5. Hyperlinks">
             <p>
-              CODShip may contain links to third-party websites. These links are provided for informational purposes only.
-              CODShip is not responsible for the content of third-party websites and cannot be held responsible for their
+              CODShipEurope may contain links to third-party websites. These links are provided for informational purposes only.
+              CODShipEurope is not responsible for the content of third-party websites and cannot be held responsible for their
               privacy policies or practices.
             </p>
             <p>
-              Creating links to the CODShip website is permitted provided that such links are not used for commercial
+              Creating links to the CODShipEurope website is permitted provided that such links are not used for commercial
               purposes without prior authorization.
             </p>
           </Section>
           <Section title="6. Cookies">
             <p>
-              The CODShip website uses only functional cookies strictly necessary for its proper operation (session
+              The CODShipEurope website uses only functional cookies strictly necessary for its proper operation (session
               maintenance, language preferences). No advertising or profiling cookies are set without explicit consent.
             </p>
             <p>
@@ -104,12 +104,12 @@ export default function MentionsLegales() {
       ) : (
         <>
           <Section title="1. Éditeur du site">
-            <Row label="Raison sociale"                   value="CODShip Lda" />
+            <Row label="Raison sociale"                   value="CODShipEurope Lda" />
             <Row label="Forme juridique"                  value="Sociedade por Quotas (Lda) — équivalent SARL" />
             <Row label="Siège social"                     value="Lisbonne, Portugal" />
             <Row label="Capital social"                   value="5 000 EUR" />
             <Row label="Numéro d'identification fiscale"  value="PT 516 XXX XXX" />
-            <Row label="Directeur de la publication"      value="CODShip — Direction générale" />
+            <Row label="Directeur de la publication"      value="CODShipEurope — Direction générale" />
             <Row label="E-mail"                           value="contact@codshipeurope.com" />
             <Row label="Téléphone"                        value="+351 912 000 000" />
           </Section>
@@ -124,40 +124,40 @@ export default function MentionsLegales() {
           </Section>
           <Section title="3. Propriété intellectuelle">
             <p>
-              L'ensemble du contenu du site CODShip (textes, images, logos, icônes, code source, architecture de la
-              plateforme) est protégé par les droits de propriété intellectuelle et est la propriété exclusive de CODShip
+              L'ensemble du contenu du site CODShipEurope (textes, images, logos, icônes, code source, architecture de la
+              plateforme) est protégé par les droits de propriété intellectuelle et est la propriété exclusive de CODShipEurope
               Lda ou de ses partenaires.
             </p>
             <p>
               Toute reproduction, distribution, modification, adaptation, retransmission ou publication de ces éléments
-              est strictement interdite sans accord écrit préalable de CODShip. Toute violation pourra faire l'objet de
+              est strictement interdite sans accord écrit préalable de CODShipEurope. Toute violation pourra faire l'objet de
               poursuites judiciaires.
             </p>
           </Section>
           <Section title="4. Marques">
             <p>
-              La marque « CODShip » ainsi que le logo associé sont des marques déposées ou en cours de dépôt.
+              La marque « CODShipEurope » ainsi que le logo associé sont des marques déposées ou en cours de dépôt.
               Toute utilisation non autorisée constitue une contrefaçon passible de sanctions.
             </p>
             <p>
-              Shopify® est une marque déposée de Shopify Inc. CODShip n'est pas affilié à Shopify Inc. mais propose
+              Shopify® est une marque déposée de Shopify Inc. CODShipEurope n'est pas affilié à Shopify Inc. mais propose
               une intégration technique avec la plateforme Shopify via son API officielle.
             </p>
           </Section>
           <Section title="5. Liens hypertextes">
             <p>
-              CODShip peut contenir des liens vers des sites tiers. Ces liens sont fournis à titre informatif uniquement.
-              CODShip n'est pas responsable du contenu des sites tiers et ne saurait être tenu responsable de leur
+              CODShipEurope peut contenir des liens vers des sites tiers. Ces liens sont fournis à titre informatif uniquement.
+              CODShipEurope n'est pas responsable du contenu des sites tiers et ne saurait être tenu responsable de leur
               politique de confidentialité ou de leurs pratiques.
             </p>
             <p>
-              La création de liens vers le site CODShip est autorisée sous réserve que ces liens ne soient pas utilisés
+              La création de liens vers le site CODShipEurope est autorisée sous réserve que ces liens ne soient pas utilisés
               à des fins commerciales sans autorisation préalable.
             </p>
           </Section>
           <Section title="6. Cookies">
             <p>
-              Le site CODShip utilise uniquement des cookies fonctionnels strictement nécessaires à son bon
+              Le site CODShipEurope utilise uniquement des cookies fonctionnels strictement nécessaires à son bon
               fonctionnement (maintien de session, préférences de langue). Aucun cookie publicitaire ou de profilage
               n'est déposé sans consentement explicite.
             </p>
