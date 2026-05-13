@@ -8,17 +8,48 @@ async function sendPayoutEmail(w: {
   amount: number
   currency: string
   iban?: string
+  paymentMethodType?: string
+  paymentDetails?: string
   processedAt?: string
 }) {
   const apiKey = process.env.RESEND_API_KEY
   if (!apiKey || apiKey === "re_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx") return
 
-  const from     = process.env.RESEND_FROM_EMAIL ?? "CODShipEurope <contact@codshipeurope.com>"
-  const ref      = `PAY-${w.id.slice(-8).toUpperCase()}`
-  const amount   = new Intl.NumberFormat("en-EU", { style: "currency", currency: w.currency ?? "EUR" }).format(w.amount)
-  const date     = new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "long", year: "numeric" })
-  const ibanMasked = w.iban ? `${w.iban.slice(0, 6)} •••• •••• ${w.iban.slice(-4)}` : "—"
+  const from      = process.env.RESEND_FROM_EMAIL ?? "CODShipEurope <contact@codshipeurope.com>"
+  const ref       = `PAY-${w.id.slice(-8).toUpperCase()}`
+  const amount    = new Intl.NumberFormat("en-EU", { style: "currency", currency: w.currency ?? "EUR" }).format(w.amount)
+  const date      = new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "long", year: "numeric" })
   const firstName = w.clientName.split(" ")[0] ?? w.clientName
+
+  // Build payment details row based on method type
+  let details: { label: string; value: string }[]
+  const type = w.paymentMethodType ?? "bank"
+  const parsed = w.paymentDetails ? JSON.parse(w.paymentDetails).catch?.(() => ({})) ?? {} : {}
+
+  if (type === "crypto") {
+    const network = parsed.cryptoNetwork ?? "—"
+    const address = parsed.cryptoAddress ?? "—"
+    const addrMasked = address.length > 10 ? `${address.slice(0, 6)}…${address.slice(-4)}` : address
+    details = [
+      { label: "Method",  value: "Cryptocurrency" },
+      { label: "Network", value: network },
+      { label: "Address", value: addrMasked },
+    ]
+  } else if (type === "wise") {
+    const wiseEmail    = parsed.wiseEmail    ?? "—"
+    const wiseCurrency = parsed.wiseCurrency ?? w.currency ?? "EUR"
+    details = [
+      { label: "Method",   value: "Wise Transfer" },
+      { label: "Email",    value: wiseEmail },
+      { label: "Currency", value: wiseCurrency },
+    ]
+  } else {
+    const ibanMasked = w.iban ? `${w.iban.slice(0, 6)} •••• •••• ${w.iban.slice(-4)}` : "—"
+    details = [
+      { label: "Method", value: "Bank Transfer (IBAN)" },
+      { label: "IBAN",   value: ibanMasked },
+    ]
+  }
 
   const html = `<!DOCTYPE html>
 <html lang="en">
@@ -81,10 +112,11 @@ async function sendPayoutEmail(w: {
                 <td style="padding:14px 18px;color:#555;font-size:12px;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid rgba(255,255,255,0.05)">Estimated Arrival</td>
                 <td style="padding:14px 18px;color:#10b981;font-size:13px;font-weight:600;border-bottom:1px solid rgba(255,255,255,0.05)">1–2 business days</td>
               </tr>
+              ${details.map(d => `
               <tr>
-                <td style="padding:14px 18px;color:#555;font-size:12px;text-transform:uppercase;letter-spacing:0.5px">IBAN</td>
-                <td style="padding:14px 18px;color:#fff;font-size:13px;font-family:monospace">${ibanMasked}</td>
-              </tr>
+                <td style="padding:14px 18px;color:#555;font-size:12px;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid rgba(255,255,255,0.05)">${d.label}</td>
+                <td style="padding:14px 18px;color:#fff;font-size:13px;font-family:monospace;border-bottom:1px solid rgba(255,255,255,0.05)">${d.value}</td>
+              </tr>`).join("")}
             </table>
 
             <p style="margin:0 0 8px;color:#555;font-size:12px;line-height:1.6">
@@ -146,13 +178,15 @@ export async function PATCH(
 
   if (status === "approved" && w.clientEmail) {
     await sendPayoutEmail({
-      id:          w.id,
-      clientName:  w.clientName,
-      clientEmail: w.clientEmail,
-      amount:      w.amount,
-      currency:    w.currency ?? "EUR",
-      iban:        w.iban,
-      processedAt: w.processedAt,
+      id:                 w.id,
+      clientName:         w.clientName,
+      clientEmail:        w.clientEmail,
+      amount:             w.amount,
+      currency:           w.currency ?? "EUR",
+      iban:               w.iban,
+      paymentMethodType:  w.paymentMethodType,
+      paymentDetails:     w.paymentDetails,
+      processedAt:        w.processedAt,
     })
   }
 
