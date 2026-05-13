@@ -158,14 +158,14 @@ export default function RequestsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl md:text-2xl font-bold text-white flex items-center gap-2 flex-wrap">
-            Demandes d'inscription
+            Registration Requests
             {pendingCount > 0 && (
               <span className="text-sm bg-orange-500 text-white px-2.5 py-0.5 rounded-full font-semibold">
                 {pendingCount} en attente
               </span>
             )}
           </h1>
-          <p className="text-xs md:text-sm text-neutral-500 mt-0.5">Approuvez ou rejetez les demandes de création de compte</p>
+          <p className="text-xs md:text-sm text-neutral-500 mt-0.5">Approve or reject account creation requests</p>
         </div>
         <button onClick={load} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-neutral-400 hover:text-white text-sm transition-colors">
           <RefreshCw className="w-3.5 h-3.5" />Actualiser

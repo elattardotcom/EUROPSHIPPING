@@ -106,7 +106,7 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
     { href: "/admin/orders",      icon: ShoppingCart,    label: t("nav_orders"),      badge: counts.orders },
     { href: "/admin/stores",      icon: Store,           label: t("nav_stores"),      badge: 0 },
     { href: "/admin/withdrawals", icon: ArrowDownLeft,   label: t("nav_withdrawals"), badge: counts.withdrawals },
-    { href: "/admin/requests",    icon: ClipboardList,   label: "Demandes",           badge: counts.requests },
+    { href: "/admin/requests",    icon: ClipboardList,   label: "Requests",           badge: counts.requests },
     { href: "/admin/analytics",   icon: BarChart3,       label: t("nav_analytics"),   badge: 0 },
   ]
 
@@ -115,7 +115,7 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
     { href: "/admin",          icon: LayoutDashboard, label: "Accueil",   badge: 0 },
     { href: "/admin/clients",  icon: Users,           label: "Clients",   badge: 0 },
     { href: "/admin/orders",   icon: ShoppingCart,    label: "Commandes", badge: counts.orders },
-    { href: "/admin/requests", icon: ClipboardList,   label: "Demandes",  badge: counts.requests },
+    { href: "/admin/requests", icon: ClipboardList,   label: "Requests",  badge: counts.requests },
   ]
 
   const currentPage = NAV.find(n => isActive(n.href))?.label
