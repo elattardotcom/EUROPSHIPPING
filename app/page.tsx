@@ -7,7 +7,6 @@ import {
   Instagram, Facebook, Twitter,
   Banknote, PhoneCall, TrendingUp, BadgeCheck, Globe2, Layers,
 } from "lucide-react"
-import Image from "next/image"
 import Link from "next/link"
 import { Logo }             from "@/components/logo"
 import { OpenModalButton }  from "@/components/landing/open-modal-button"
@@ -251,26 +250,6 @@ export default function LandingPage() {
               </div>
             </div>
           </div>
-        </div>
-      </section>
-
-      {/* ── Brand Banner ──────────────────────────────────────── */}
-      <section className="relative w-full px-4 sm:px-6 py-10 sm:py-16 flex justify-center items-center overflow-hidden"
-        style={{ background: "linear-gradient(180deg,#080808 0%,#050505 100%)" }}>
-        <div className="absolute inset-0 pointer-events-none"
-          style={{ background: "radial-gradient(ellipse at center, rgba(16,185,129,0.04) 0%, transparent 70%)" }} />
-        <div className="relative w-full max-w-3xl rounded-2xl overflow-hidden shadow-2xl"
-          style={{ boxShadow: "0 0 80px rgba(16,185,129,0.12), 0 0 0 1px rgba(255,255,255,0.06)" }}>
-          <Image
-            src="/hero-banner.png"
-            alt="CODShipEurope — Cash on Delivery across Europe"
-            width={1254}
-            height={1254}
-            className="w-full h-auto"
-            style={{ objectFit: "contain" }}
-          />
-          <div className="absolute inset-x-0 bottom-0 h-24 pointer-events-none"
-            style={{ background: "linear-gradient(to top, #050505 0%, transparent 100%)" }} />
         </div>
       </section>
 
