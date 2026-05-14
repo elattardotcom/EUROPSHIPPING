@@ -33,7 +33,7 @@ const COUNTRY_NAMES: Record<string, string> = {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
-    const { firstName, lastName, email, phone, company, countryCode, password } = body
+    const { firstName, lastName, email, phone, fullPhone, company, countryCode, password } = body
 
     if (!firstName?.trim() || !lastName?.trim() || !email?.trim() || !password?.trim()) {
       return NextResponse.json({ error: "Champs requis manquants" }, { status: 400 })
@@ -43,6 +43,8 @@ export async function POST(req: NextRequest) {
     if (phoneDigits.length !== 9 || phoneDigits.startsWith("0")) {
       return NextResponse.json({ error: "Numéro de téléphone invalide (9 chiffres sans le 0 initial)" }, { status: 400 })
     }
+
+    const storedPhone = fullPhone?.trim() ?? phoneDigits
     if (password.length < 8) {
       return NextResponse.json({ error: "Le mot de passe doit contenir au moins 8 caractères" }, { status: 400 })
     }
@@ -77,7 +79,7 @@ export async function POST(req: NextRequest) {
       first_name:    firstName.trim(),
       last_name:     lastName.trim(),
       email:         normalizedEmail,
-      phone:         phoneDigits,
+      phone:         storedPhone,
       company:       company?.trim() ?? "",
       country:       COUNTRY_NAMES[countryCode] ?? countryCode ?? "",
       country_code:  countryCode ?? "",

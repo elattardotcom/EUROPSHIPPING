@@ -60,7 +60,7 @@ export function SignupModal({ onClose, initialStep = "signup" }: { onClose: () =
 
     setIsLoading(true)
     try {
-      const res  = await fetch("/api/auth/register", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...signup, phone: signup.dialCode + signup.phone }) })
+      const res  = await fetch("/api/auth/register", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...signup, fullPhone: signup.dialCode + signup.phone }) })
       const data = await res.json()
       if (!res.ok) { setError(data.error || "Erreur lors de l'inscription"); setIsLoading(false); return }
       setStep("pending")
