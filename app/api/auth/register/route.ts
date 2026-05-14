@@ -6,19 +6,23 @@ import { hashPassword, findByEmailDb } from "@/lib/auth-store"
   SQL to run once in Supabase:
 
   CREATE TABLE IF NOT EXISTS registration_requests (
-    id           UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    first_name   TEXT NOT NULL,
-    last_name    TEXT NOT NULL,
-    email        TEXT NOT NULL,
-    phone        TEXT,
-    company      TEXT,
-    country      TEXT,
-    country_code TEXT,
+    id            UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    first_name    TEXT NOT NULL,
+    last_name     TEXT NOT NULL,
+    email         TEXT NOT NULL,
+    phone         TEXT,
+    company       TEXT,
+    country       TEXT,
+    country_code  TEXT,
+    plan          TEXT DEFAULT 'Starter',
     password_hash TEXT NOT NULL,
-    status       TEXT DEFAULT 'pending' CHECK (status IN ('pending','approved','rejected')),
-    admin_note   TEXT,
-    created_at   TIMESTAMPTZ DEFAULT NOW()
+    status        TEXT DEFAULT 'pending' CHECK (status IN ('pending','approved','rejected')),
+    admin_note    TEXT,
+    created_at    TIMESTAMPTZ DEFAULT NOW()
   );
+
+  -- If the table already exists, add the plan column:
+  ALTER TABLE registration_requests ADD COLUMN IF NOT EXISTS plan TEXT DEFAULT 'Starter';
 */
 
 const COUNTRY_NAMES: Record<string, string> = {
@@ -33,7 +37,7 @@ const COUNTRY_NAMES: Record<string, string> = {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
-    const { firstName, lastName, email, phone, fullPhone, company, countryCode, password } = body
+    const { firstName, lastName, email, phone, fullPhone, company, countryCode, password, plan } = body
 
     if (!firstName?.trim() || !lastName?.trim() || !email?.trim() || !password?.trim()) {
       return NextResponse.json({ error: "Champs requis manquants" }, { status: 400 })
@@ -83,6 +87,7 @@ export async function POST(req: NextRequest) {
       company:       company?.trim() ?? "",
       country:       COUNTRY_NAMES[countryCode] ?? countryCode ?? "",
       country_code:  countryCode ?? "",
+      plan:          plan ?? "Starter",
       password_hash: hashPassword(password),
       status:        "pending",
     })

@@ -459,7 +459,7 @@ export default function LandingPage() {
                       </li>
                     ))}
                   </ul>
-                  <OpenModalButton step="signup"
+                  <OpenModalButton step="signup" plan={p.name}
                     className={`w-full py-3 rounded-xl text-sm font-bold transition-all ${highlight ? "text-white" : "text-neutral-300 hover:text-white border border-white/[0.08] hover:border-white/20 bg-white/[0.03] hover:bg-white/[0.06]"}`}
                     style={highlight ? { background: "linear-gradient(135deg,#f97316,#dc2626)", boxShadow: "0 8px 24px rgba(249,115,22,0.25)" } : undefined}>
                     {t.pricing_cta}

@@ -18,10 +18,19 @@ interface RegistrationRequest {
   company: string
   country: string
   country_code: string
+  plan?: string
   status: "pending" | "approved" | "rejected"
   admin_note: string | null
   created_at: string
 }
+
+const PLAN_CFG: Record<string, { color: string; bg: string }> = {
+  Starter:    { color: "text-emerald-400", bg: "bg-emerald-500/10 border-emerald-500/20" },
+  Pro:        { color: "text-orange-400",  bg: "bg-orange-500/10 border-orange-500/20"  },
+  Enterprise: { color: "text-violet-400",  bg: "bg-violet-500/10 border-violet-500/20"  },
+}
+
+const PLAN_PRICES: Record<string, string> = { Starter: "€29", Pro: "€59", Enterprise: "€89" }
 
 const STATUS_CFG = {
   pending:  { label: "En attente", color: "text-amber-400",   bg: "bg-amber-500/10 border-amber-500/20",    Icon: Clock },
@@ -82,7 +91,7 @@ function ActionModal({
 
           {isApprove && (
             <p className="text-sm text-neutral-400">
-              Un compte client <span className="text-white font-medium">Starter</span> sera créé. Le client pourra se connecter immédiatement.
+              Un compte client pack <span className="text-white font-medium">{req.plan ?? "Starter"}</span> ({PLAN_PRICES[req.plan ?? "Starter"] ?? "€29"}/mois) sera créé. Le client pourra se connecter immédiatement.
             </p>
           )}
 
@@ -243,9 +252,16 @@ export default function RequestsPage() {
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-neutral-600 mt-1">
-                    {new Date(req.created_at).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
-                  </p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <p className="text-xs text-neutral-600">
+                      {new Date(req.created_at).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+                    </p>
+                    {req.plan && (
+                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border ${(PLAN_CFG[req.plan] ?? PLAN_CFG.Starter).bg} ${(PLAN_CFG[req.plan] ?? PLAN_CFG.Starter).color}`}>
+                        {req.plan} · {PLAN_PRICES[req.plan] ?? "€29"}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
 

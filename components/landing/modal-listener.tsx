@@ -6,11 +6,13 @@ import { SignupModal } from "./signup-modal"
 export function ModalListener() {
   const [show, setShow] = useState(false)
   const [step, setStep] = useState<"signup" | "login">("signup")
+  const [plan, setPlan] = useState<string | undefined>(undefined)
 
   useEffect(() => {
     const handler = (e: Event) => {
       const detail = (e as CustomEvent).detail
       setStep(detail?.step ?? "signup")
+      setPlan(detail?.plan)
       setShow(true)
     }
     window.addEventListener("open-modal", handler)
@@ -18,5 +20,5 @@ export function ModalListener() {
   }, [])
 
   if (!show) return null
-  return <SignupModal onClose={() => setShow(false)} initialStep={step} />
+  return <SignupModal onClose={() => setShow(false)} initialStep={step} initialPlan={plan} />
 }
