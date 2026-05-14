@@ -21,7 +21,7 @@ export function SignupModal({ onClose, initialStep = "signup" }: { onClose: () =
 
   const [signup, setSignup] = useState({
     firstName: "", lastName: "", email: "", phone: "",
-    company: "", countryCode: "", password: "",
+    dialCode: "+212", company: "", countryCode: "", password: "",
   })
   const [login,        setLogin]       = useState({ email: "", password: "" })
   const [forgotEmail,  setForgotEmail] = useState("")
@@ -60,7 +60,7 @@ export function SignupModal({ onClose, initialStep = "signup" }: { onClose: () =
 
     setIsLoading(true)
     try {
-      const res  = await fetch("/api/auth/register", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(signup) })
+      const res  = await fetch("/api/auth/register", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...signup, phone: signup.dialCode + signup.phone }) })
       const data = await res.json()
       if (!res.ok) { setError(data.error || "Erreur lors de l'inscription"); setIsLoading(false); return }
       setStep("pending")
@@ -158,11 +158,38 @@ export function SignupModal({ onClose, initialStep = "signup" }: { onClose: () =
             </div>
             <div>
               <label className="block text-xs font-medium text-neutral-500 mb-1.5">Téléphone *</label>
-              <input type="tel" placeholder="612345678" required
-                value={signup.phone}
-                onChange={e => setSignup(f => ({ ...f, phone: e.target.value.replace(/\D/g, "").slice(0, 9) }))}
-                className={INPUT} />
-              <p className="text-[11px] text-neutral-700 mt-1">9 chiffres sans le 0 initial · Ex : 612345678 (le code pays +212, +33… est déjà inclus)</p>
+              <div className="flex gap-2">
+                <select
+                  value={signup.dialCode}
+                  onChange={e => setSignup(f => ({ ...f, dialCode: e.target.value }))}
+                  className="bg-[#111] border border-white/10 rounded-xl px-2 py-2.5 text-white text-sm focus:outline-none focus:border-orange-500 transition-colors"
+                >
+                  <option value="+212">🇲🇦 +212</option>
+                  <option value="+213">🇩🇿 +213</option>
+                  <option value="+216">🇹🇳 +216</option>
+                  <option value="+33">🇫🇷 +33</option>
+                  <option value="+34">🇪🇸 +34</option>
+                  <option value="+39">🇮🇹 +39</option>
+                  <option value="+351">🇵🇹 +351</option>
+                  <option value="+40">🇷🇴 +40</option>
+                  <option value="+32">🇧🇪 +32</option>
+                  <option value="+44">🇬🇧 +44</option>
+                  <option value="+49">🇩🇪 +49</option>
+                  <option value="+31">🇳🇱 +31</option>
+                  <option value="+41">🇨🇭 +41</option>
+                  <option value="+30">🇬🇷 +30</option>
+                  <option value="+36">🇭🇺 +36</option>
+                  <option value="+421">🇸🇰 +421</option>
+                  <option value="+386">🇸🇮 +386</option>
+                  <option value="+420">🇨🇿 +420</option>
+                  <option value="+359">🇧🇬 +359</option>
+                </select>
+                <input type="tel" placeholder="612345678" required
+                  value={signup.phone}
+                  onChange={e => setSignup(f => ({ ...f, phone: e.target.value.replace(/\D/g, "").slice(0, 9) }))}
+                  className={INPUT} />
+              </div>
+              <p className="text-[11px] text-neutral-700 mt-1">9 chiffres sans le 0 initial</p>
             </div>
             <div>
               <label className="block text-xs font-medium text-neutral-500 mb-1.5">Boutique</label>
