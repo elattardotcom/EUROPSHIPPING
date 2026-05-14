@@ -37,7 +37,7 @@ export async function POST(req: Request) {
           <td style="background:linear-gradient(135deg,#f97316,#dc2626);padding:24px 36px">
             <table cellpadding="0" cellspacing="0"><tr>
               <td style="vertical-align:middle">
-                <img src="${baseUrl}/icon.svg" width="44" height="44" alt="CODShipEurope" style="display:block;border-radius:10px" />
+                <img src="${baseUrl}/logo.png" width="44" height="44" alt="CODShipEurope" style="display:block;border-radius:10px" />
               </td>
               <td style="padding-left:12px;vertical-align:middle">
                 <p style="margin:0;color:#fff;font-size:18px;font-weight:800">CODShipEurope</p>

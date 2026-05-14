@@ -113,7 +113,7 @@ export async function POST(req: NextRequest) {
           <td style="background:linear-gradient(135deg,#f97316,#dc2626);padding:28px 36px">
             <table cellpadding="0" cellspacing="0"><tr>
               <td style="vertical-align:middle">
-                <img src="${baseUrl}/icon.svg" width="48" height="48" alt="CODShipEurope" style="display:block;border-radius:10px" />
+                <img src="${baseUrl}/logo.png" width="48" height="48" alt="CODShipEurope" style="display:block;border-radius:10px" />
               </td>
               <td style="padding-left:14px;vertical-align:middle">
                 <p style="margin:0;color:#fff;font-size:20px;font-weight:800;line-height:1">CODShipEurope</p>
