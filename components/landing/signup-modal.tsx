@@ -86,7 +86,7 @@ export function SignupModal({ onClose, initialStep = "signup" }: { onClose: () =
         <button onClick={onClose} className="absolute top-4 right-4 text-neutral-600 hover:text-white transition-colors"><X className="w-5 h-5" /></button>
 
         <div className="flex items-center gap-3 mb-8">
-          <Logo size={40} showBg={true} />
+          <Logo size={56} showBg={true} />
           <div>
             <h1 className="text-white font-black text-lg tracking-tight">CODShipEurope</h1>
             <p className="text-neutral-600 text-xs">Pro Platform</p>

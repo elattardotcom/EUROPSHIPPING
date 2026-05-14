@@ -56,7 +56,7 @@ export default function AdminLogin() {
         <div className="text-center mb-8">
           <div className="relative inline-block mb-5 mx-auto">
             <div className="w-20 h-20 rounded-2xl bg-neutral-900 border border-neutral-800 flex items-center justify-center shadow-2xl shadow-orange-500/20 mx-auto">
-              <Logo size={60} showBg={false} />
+              <Logo size={80} showBg={false} />
             </div>
             <div className="absolute -top-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full border-2 border-neutral-950 animate-pulse" />
           </div>

@@ -186,7 +186,7 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
         <div className="h-16 flex items-center justify-between px-4 border-b border-neutral-800">
           {!collapsed && (
             <Link href="/admin" className="flex items-center gap-2.5">
-              <Logo size={36} showBg={false} />
+              <Logo size={52} showBg={false} />
               <div>
                 <p className="text-white font-bold text-sm leading-none">CODShipEurope</p>
                 <p className="text-orange-400/60 text-[10px]">Admin Panel</p>
@@ -254,7 +254,7 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
             {/* Drawer header */}
             <div className="h-14 flex items-center justify-between px-4 border-b border-neutral-800">
               <div className="flex items-center gap-2.5">
-                <Logo size={30} showBg={false} />
+                <Logo size={44} showBg={false} />
                 <div>
                   <p className="text-white font-bold text-sm leading-none">CODShipEurope</p>
                   <p className="text-orange-400/60 text-[10px]">Admin Panel</p>

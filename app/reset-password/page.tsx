@@ -55,7 +55,7 @@ function ResetForm() {
           style={{ boxShadow: "0 0 0 1px rgba(255,255,255,0.06), 0 40px 80px rgba(0,0,0,0.9)" }}>
 
           <div className="flex items-center gap-3 mb-8">
-            <Logo size={40} showBg={true} />
+            <Logo size={56} showBg={true} />
             <div>
               <h1 className="text-white font-black text-lg tracking-tight">CODShipEurope</h1>
               <p className="text-neutral-600 text-xs">Pro Platform</p>

@@ -104,7 +104,7 @@ export default function LandingPage() {
         style={{ background: "rgba(8,8,8,0.92)", backdropFilter: "blur(20px)" }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full flex items-center justify-between">
           <div className="flex items-center gap-2 sm:gap-3">
-            <Logo size={32} showBg={true} />
+            <Logo size={48} showBg={true} />
             <span className="font-black text-lg sm:text-xl tracking-tight">CODShipEurope</span>
             <div className="hidden sm:flex items-center gap-1.5 text-[10px] font-bold text-emerald-400 border border-emerald-500/25 bg-emerald-500/8 px-2.5 py-1 rounded-full uppercase tracking-widest">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-dot" />
@@ -560,7 +560,7 @@ export default function LandingPage() {
                   {col.items.map(({ Logo, name, bg, border }) => (
                     <div key={name} className="flex items-center gap-2.5 opacity-75 hover:opacity-100 transition-opacity">
                       <div className="rounded-lg px-2 py-1.5 flex items-center flex-shrink-0" style={{ background: bg, border: `1px solid ${border}` }}>
-                        <Logo size={20} />
+                        <Logo size={36} />
                       </div>
                       <span className="text-neutral-400 text-sm font-medium">{name}</span>
                     </div>
@@ -611,7 +611,7 @@ export default function LandingPage() {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-8 sm:gap-10 mb-8 sm:mb-10">
             <div className="col-span-2 sm:col-span-1">
               <div className="flex items-center gap-3 mb-4">
-                <Logo size={32} showBg={true} />
+                <Logo size={48} showBg={true} />
                 <span className="font-black text-lg">CODShipEurope</span>
               </div>
               <p className="text-neutral-700 text-xs leading-relaxed mb-4 sm:mb-5">{t.footer_desc}</p>
