@@ -367,10 +367,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {(!collapsed || inDrawer) && (
           <p className="text-neutral-600 text-[10px] uppercase tracking-widest px-3 py-1">Aide</p>
         )}
-        <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-neutral-400 hover:bg-neutral-800 hover:text-white transition-colors text-sm">
+        <Link
+          href="/dashboard/contact"
+          className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-sm ${
+            pathname === "/dashboard/contact"
+              ? "bg-orange-500/10 text-orange-400"
+              : "text-neutral-400 hover:bg-neutral-800 hover:text-white"
+          }`}
+        >
           <HelpCircle className="w-4 h-4 flex-shrink-0" />
           {(!collapsed || inDrawer) && <span>Contact</span>}
-        </button>
+        </Link>
         <Link
           href="/dashboard/settings"
           className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-sm ${
