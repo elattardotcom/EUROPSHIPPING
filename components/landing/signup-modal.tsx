@@ -21,7 +21,7 @@ export function SignupModal({ onClose, initialStep = "signup" }: { onClose: () =
 
   const [signup, setSignup] = useState({
     firstName: "", lastName: "", email: "", phone: "",
-    company: "", countryCode: "", password: "", address: "",
+    company: "", countryCode: "", password: "",
   })
   const [login,        setLogin]       = useState({ email: "", password: "" })
   const [forgotEmail,  setForgotEmail] = useState("")
@@ -46,18 +46,19 @@ export function SignupModal({ onClose, initialStep = "signup" }: { onClose: () =
   }
 
   const handleSignup = async (e: React.FormEvent) => {
-    e.preventDefault(); setError(""); setIsLoading(true)
+    e.preventDefault(); setError("")
 
     const phoneDigits = signup.phone.replace(/\D/g, "")
-    if (phoneDigits.length !== 9) {
-      setError("Le numéro de téléphone doit contenir exactement 9 chiffres (sans le 0 initial).")
-      setIsLoading(false); return
-    }
     if (phoneDigits.startsWith("0")) {
-      setError("Ne pas inclure le 0 au début — le code pays (+212, +33…) est déjà appliqué.")
-      setIsLoading(false); return
+      setError("Ne pas inclure le 0 au début — le code pays (+212, +33…) est déjà ajouté.")
+      return
+    }
+    if (phoneDigits.length !== 9) {
+      setError("Le numéro doit contenir exactement 9 chiffres sans le 0 initial.")
+      return
     }
 
+    setIsLoading(true)
     try {
       const res  = await fetch("/api/auth/register", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(signup) })
       const data = await res.json()
@@ -156,19 +157,12 @@ export function SignupModal({ onClose, initialStep = "signup" }: { onClose: () =
               <input type="email" placeholder="vous@exemple.com" required value={signup.email} onChange={su("email")} className={INPUT} />
             </div>
             <div>
-              <label className="block text-xs font-medium text-neutral-500 mb-1.5">Téléphone * <span className="text-neutral-700">(9 chiffres sans le 0 initial)</span></label>
-              <div className="flex gap-2">
-                <span className="flex items-center px-3 bg-[#111] border border-white/10 rounded-xl text-neutral-400 text-sm whitespace-nowrap">+code</span>
-                <input type="tel" placeholder="612345678" required maxLength={9}
-                  value={signup.phone}
-                  onChange={e => { const v = e.target.value.replace(/\D/g, ""); setSignup(f => ({ ...f, phone: v })) }}
-                  className={INPUT} />
-              </div>
-              <p className="text-[11px] text-neutral-700 mt-1">Ex : 612345678 (Maroc +212 · France +33 · Espagne +34…)</p>
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-neutral-500 mb-1.5">Adresse *</label>
-              <input type="text" placeholder="123 Rue exemple, Ville, Code postal" required value={signup.address} onChange={su("address")} className={INPUT} />
+              <label className="block text-xs font-medium text-neutral-500 mb-1.5">Téléphone *</label>
+              <input type="tel" placeholder="612345678" required
+                value={signup.phone}
+                onChange={e => setSignup(f => ({ ...f, phone: e.target.value.replace(/\D/g, "").slice(0, 9) }))}
+                className={INPUT} />
+              <p className="text-[11px] text-neutral-700 mt-1">9 chiffres sans le 0 initial · Ex : 612345678 (le code pays +212, +33… est déjà inclus)</p>
             </div>
             <div>
               <label className="block text-xs font-medium text-neutral-500 mb-1.5">Boutique</label>
