@@ -35,7 +35,7 @@ export default function MentionsLegales() {
             <Row label="Tax ID"               value="PT 516 XXX XXX" />
             <Row label="Publication director" value="CODShipEurope — General Management" />
             <Row label="Email"                value="contact@codshipeurope.com" />
-            <Row label="Phone"                value="+351 912 000 000" />
+            <Row label="Phone"                value="+1 (385) 885-6423" />
           </Section>
           <Section title="2. Hosting">
             <Row label="Company" value="Vercel Inc." />
@@ -96,7 +96,7 @@ export default function MentionsLegales() {
           <Section title="8. Contact">
             <p>For any questions, complaints, or information requests:</p>
             <Row label="General email"     value="contact@codshipeurope.com" />
-            <Row label="Technical support" value="support@codshipeurope.com" />
+            <Row label="Technical support" value="contact@codshipeurope.com" />
             <Row label="Data protection"   value="privacy@codshipeurope.com" />
             <Row label="Legal notices"     value="legal@codshipeurope.com" />
           </Section>
@@ -111,7 +111,7 @@ export default function MentionsLegales() {
             <Row label="Numéro d'identification fiscale"  value="PT 516 XXX XXX" />
             <Row label="Directeur de la publication"      value="CODShipEurope — Direction générale" />
             <Row label="E-mail"                           value="contact@codshipeurope.com" />
-            <Row label="Téléphone"                        value="+351 912 000 000" />
+            <Row label="Téléphone"                        value="+1 (385) 885-6423" />
           </Section>
           <Section title="2. Hébergeur">
             <Row label="Société"   value="Vercel Inc." />
@@ -176,7 +176,7 @@ export default function MentionsLegales() {
           <Section title="8. Contact">
             <p>Pour toute question, réclamation ou demande d'information :</p>
             <Row label="E-mail général"       value="contact@codshipeurope.com" />
-            <Row label="Support technique"    value="support@codshipeurope.com" />
+            <Row label="Support technique"    value="contact@codshipeurope.com" />
             <Row label="Protection des données" value="privacy@codshipeurope.com" />
             <Row label="Mentions légales"     value="legal@codshipeurope.com" />
           </Section>

@@ -89,7 +89,7 @@ const jsonLd = {
     logo: "https://www.codshipeurope.com/icon.svg",
     contactPoint: {
       "@type": "ContactPoint",
-      email: "support@codshipeurope.com",
+      email: "contact@codshipeurope.com",
       contactType: "customer support",
       availableLanguage: ["French", "English", "Arabic"],
     },
