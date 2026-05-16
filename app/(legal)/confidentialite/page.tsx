@@ -17,7 +17,7 @@ const C = {
             <p>
               CODShipEurope Lda, a company incorporated under Portuguese law, with its registered office in Lisbon, Portugal,
               is responsible for processing personal data collected through the CODShipEurope platform. Contact:{" "}
-              <span className="text-orange-400">privacy@codshipeurope.com</span>
+              <span className="text-orange-400">contact@codshipeurope.com</span>
             </p>
           </>
         ),
@@ -56,7 +56,7 @@ export default function Confidentialite() {
             <p>
               CODShipEurope Lda, a company incorporated under Portuguese law, with its registered office in Lisbon, Portugal,
               is responsible for processing personal data collected through the CODShipEurope platform. Contact:{" "}
-              <span className="text-orange-400">privacy@codshipeurope.com</span>
+              <span className="text-orange-400">contact@codshipeurope.com</span>
             </p>
           </Section>
           <Section title="2. Data Collected">
@@ -126,7 +126,7 @@ export default function Confidentialite() {
             </ul>
             <p>
               To exercise your rights, send an email to{" "}
-              <span className="text-orange-400">privacy@codshipeurope.com</span> with a copy of your ID. We will respond within 30 days.
+              <span className="text-orange-400">contact@codshipeurope.com</span> with a copy of your ID. We will respond within 30 days.
             </p>
           </Section>
           <Section title="8. Security">
@@ -136,7 +136,7 @@ export default function Confidentialite() {
             </p>
           </Section>
           <Section title="9. Contact and Complaints">
-            <p>For any questions regarding the protection of your data: <span className="text-orange-400">privacy@codshipeurope.com</span></p>
+            <p>For any questions regarding the protection of your data: <span className="text-orange-400">contact@codshipeurope.com</span></p>
             <p>
               You also have the right to lodge a complaint with the CNPD (National Data Protection Commission), the
               competent supervisory authority in Portugal.
@@ -149,7 +149,7 @@ export default function Confidentialite() {
             <p>
               CODShipEurope Lda, société de droit portugais, dont le siège social est situé à Lisbonne, Portugal, est responsable
               du traitement des données personnelles collectées via la plateforme CODShipEurope. Contact :{" "}
-              <span className="text-orange-400">privacy@codshipeurope.com</span>
+              <span className="text-orange-400">contact@codshipeurope.com</span>
             </p>
           </Section>
           <Section title="2. Données collectées">
@@ -219,7 +219,7 @@ export default function Confidentialite() {
             </ul>
             <p>
               Pour exercer vos droits, envoyez un e-mail à{" "}
-              <span className="text-orange-400">privacy@codshipeurope.com</span> avec une copie de votre pièce d'identité.
+              <span className="text-orange-400">contact@codshipeurope.com</span> avec une copie de votre pièce d'identité.
               Nous répondrons dans un délai de 30 jours.
             </p>
           </Section>
@@ -233,7 +233,7 @@ export default function Confidentialite() {
           <Section title="9. Contact et réclamation">
             <p>
               Pour toute question relative à la protection de vos données :{" "}
-              <span className="text-orange-400">privacy@codshipeurope.com</span>
+              <span className="text-orange-400">contact@codshipeurope.com</span>
             </p>
             <p>
               Vous avez également le droit de déposer une réclamation auprès de la CNPD (Commission Nationale de Protection
