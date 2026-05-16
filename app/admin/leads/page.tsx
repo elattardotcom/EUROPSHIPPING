@@ -179,13 +179,25 @@ export default function AdminLeads() {
                             </span>
                           </td>
                           <td className="p-4">
-                            {l.status === "UNREACHED" && l.attempts > 0 ? (
-                              <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-lg ${l.attempts >= 3 ? "bg-red-500/15 text-red-400" : "bg-blue-500/15 text-blue-400"}`}>
-                                📞 {l.attempts}×
-                              </span>
-                            ) : (
-                              <span className="text-neutral-600 text-xs">—</span>
-                            )}
+                            <input
+                              type="number"
+                              min={0}
+                              value={l.attempts ?? 0}
+                              onChange={e => {
+                                const val = Math.max(0, parseInt(e.target.value) || 0)
+                                setLeads(prev => prev.map(x => x.id === l.id ? { ...x, attempts: val } : x))
+                              }}
+                              onBlur={async e => {
+                                const val = Math.max(0, parseInt(e.target.value) || 0)
+                                await fetch(`/api/admin/leads/${l.id}`, {
+                                  method: "PATCH",
+                                  headers: { "Content-Type": "application/json" },
+                                  body: JSON.stringify({ attempts: val }),
+                                })
+                                localUpdates.current.set(l.id, { status: l.status, attempts: val, ts: Date.now() })
+                              }}
+                              className={`w-14 text-center text-xs font-semibold px-2 py-1.5 rounded-lg border focus:outline-none focus:border-orange-500 transition-colors bg-neutral-800 ${(l.attempts ?? 0) >= 3 ? "border-red-500/30 text-red-400" : "border-neutral-700 text-blue-400"}`}
+                            />
                           </td>
                           <td className="p-4 text-sm text-neutral-500 whitespace-nowrap">{l.createdAt}</td>
                           <td className="p-4">

@@ -11,9 +11,10 @@ export async function PATCH(
   if (!adminSession) return NextResponse.json({ error: "Non autorisé" }, { status: 401 })
 
   const { id } = await params
-  const { status } = await req.json()
+  const body = await req.json()
+  const { status, attempts } = body
 
-  if (!VALID.includes(status)) {
+  if (status !== undefined && !VALID.includes(status)) {
     return NextResponse.json({ error: "Statut invalide" }, { status: 400 })
   }
 
@@ -23,8 +24,14 @@ export async function PATCH(
   const { data: lead } = await sb.from("leads").select("*").eq("id", id).single()
   if (!lead) return NextResponse.json({ error: "Lead introuvable" }, { status: 404 })
 
-  const updates: Record<string, unknown> = { status }
-  if (status === "UNREACHED") updates.attempts = (lead.attempts ?? 0) + 1
+  const updates: Record<string, unknown> = {}
+  if (status !== undefined) {
+    updates.status = status
+    if (status === "UNREACHED" && attempts === undefined) {
+      updates.attempts = (lead.attempts ?? 0) + 1
+    }
+  }
+  if (attempts !== undefined) updates.attempts = attempts
 
   await sb.from("leads").update(updates).eq("id", id)
 
@@ -46,5 +53,5 @@ export async function PATCH(
     }, { onConflict: "id" })
   }
 
-  return NextResponse.json({ ok: true, status })
+  return NextResponse.json({ ok: true, status, attempts })
 }
