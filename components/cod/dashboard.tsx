@@ -13,6 +13,8 @@ import type { Order, Lead } from "@/lib/mock-data"
 
 /* ── helpers ─────────────────────────────────────────────── */
 
+export type Period = "today" | "7d" | "30d" | "all"
+
 function parseFrDate(s: string): string {
   // "dd/mm/yyyy" → "yyyy-mm-dd"
   const p = s.split("/")
@@ -20,16 +22,35 @@ function parseFrDate(s: string): string {
   return `${p[2]}-${p[1].padStart(2,"0")}-${p[0].padStart(2,"0")}`
 }
 
-function last10Days(): { key: string; label: string }[] {
+function filterByPeriod<T extends { createdAt: string }>(items: T[], period: Period): T[] {
+  if (period === "all") return items
+  const now   = new Date()
+  const cutoff = new Date()
+  if (period === "today") { cutoff.setHours(0, 0, 0, 0) }
+  else if (period === "7d")  { cutoff.setDate(now.getDate() - 7)  }
+  else if (period === "30d") { cutoff.setDate(now.getDate() - 30) }
+  return items.filter(item => {
+    const iso = parseFrDate(item.createdAt)
+    if (!iso) return true
+    return new Date(iso) >= cutoff
+  })
+}
+
+function lastNDays(n: number): { key: string; label: string }[] {
   const MONTHS = ["Jan","Fév","Mar","Avr","Mai","Jun","Jul","Aoû","Sep","Oct","Nov","Déc"]
   const today = new Date()
-  return Array.from({ length: 10 }, (_, i) => {
+  return Array.from({ length: n }, (_, i) => {
     const d = new Date(today)
-    d.setDate(today.getDate() - 9 + i)
+    d.setDate(today.getDate() - (n - 1) + i)
     const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`
-    const label = `${d.getDate()} ${MONTHS[d.getMonth()]}`
+    const label = n === 1 ? "Aujourd'hui" : `${d.getDate()} ${MONTHS[d.getMonth()]}`
     return { key, label }
   })
+}
+
+const PERIOD_DAYS: Record<Period, number> = { today: 1, "7d": 7, "30d": 30, all: 30 }
+const PERIOD_LABEL: Record<Period, string> = {
+  today: "aujourd'hui", "7d": "7 derniers jours", "30d": "30 derniers jours", all: "30 derniers jours",
 }
 
 /* ── sub-components ─────────────────────────────────────── */
@@ -119,9 +140,11 @@ const TT_ITM = { color: "#d4d4d4" }
 export default function DashboardPage({
   clientId = "c1",
   refreshKey = 0,
+  period = "all",
 }: {
   clientId?: string
   refreshKey?: number
+  period?: Period
 }) {
   const [orders,  setOrders]  = useState<Order[]>([])
   const [leads,   setLeads]   = useState<Lead[]>([])
@@ -144,21 +167,25 @@ export default function DashboardPage({
     return () => clearInterval(t)
   }, [load, refreshKey])
 
+  /* ── filtered data ── */
+  const filteredOrders = useMemo(() => filterByPeriod(orders, period), [orders, period])
+  const filteredLeads  = useMemo(() => filterByPeriod(leads,  period), [leads,  period])
+
   /* ── stats ── */
-  const totalLeads      = leads.length
-  const confirmedLeads  = leads.filter(l => l.status === "CONFIRMED").length
-  const pendingLeads    = leads.filter(l => l.status === "PENDING").length
-  const canceledLeads   = leads.filter(l => l.status === "CANCELED").length
-  const unreachedLeads  = leads.filter(l => l.status === "UNREACHED").length
+  const totalLeads      = filteredLeads.length
+  const confirmedLeads  = filteredLeads.filter(l => l.status === "CONFIRMED").length
+  const pendingLeads    = filteredLeads.filter(l => l.status === "PENDING").length
+  const canceledLeads   = filteredLeads.filter(l => l.status === "CANCELED").length
+  const unreachedLeads  = filteredLeads.filter(l => l.status === "UNREACHED").length
   const confirmRate     = totalLeads ? Math.round((confirmedLeads / totalLeads) * 100) : 0
 
-  const totalOrders     = orders.length
-  const deliveredOrders = orders.filter(o => o.status === "DELIVERED").length
-  const pendingOrders   = orders.filter(o => o.status === "PENDING").length
-  const shippedOrders   = orders.filter(o => o.status === "SHIPPED").length
-  const returnedOrders  = orders.filter(o => o.status === "RETURNED").length
+  const totalOrders     = filteredOrders.length
+  const deliveredOrders = filteredOrders.filter(o => o.status === "DELIVERED").length
+  const pendingOrders   = filteredOrders.filter(o => o.status === "PENDING").length
+  const shippedOrders   = filteredOrders.filter(o => o.status === "SHIPPED").length
+  const returnedOrders  = filteredOrders.filter(o => o.status === "RETURNED").length
   const deliveryRate    = totalOrders ? Math.round((deliveredOrders / totalOrders) * 100) : 0
-  const totalRevenue    = orders.filter(o => o.status === "DELIVERED").reduce((s, o) => s + o.orderValue, 0)
+  const totalRevenue    = filteredOrders.filter(o => o.status === "DELIVERED").reduce((s, o) => s + o.orderValue, 0)
 
   /* ── chart data ── */
   const leadsChartData = [
@@ -176,11 +203,11 @@ export default function DashboardPage({
   ]
 
   const revenueByDay = useMemo(() => {
-    const days = last10Days()
+    const days = lastNDays(PERIOD_DAYS[period])
     const orderMap = new Map<string, { orders: number; revenue: number }>()
     const leadMap  = new Map<string, number>()
 
-    orders.forEach(o => {
+    filteredOrders.forEach(o => {
       const key = parseFrDate(o.createdAt)
       if (!key) return
       const cur = orderMap.get(key) ?? { orders: 0, revenue: 0 }
@@ -189,7 +216,7 @@ export default function DashboardPage({
       orderMap.set(key, cur)
     })
 
-    leads.forEach(l => {
+    filteredLeads.forEach(l => {
       const key = parseFrDate(l.createdAt)
       if (!key) return
       leadMap.set(key, (leadMap.get(key) ?? 0) + 1)
@@ -201,11 +228,11 @@ export default function DashboardPage({
       orders:  orderMap.get(d.key)?.orders ?? 0,
       revenue: orderMap.get(d.key)?.revenue ?? 0,
     }))
-  }, [orders, leads])
+  }, [filteredOrders, filteredLeads, period])
 
   const revenueByStore = useMemo(() => {
     const map = new Map<string, { revenue: number; orders: number }>()
-    orders.filter(o => o.status === "DELIVERED").forEach(o => {
+    filteredOrders.filter(o => o.status === "DELIVERED").forEach(o => {
       const s = o.store || "Boutique"
       const cur = map.get(s) ?? { revenue: 0, orders: 0 }
       cur.revenue += o.orderValue
@@ -216,7 +243,7 @@ export default function DashboardPage({
       .map(([name, v]) => ({ name, ...v }))
       .sort((a, b) => b.revenue - a.revenue)
       .slice(0, 3)
-  }, [orders])
+  }, [filteredOrders])
 
   const hasActivity = revenueByDay.some(d => d.leads > 0 || d.orders > 0)
 
@@ -241,7 +268,7 @@ export default function DashboardPage({
       </div>
 
       {/* Activity line chart */}
-      <ChartCard title="Activité — 10 derniers jours" subtitle="Leads, commandes et revenus">
+      <ChartCard title={`Activité — ${PERIOD_LABEL[period]}`} subtitle="Leads, commandes et revenus">
         {!hasActivity ? (
           <div className="h-[220px] flex flex-col items-center justify-center gap-2">
             <TrendingUp className="w-8 h-8 text-neutral-700" />
