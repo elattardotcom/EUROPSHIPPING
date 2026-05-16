@@ -7,8 +7,8 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const adminId = req.cookies.get("admin_id")?.value
-  if (!adminId) return NextResponse.json({ error: "Non autorisé" }, { status: 401 })
+  const adminSession = req.cookies.get("admin_session")?.value
+  if (!adminSession) return NextResponse.json({ error: "Non autorisé" }, { status: 401 })
 
   const { id } = await params
   const { status } = await req.json()

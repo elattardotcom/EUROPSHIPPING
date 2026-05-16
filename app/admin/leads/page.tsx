@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo, useEffect, useCallback } from "react"
+import { useState, useMemo, useEffect, useCallback, useRef } from "react"
 import { Search, ChevronDown, ChevronLeft, ChevronRight, CheckCircle, Clock, XCircle, AlertCircle, PhoneMissed, Users, RefreshCw, Radio, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import type { AdminLead, LeadStatus } from "@/lib/db"
@@ -25,20 +25,25 @@ export default function AdminLeads() {
   const [page,     setPage]    = useState(1)
   const [live,     setLive]    = useState(false)
   const [updating, setUpdating] = useState<string | null>(null)
+  // Track recently locally-updated leads so auto-refresh doesn't overwrite them
+  const localUpdates = useRef<Map<string, { status: LeadStatus; attempts: number; ts: number }>>(new Map())
 
   const updateStatus = useCallback(async (leadId: string, status: LeadStatus) => {
     setUpdating(leadId)
     try {
-      await fetch(`/api/admin/leads/${leadId}`, {
+      const res = await fetch(`/api/admin/leads/${leadId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status }),
       })
-      setLeads(prev => prev.map(l =>
-        l.id === leadId
-          ? { ...l, status, attempts: status === "UNREACHED" ? (l.attempts ?? 0) + 1 : l.attempts }
-          : l
-      ))
+      if (res.ok) {
+        setLeads(prev => prev.map(l => {
+          if (l.id !== leadId) return l
+          const newAttempts = status === "UNREACHED" ? (l.attempts ?? 0) + 1 : l.attempts
+          localUpdates.current.set(leadId, { status, attempts: newAttempts, ts: Date.now() })
+          return { ...l, status, attempts: newAttempts }
+        }))
+      }
     } finally {
       setUpdating(null)
     }
@@ -51,7 +56,17 @@ export default function AdminLeads() {
 
   const load = useCallback(async () => {
     const d = await fetch("/api/admin/leads").then(r => r.json()).catch(() => [])
-    setLeads(Array.isArray(d) ? d : [])
+    if (!Array.isArray(d)) { setLoading(false); setLive(true); return }
+    // Preserve local changes made within the last 15 seconds
+    const now = Date.now()
+    setLeads(d.map((l: AdminLead) => {
+      const local = localUpdates.current.get(l.id)
+      if (local && now - local.ts < 15_000) {
+        return { ...l, status: local.status, attempts: local.attempts }
+      }
+      localUpdates.current.delete(l.id)
+      return l
+    }))
     setLoading(false)
     setLive(true)
   }, [])
@@ -129,16 +144,16 @@ export default function AdminLeads() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-neutral-800">
-                {[t("leads_th_customer"),t("leads_th_merchant"),t("leads_th_country"),t("leads_th_product"),t("leads_th_value"),t("leads_th_status"),t("leads_th_date"),"Action"].map(h=>(
+                {[t("leads_th_customer"),t("leads_th_merchant"),t("leads_th_country"),t("leads_th_product"),t("leads_th_value"),t("leads_th_status"),"Tentatives",t("leads_th_date"),"Action"].map(h=>(
                   <th key={h} className="text-left p-4 text-xs font-semibold text-neutral-500 uppercase tracking-wider whitespace-nowrap">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {loading
-                ? <tr><td colSpan={8} className="py-12 text-center text-neutral-500 text-sm">{t("loading")}</td></tr>
+                ? <tr><td colSpan={9} className="py-12 text-center text-neutral-500 text-sm">{t("loading")}</td></tr>
                 : rows.length===0
-                  ? <tr><td colSpan={8} className="py-12 text-center text-neutral-500 text-sm">{t("leads_none")}</td></tr>
+                  ? <tr><td colSpan={9} className="py-12 text-center text-neutral-500 text-sm">{t("leads_none")}</td></tr>
                   : rows.map(l=>{
                       const cfg = STATUS_STYLE[l.status] ?? STATUS_STYLE.ERROR
                       const Icon = cfg.Icon
@@ -162,6 +177,15 @@ export default function AdminLeads() {
                             <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${cfg.bg} ${cfg.color}`}>
                               <Icon className="w-3 h-3"/>{STATUS_LABELS[l.status]??l.status}
                             </span>
+                          </td>
+                          <td className="p-4">
+                            {l.status === "UNREACHED" && l.attempts > 0 ? (
+                              <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-lg ${l.attempts >= 3 ? "bg-red-500/15 text-red-400" : "bg-blue-500/15 text-blue-400"}`}>
+                                📞 {l.attempts}×
+                              </span>
+                            ) : (
+                              <span className="text-neutral-600 text-xs">—</span>
+                            )}
                           </td>
                           <td className="p-4 text-sm text-neutral-500 whitespace-nowrap">{l.createdAt}</td>
                           <td className="p-4">

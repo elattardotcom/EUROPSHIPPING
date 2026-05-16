@@ -93,6 +93,7 @@ export interface AdminLead {
   status: LeadStatus
   store: string
   createdAt: string
+  attempts: number
 }
 
 export interface AdminStore {
@@ -181,6 +182,7 @@ const mapLead = (r: any): AdminLead => ({
   status:        r.status,
   store:         r.store ?? "",
   createdAt:     r.created_at ?? "",
+  attempts:      r.attempts ?? 0,
 })
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
