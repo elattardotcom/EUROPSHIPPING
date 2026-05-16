@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useMemo, useEffect, useCallback } from "react"
-import { Search, ChevronDown, ChevronLeft, ChevronRight, CheckCircle, Clock, XCircle, AlertCircle, PhoneMissed, Users, RefreshCw, Radio } from "lucide-react"
+import { Search, ChevronDown, ChevronLeft, ChevronRight, CheckCircle, Clock, XCircle, AlertCircle, PhoneMissed, Users, RefreshCw, Radio, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import type { AdminLead, LeadStatus } from "@/lib/db"
 import { useI18n } from "@/lib/admin-i18n"
@@ -18,12 +18,31 @@ const PER_PAGE = 10
 
 export default function AdminLeads() {
   const { t } = useI18n()
-  const [leads,   setLeads]   = useState<AdminLead[]>([])
-  const [loading, setLoading] = useState(true)
-  const [search,  setSearch]  = useState("")
-  const [statF,   setStat]    = useState<LeadStatus | "ALL">("ALL")
-  const [page,    setPage]    = useState(1)
-  const [live,    setLive]    = useState(false)
+  const [leads,    setLeads]   = useState<AdminLead[]>([])
+  const [loading,  setLoading] = useState(true)
+  const [search,   setSearch]  = useState("")
+  const [statF,    setStat]    = useState<LeadStatus | "ALL">("ALL")
+  const [page,     setPage]    = useState(1)
+  const [live,     setLive]    = useState(false)
+  const [updating, setUpdating] = useState<string | null>(null)
+
+  const updateStatus = useCallback(async (leadId: string, status: LeadStatus) => {
+    setUpdating(leadId)
+    try {
+      await fetch(`/api/admin/leads/${leadId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      })
+      setLeads(prev => prev.map(l =>
+        l.id === leadId
+          ? { ...l, status, attempts: status === "UNREACHED" ? (l.attempts ?? 0) + 1 : l.attempts }
+          : l
+      ))
+    } finally {
+      setUpdating(null)
+    }
+  }, [])
 
   const STATUS_LABELS: Record<LeadStatus, string> = {
     CONFIRMED: t("status_confirmed"), PENDING: t("status_pending"),
@@ -110,19 +129,20 @@ export default function AdminLeads() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-neutral-800">
-                {[t("leads_th_customer"),t("leads_th_merchant"),t("leads_th_country"),t("leads_th_product"),t("leads_th_value"),t("leads_th_status"),t("leads_th_date")].map(h=>(
+                {[t("leads_th_customer"),t("leads_th_merchant"),t("leads_th_country"),t("leads_th_product"),t("leads_th_value"),t("leads_th_status"),t("leads_th_date"),"Action"].map(h=>(
                   <th key={h} className="text-left p-4 text-xs font-semibold text-neutral-500 uppercase tracking-wider whitespace-nowrap">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {loading
-                ? <tr><td colSpan={7} className="py-12 text-center text-neutral-500 text-sm">{t("loading")}</td></tr>
+                ? <tr><td colSpan={8} className="py-12 text-center text-neutral-500 text-sm">{t("loading")}</td></tr>
                 : rows.length===0
-                  ? <tr><td colSpan={7} className="py-12 text-center text-neutral-500 text-sm">{t("leads_none")}</td></tr>
+                  ? <tr><td colSpan={8} className="py-12 text-center text-neutral-500 text-sm">{t("leads_none")}</td></tr>
                   : rows.map(l=>{
                       const cfg = STATUS_STYLE[l.status] ?? STATUS_STYLE.ERROR
                       const Icon = cfg.Icon
+                      const isUpdating = updating === l.id
                       return (
                         <tr key={l.id} className="border-b border-neutral-800/60 last:border-0 hover:bg-neutral-800/20 transition-colors">
                           <td className="p-4">
@@ -144,6 +164,26 @@ export default function AdminLeads() {
                             </span>
                           </td>
                           <td className="p-4 text-sm text-neutral-500 whitespace-nowrap">{l.createdAt}</td>
+                          <td className="p-4">
+                            {isUpdating ? (
+                              <Loader2 className="w-4 h-4 animate-spin text-neutral-400"/>
+                            ) : (
+                              <div className="relative">
+                                <select
+                                  value={l.status}
+                                  onChange={e => updateStatus(l.id, e.target.value as LeadStatus)}
+                                  className="appearance-none bg-neutral-800 border border-neutral-700 rounded-lg pl-3 pr-7 py-1.5 text-xs text-white focus:outline-none focus:border-orange-500 cursor-pointer hover:border-neutral-600 transition-colors"
+                                >
+                                  <option value="PENDING">{STATUS_LABELS.PENDING}</option>
+                                  <option value="CONFIRMED">{STATUS_LABELS.CONFIRMED}</option>
+                                  <option value="UNREACHED">{STATUS_LABELS.UNREACHED}</option>
+                                  <option value="CANCELED">{STATUS_LABELS.CANCELED}</option>
+                                  <option value="ERROR">{STATUS_LABELS.ERROR}</option>
+                                </select>
+                                <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-neutral-500 pointer-events-none"/>
+                              </div>
+                            )}
+                          </td>
                         </tr>
                       )
                     })
