@@ -123,11 +123,10 @@ function ConnectForm({ onCancel }: { onCancel: () => void }) {
   }
 
   return (
-    <div className="mt-8 rounded-2xl border border-white/10 overflow-hidden"
-      style={{ background: "rgba(12,12,12,0.9)" }}>
-      <div className="px-6 py-5 border-b border-white/[0.06] flex items-center justify-between">
+    <div className="mt-8 rounded-2xl border border-neutral-800 overflow-hidden bg-neutral-900">
+      <div className="px-6 py-5 border-b border-neutral-800 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center text-lg" style={{ background: "rgba(255,255,255,0.04)" }}>🛍️</div>
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center text-lg bg-neutral-800">🛍️</div>
           <div>
             <p className="text-white font-semibold text-sm">Connecter une boutique Shopify</p>
             <p className="text-neutral-600 text-xs">Vous serez redirigé vers Shopify pour autoriser l&apos;accès</p>
@@ -150,7 +149,7 @@ function ConnectForm({ onCancel }: { onCancel: () => void }) {
             onChange={e => { setDomain(e.target.value); setErr("") }}
             placeholder="ma-boutique.myshopify.com"
             required
-            className="w-full bg-white/[0.04] border border-white/10 rounded-xl px-4 py-3 text-white text-sm placeholder:text-neutral-700 focus:outline-none focus:border-orange-500/60 transition-colors font-mono"
+            className="w-full bg-neutral-800 border border-neutral-700 rounded-xl px-4 py-3 text-white text-sm placeholder:text-neutral-500 focus:outline-none focus:border-orange-500/60 transition-colors font-mono"
           />
           <p className="text-neutral-700 text-xs mt-1.5">Ex : ma-boutique.myshopify.com — sans https://</p>
         </div>
@@ -162,7 +161,7 @@ function ConnectForm({ onCancel }: { onCancel: () => void }) {
             <CheckCircle className="w-4 h-4" />Connecter via Shopify
           </button>
           <button type="button" onClick={onCancel}
-            className="text-sm text-neutral-500 hover:text-white border border-white/[0.08] px-5 py-3 rounded-xl transition-all hover:border-white/20">
+            className="text-sm text-neutral-500 hover:text-white border border-neutral-700 px-5 py-3 rounded-xl transition-all hover:border-neutral-500">
             Annuler
           </button>
         </div>
@@ -275,14 +274,13 @@ export default function StoresPage() {
             </svg>
           </div>
         ) : hasStores ? (
-          <div className="rounded-2xl border border-white/[0.06] overflow-hidden mb-8"
-            style={{ background: "rgba(10,10,10,0.8)" }}>
-            <div className="px-5 py-4 border-b border-white/[0.05]">
+          <div className="rounded-2xl border border-neutral-800 overflow-hidden mb-8 bg-neutral-900">
+            <div className="px-5 py-4 border-b border-neutral-800">
               <p className="text-white font-bold text-sm">Mes boutiques ({realStores.length})</p>
             </div>
-            <div className="divide-y divide-white/[0.04]">
+            <div className="divide-y divide-neutral-800">
               {realStores.map(s => (
-                <div key={s.id} className="flex items-center gap-4 px-5 py-4 hover:bg-white/[0.02] transition-colors">
+                <div key={s.id} className="flex items-center gap-4 px-5 py-4 hover:bg-neutral-800/30 transition-colors">
                   <div className="text-2xl flex-shrink-0">🛍️</div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-0.5">
@@ -342,8 +340,7 @@ export default function StoresPage() {
 
         {/* Hero card — only shown when no stores yet */}
         {!loadingReal && !hasStores && (
-        <div className="relative rounded-2xl border border-white/[0.07] overflow-hidden mb-8 text-center py-14 px-8"
-          style={{ background: "linear-gradient(160deg,rgba(16,185,129,0.06) 0%,rgba(8,8,8,1) 60%)" }}>
+        <div className="relative rounded-2xl border border-neutral-800 overflow-hidden mb-8 text-center py-14 px-8 bg-neutral-900">
           <div className="absolute inset-x-0 top-0 h-px" style={{ background: "linear-gradient(90deg,transparent,rgba(16,185,129,0.4),transparent)" }} />
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-40 pointer-events-none"
             style={{ background: "radial-gradient(ellipse,rgba(16,185,129,0.08),transparent 70%)" }} />
@@ -379,8 +376,7 @@ export default function StoresPage() {
           <p className="text-xs font-bold text-neutral-600 uppercase tracking-widest mb-5">Comment ça marche</p>
           <div className="space-y-3">
             {STEPS.map((s, i) => (
-              <div key={i} className="group flex gap-4 p-5 rounded-2xl border border-white/[0.05] hover:border-white/[0.1] transition-all"
-                style={{ background: "rgba(10,10,10,0.8)" }}>
+              <div key={i} className="group flex gap-4 p-5 rounded-2xl border border-neutral-800 hover:border-neutral-700 transition-all bg-neutral-900">
                 {/* Number + icon */}
                 <div className="flex-shrink-0 flex flex-col items-center gap-2">
                   <div className="w-11 h-11 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110"
@@ -414,8 +410,7 @@ export default function StoresPage() {
             { icon: "🔒", label: "Connexion sécurisée", sub: "API Shopify officielle" },
             { icon: "🛒", label: "Multi-boutiques", sub: "Autant que vous voulez" },
           ].map(b => (
-            <div key={b.label} className="text-center p-4 rounded-xl border border-white/[0.05]"
-              style={{ background: "rgba(10,10,10,0.6)" }}>
+            <div key={b.label} className="text-center p-4 rounded-xl border border-neutral-800 bg-neutral-900">
               <div className="text-2xl mb-2">{b.icon}</div>
               <p className="text-white text-xs font-bold mb-0.5">{b.label}</p>
               <p className="text-neutral-600 text-[10px]">{b.sub}</p>
@@ -474,7 +469,7 @@ export default function StoresPage() {
           {stores.map(store => (
             <div key={store.id} className="p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-neutral-800/30 transition-colors">
               <div className="flex items-center gap-4">
-                <div className="w-11 h-11 rounded-xl flex items-center justify-center text-2xl flex-shrink-0" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}>
+                <div className="w-11 h-11 rounded-xl flex items-center justify-center text-2xl flex-shrink-0 bg-neutral-800 border border-neutral-700">
                   🛍️
                 </div>
                 <div>
