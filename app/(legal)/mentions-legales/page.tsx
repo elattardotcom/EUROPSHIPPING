@@ -38,11 +38,9 @@ export default function MentionsLegales() {
             <Row label="Phone"                value="+1 (385) 885-6423" />
           </Section>
           <Section title="2. Hosting">
-            <Row label="Company" value="Vercel Inc." />
-            <Row label="Address" value="440 N Barranca Ave #4133, Covina, CA 91723, United States" />
-            <Row label="Website" value="vercel.com" />
+            <Row label="Company" value="CODShipEurope Cloud Infrastructure" />
             <p className="mt-3">
-              Data is hosted on servers located in the European Union (Frankfurt, Germany) and governed by
+              Data is hosted on servers located in the European Union and governed by
               GDPR-compliant contractual guarantees.
             </p>
           </Section>
@@ -97,7 +95,7 @@ export default function MentionsLegales() {
             <p>For any questions, complaints, or information requests:</p>
             <Row label="General email"     value="contact@codshipeurope.com" />
             <Row label="Technical support" value="contact@codshipeurope.com" />
-            <Row label="Data protection"   value="privacy@codshipeurope.com" />
+            <Row label="Data protection"   value="contact@codshipeurope.com" />
             <Row label="Legal notices"     value="legal@codshipeurope.com" />
           </Section>
         </>
@@ -114,11 +112,9 @@ export default function MentionsLegales() {
             <Row label="Téléphone"                        value="+1 (385) 885-6423" />
           </Section>
           <Section title="2. Hébergeur">
-            <Row label="Société"   value="Vercel Inc." />
-            <Row label="Adresse"   value="440 N Barranca Ave #4133, Covina, CA 91723, États-Unis" />
-            <Row label="Site web"  value="vercel.com" />
+            <Row label="Société" value="Infrastructure Cloud CODShipEurope" />
             <p className="mt-3">
-              Les données sont hébergées sur des serveurs situés dans l'Union Européenne (Frankfurt, Allemagne) et
+              Les données sont hébergées sur des serveurs situés dans l'Union Européenne et
               encadrées par des garanties contractuelles conformes au RGPD.
             </p>
           </Section>
@@ -177,7 +173,7 @@ export default function MentionsLegales() {
             <p>Pour toute question, réclamation ou demande d'information :</p>
             <Row label="E-mail général"       value="contact@codshipeurope.com" />
             <Row label="Support technique"    value="contact@codshipeurope.com" />
-            <Row label="Protection des données" value="privacy@codshipeurope.com" />
+            <Row label="Protection des données" value="contact@codshipeurope.com" />
             <Row label="Mentions légales"     value="legal@codshipeurope.com" />
           </Section>
         </>

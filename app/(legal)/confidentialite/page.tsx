@@ -91,7 +91,7 @@ export default function Confidentialite() {
           <Section title="4. Data Sharing">
             <p>Your data is never sold to third parties. It may be shared with:</p>
             <ul>
-              <li><strong className="text-white">Technical providers:</strong> hosting (Vercel/AWS), database (Supabase), transactional emails</li>
+              <li><strong className="text-white">Technical providers:</strong> cloud infrastructure, database (Supabase), transactional emails</li>
               <li><strong className="text-white">Logistics partners:</strong> carriers in Europe for package delivery</li>
               <li><strong className="text-white">Banking institutions:</strong> for transfer processing</li>
               <li><strong className="text-white">Competent authorities:</strong> upon judicial or legal request</li>
@@ -184,7 +184,7 @@ export default function Confidentialite() {
           <Section title="4. Partage des données">
             <p>Vos données ne sont jamais vendues à des tiers. Elles peuvent être partagées avec :</p>
             <ul>
-              <li><strong className="text-white">Prestataires techniques :</strong> hébergement (Vercel/AWS), base de données (Supabase), e-mails transactionnels</li>
+              <li><strong className="text-white">Prestataires techniques :</strong> infrastructure cloud, base de données (Supabase), e-mails transactionnels</li>
               <li><strong className="text-white">Partenaires logistiques :</strong> transporteurs en Europe pour l'acheminement des colis</li>
               <li><strong className="text-white">Établissements bancaires :</strong> pour le traitement des virements</li>
               <li><strong className="text-white">Autorités compétentes :</strong> sur réquisition judiciaire ou légale</li>

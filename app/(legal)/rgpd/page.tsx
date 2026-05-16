@@ -98,7 +98,6 @@ export default function RGPD() {
             <p>CODShipEurope engages the following sub-processors, all GDPR compliant:</p>
             <ul>
               <li><strong className="text-white">Supabase:</strong> database and authentication</li>
-              <li><strong className="text-white">Vercel:</strong> hosting and deployment</li>
               <li><strong className="text-white">Stripe:</strong> payment processing</li>
               <li><strong className="text-white">Resend:</strong> transactional email sending</li>
             </ul>
@@ -206,7 +205,6 @@ export default function RGPD() {
             <p>CODShipEurope fait appel aux sous-traitants suivants, tous conformes au RGPD :</p>
             <ul>
               <li><strong className="text-white">Supabase :</strong> base de données et authentification</li>
-              <li><strong className="text-white">Vercel :</strong> hébergement et déploiement</li>
               <li><strong className="text-white">Stripe :</strong> traitement des paiements</li>
               <li><strong className="text-white">Resend :</strong> envoi d'e-mails transactionnels</li>
             </ul>
