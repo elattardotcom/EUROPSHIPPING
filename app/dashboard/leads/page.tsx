@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo, useEffect, useCallback } from "react"
+import { useState, useMemo, useEffect } from "react"
 import {
   Search,
   Download,
@@ -17,9 +17,6 @@ import {
   PhoneMissed,
   RefreshCw,
   ChevronDown,
-  Check,
-  PhoneOff,
-  Ban,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { exportToCSV } from "@/lib/mock-data"
@@ -72,21 +69,6 @@ export default function LeadsPage() {
   const [selected, setSelected]     = useState<string[]>([])
   const [leads, setLeads]           = useState<Lead[]>([])
   const [loading, setLoading]       = useState(true)
-  const [updating, setUpdating]     = useState<string | null>(null)
-
-  const updateStatus = useCallback(async (leadId: string, status: string) => {
-    setUpdating(leadId)
-    try {
-      await fetch(`/api/client/leads/${leadId}`, {
-        method:  "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify({ status }),
-      })
-      setLeads(prev => prev.map(l => l.id === leadId ? { ...l, status: status as LeadStatus, attempts: status === "UNREACHED" ? (l.attempts ?? 0) + 1 : l.attempts } : l))
-    } finally {
-      setUpdating(null)
-    }
-  }, [])
 
   useEffect(() => {
     fetch("/api/client/leads")
@@ -236,9 +218,6 @@ export default function LeadsPage() {
         {selected.length > 0 && (
           <div className="flex items-center gap-2 bg-orange-500/10 border border-orange-500/20 px-4 py-2 rounded-xl">
             <span className="text-sm text-orange-400 font-medium">{selected.length} sélectionné(s)</span>
-            <Button size="sm" variant="outline" className="border-orange-500/30 text-orange-400 hover:bg-orange-500/20 h-7 text-xs">
-              Confirmer tout
-            </Button>
             <Button size="sm" variant="outline" onClick={() => exportToCSV(
               leads.filter(l => selected.includes(l.id)).map(l => ({
                 ID: l.id, Nom: l.name, Téléphone: l.phone, Pays: l.country,
@@ -311,7 +290,6 @@ export default function LeadsPage() {
                 <th className="text-left p-4 text-xs font-semibold text-neutral-500 uppercase tracking-wider">Valeur</th>
                 <th className="text-left p-4 text-xs font-semibold text-neutral-500 uppercase tracking-wider">Tentatives</th>
                 <th className="text-left p-4 text-xs font-semibold text-neutral-500 uppercase tracking-wider">Date</th>
-                <th className="w-12 p-4" />
               </tr>
             </thead>
             <tbody>
@@ -412,41 +390,6 @@ export default function LeadsPage() {
                         </div>
                       </td>
 
-                      {/* Actions */}
-                      <td className="p-4">
-                        {lead.status === "CONFIRMED" ? (
-                          <span className="text-xs text-emerald-400 font-medium">✓ Confirmé</span>
-                        ) : lead.status === "CANCELED" ? (
-                          <span className="text-xs text-neutral-500">Annulé</span>
-                        ) : (
-                          <div className="flex items-center gap-1">
-                            <button
-                              onClick={() => updateStatus(lead.id, "CONFIRMED")}
-                              disabled={updating === lead.id}
-                              title="Confirmer"
-                              className="h-7 w-7 rounded-md bg-emerald-500/10 flex items-center justify-center text-emerald-400 hover:bg-emerald-500/20 transition-colors disabled:opacity-40"
-                            >
-                              <Check className="w-3.5 h-3.5" />
-                            </button>
-                            <button
-                              onClick={() => updateStatus(lead.id, "UNREACHED")}
-                              disabled={updating === lead.id}
-                              title="Non joignable"
-                              className="h-7 w-7 rounded-md bg-blue-500/10 flex items-center justify-center text-blue-400 hover:bg-blue-500/20 transition-colors disabled:opacity-40"
-                            >
-                              <PhoneOff className="w-3.5 h-3.5" />
-                            </button>
-                            <button
-                              onClick={() => updateStatus(lead.id, "CANCELED")}
-                              disabled={updating === lead.id}
-                              title="Annuler"
-                              className="h-7 w-7 rounded-md bg-red-500/10 flex items-center justify-center text-red-400 hover:bg-red-500/20 transition-colors disabled:opacity-40"
-                            >
-                              <Ban className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
-                        )}
-                      </td>
                     </tr>
                   )
                 })
