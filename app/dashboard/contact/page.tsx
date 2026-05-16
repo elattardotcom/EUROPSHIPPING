@@ -89,9 +89,9 @@ export default function ContactPage() {
             <div>
               <p className="text-white font-semibold text-sm">Phone Support</p>
               <p className="text-neutral-500 text-xs mt-0.5 mb-2">Call us for immediate assistance</p>
-              <a href="tel:+212600000000"
+              <a href="tel:+13858856423"
                 className="text-orange-400 text-sm hover:text-orange-300 transition-colors font-medium">
-                +212 6 00 00 00 00 ↗
+                +1 (385) 885-6423 ↗
               </a>
             </div>
           </div>
