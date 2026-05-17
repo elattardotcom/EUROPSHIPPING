@@ -81,12 +81,29 @@
       "Bash(xargs sed -i '' 's/CODShip/CODShipEurope/g; s/Codship/CodshipEurope/g; s/codship\\\\./codshipeurope./g; s/leads_codship/leads_codshipeurope/g; s/commandes_codship/commandes_codshipeurope/g')",
       "Bash(sed -i '' 's/label: \"Demandes\"/label: \"Requests\"/g' /Users/m1/Downloads/b_9v36uilKVHe/app/admin/layout.tsx)",
       "Bash(sed -i '' 's/Demandes d'\\\\''inscription/Registration Requests/g' /Users/m1/Downloads/b_9v36uilKVHe/app/admin/requests/page.tsx)",
-      "Bash(sed -i '' 's/Approuvez ou rejetez les demandes de création de compte/Approve or reject account creation requests/g' /Users/m1/Downloads/b_9v36uilKVHe/app/admin/requests/page.tsx)"
+      "Bash(sed -i '' 's/Approuvez ou rejetez les demandes de création de compte/Approve or reject account creation requests/g' /Users/m1/Downloads/b_9v36uilKVHe/app/admin/requests/page.tsx)",
+      "Bash(python3 -c ' *)",
+      "Read(//Users/m1/Downloads/**)",
+      "Bash(cp /Users/m1/Downloads/codlogo.png /Users/m1/Downloads/b_9v36uilKVHe/public/logo.png)",
+      "Bash(xargs sed -i '' 's|/icon\\\\.svg|/logo.png|g')",
+      "Bash(sips -g pixelWidth -g pixelHeight /Users/m1/Downloads/codlogo2.png)",
+      "Bash(sips -g pixelWidth -g pixelHeight /Users/m1/Downloads/b_9v36uilKVHe/public/hero-banner.png)",
+      "Bash(mkdir -p /Users/m1/Downloads/b_9v36uilKVHe/app/api/admin/leads/\\\\[id\\\\])",
+      "Bash(identify /Users/m1/Downloads/b_9v36uilKVHe/app/icon.png)",
+      "Bash(sips --help)",
+      "Bash(python3 -c \"from PIL import Image; print\\('PIL ok'\\)\")",
+      "Bash(python3 -c \"import struct, zlib; print\\('ok'\\)\")",
+      "Bash(cp /tmp/icon_square.png /Users/m1/Downloads/b_9v36uilKVHe/app/icon.png)",
+      "Bash(cp /tmp/icon_square.png /Users/m1/Downloads/b_9v36uilKVHe/public/icon.png)",
+      "Bash(mkdir -p /Users/m1/Downloads/b_9v36uilKVHe/app/api/admin/sourcing/\\\\[id\\\\])"
     ],
     "additionalDirectories": [
       "/Users/m1/Downloads/b_9v36uilKVHe/app/api/client/leads",
       "/Users/m1/Downloads/b_9v36uilKVHe/app/api/admin/orders",
-      "/Users/m1/Downloads/b_9v36uilKVHe/app/api/admin/registration-requests"
+      "/Users/m1/Downloads/b_9v36uilKVHe/app/api/admin/registration-requests",
+      "/Users/m1/Downloads",
+      "/Users/m1/Downloads/b_9v36uilKVHe/app/api/admin/leads",
+      "/Users/m1/Downloads/b_9v36uilKVHe/app/api/admin/sourcing"
     ]
   }
 }

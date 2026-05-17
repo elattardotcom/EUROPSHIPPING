@@ -6,7 +6,7 @@ import { usePathname, useRouter } from "next/navigation"
 import {
   ChevronRight, ChevronDown, LayoutDashboard, Settings, Package,
   Users, ShoppingCart, Wallet, HelpCircle, Bell, RefreshCw,
-  Link2, ListOrdered, Gift, Boxes, X, Menu,
+  Link2, ListOrdered, Gift, Boxes, X, Menu, Search,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { getClientIdFromCookie } from "@/lib/client-cookie"
@@ -61,6 +61,11 @@ function buildNavItems(leadsCount: number, ordersCount: number): NavItem[] {
       icon: Wallet,
       label: "Finances",
       children: [{ href: "/dashboard/wallet", label: "Mon Wallet" }],
+    },
+    {
+      href: "/dashboard/sourcing",
+      icon: Search,
+      label: "Sourcing",
     },
   ]
 }
