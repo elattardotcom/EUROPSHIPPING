@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
 
   const { data } = await sb
     .from("sourcing_requests")
-    .select("id,product_name,reference_url,quantity,budget_eur,notes,status,created_at")
+    .select("id,product_name,reference_url,quantity,budget_eur,notes,admin_reply,status,created_at")
     .eq("client_id", clientId)
     .order("created_at", { ascending: false })
 
