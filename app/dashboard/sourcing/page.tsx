@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Search, Send, CheckCircle, Clock, Package, Link2, AlertCircle, Loader2, ChevronDown } from "lucide-react"
 
 const STATUS_CFG = {
@@ -26,13 +26,13 @@ interface SourcingRequest {
 const INPUT = "w-full bg-neutral-800 border border-neutral-700 rounded-xl px-4 py-2.5 text-white text-sm placeholder:text-neutral-600 focus:outline-none focus:border-teal-500 transition-colors"
 
 export default function SourcingPage() {
-  const [requests, setRequests]   = useState<SourcingRequest[]>([])
-  const [loadedList, setLoadedList] = useState(false)
+  const [requests,  setRequests]  = useState<SourcingRequest[]>([])
+  const [listLoading, setListLoading] = useState(true)
   const [showList,  setShowList]  = useState(false)
-  const [sent,    setSent]        = useState(false)
-  const [loading, setLoading]     = useState(false)
-  const [formErr, setFormErr]     = useState("")
-  const [showForm, setShowForm]   = useState(false)
+  const [sent,      setSent]      = useState(false)
+  const [loading,   setLoading]   = useState(false)
+  const [formErr,   setFormErr]   = useState("")
+  const [showForm,  setShowForm]  = useState(false)
   const [form, setForm] = useState({
     product_name: "", reference_url: "", quantity: "", budget_eur: "", notes: "",
   })
@@ -41,14 +41,16 @@ export default function SourcingPage() {
     (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
       setForm(f => ({ ...f, [k]: e.target.value }))
 
-  async function toggleList() {
-    if (!loadedList) {
-      const d = await fetch("/api/sourcing").then(r => r.json()).catch(() => [])
-      setRequests(Array.isArray(d) ? d : [])
-      setLoadedList(true)
-    }
-    setShowList(s => !s)
+  async function loadRequests() {
+    setListLoading(true)
+    const d = await fetch("/api/sourcing").then(r => r.json()).catch(() => [])
+    setRequests(Array.isArray(d) ? d : [])
+    setListLoading(false)
   }
+
+  useEffect(() => { loadRequests() }, [])
+
+  function toggleList() { setShowList(s => !s) }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -69,7 +71,7 @@ export default function SourcingPage() {
       if (res.ok) {
         setSent(true)
         setShowForm(false)
-        setLoadedList(false)
+        loadRequests()
       } else {
         const d = await res.json().catch(() => ({}))
         setFormErr(d.error ?? `Erreur ${res.status} — veuillez réessayer.`)
@@ -199,7 +201,11 @@ export default function SourcingPage() {
         </button>
 
         {showList && (
-          requests.length === 0 ? (
+          listLoading ? (
+            <div className="py-10 flex justify-center">
+              <Loader2 className="w-5 h-5 text-neutral-500 animate-spin" />
+            </div>
+          ) : requests.length === 0 ? (
             <div className="py-10 text-center">
               <AlertCircle className="w-6 h-6 text-neutral-700 mx-auto mb-2" />
               <p className="text-neutral-500 text-sm">Aucune demande pour l&apos;instant</p>
