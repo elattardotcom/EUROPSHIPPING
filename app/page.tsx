@@ -11,7 +11,6 @@ import Link from "next/link"
 import { Logo }             from "@/components/logo"
 import { OpenModalButton }  from "@/components/landing/open-modal-button"
 import { ModalListener }    from "@/components/landing/modal-listener"
-import { LiveToast }        from "@/components/landing/live-toast"
 import { AnimatedCounter }  from "@/components/landing/animated-counter"
 import { LiveTicker }       from "@/components/landing/live-ticker"
 import { LiveHeroStats }    from "@/components/landing/live-hero-stats"
@@ -526,22 +525,6 @@ export default function LandingPage() {
                 </div>
               </div>
 
-              {/* Floating notif */}
-              <div className="absolute -right-4 -top-4 flex items-center gap-2 bg-[#0d0d0d] border border-emerald-500/25 rounded-xl px-3 py-2.5 shadow-2xl">
-                <div className="w-6 h-6 rounded-lg bg-emerald-500/15 border border-emerald-500/25 flex items-center justify-center text-xs">📬</div>
-                <div>
-                  <p className="text-[10px] text-neutral-500">{lang === "fr" ? "Notif client" : "Client notif"}</p>
-                  <p className="text-xs font-bold text-white">{lang === "fr" ? "SMS envoyé ✓" : "SMS sent ✓"}</p>
-                </div>
-              </div>
-
-              <div className="absolute -left-4 -bottom-4 flex items-center gap-2 bg-[#0d0d0d] border border-orange-500/25 rounded-xl px-3 py-2.5 shadow-2xl">
-                <div className="w-6 h-6 rounded-lg bg-orange-500/15 border border-orange-500/25 flex items-center justify-center text-xs">📦</div>
-                <div>
-                  <p className="text-[10px] text-neutral-500">{lang === "fr" ? "Colis scanné" : "Parcel scanned"}</p>
-                  <p className="text-xs font-bold text-white">Barcelone Hub</p>
-                </div>
-              </div>
             </div>
           </div>
         </div>
@@ -1045,7 +1028,6 @@ export default function LandingPage() {
         </div>
       </footer>
 
-      <LiveToast />
       <ModalListener />
     </div>
   )
