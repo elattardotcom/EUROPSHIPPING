@@ -29,6 +29,7 @@ export default function SourcingPage() {
   const [loadedList, setLoadedList] = useState(false)
   const [sent,    setSent]        = useState(false)
   const [loading, setLoading]     = useState(false)
+  const [formErr, setFormErr]     = useState("")
   const [showForm, setShowForm]   = useState(false)
   const [form, setForm] = useState({
     product_name: "", reference_url: "", quantity: "", budget_eur: "", notes: "",
@@ -48,23 +49,32 @@ export default function SourcingPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
-    const res = await fetch("/api/sourcing", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        product_name:  form.product_name,
-        reference_url: form.reference_url || null,
-        quantity:      parseInt(form.quantity) || null,
-        budget_eur:    parseFloat(form.budget_eur) || null,
-        notes:         form.notes || null,
-      }),
-    })
-    if (res.ok) {
-      setSent(true)
-      setShowForm(false)
-      setLoadedList(false)
+    setFormErr("")
+    try {
+      const res = await fetch("/api/sourcing", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          product_name:  form.product_name,
+          reference_url: form.reference_url || null,
+          quantity:      parseInt(form.quantity) || null,
+          budget_eur:    parseFloat(form.budget_eur) || null,
+          notes:         form.notes || null,
+        }),
+      })
+      if (res.ok) {
+        setSent(true)
+        setShowForm(false)
+        setLoadedList(false)
+      } else {
+        const d = await res.json().catch(() => ({}))
+        setFormErr(d.error ?? `Erreur ${res.status} — veuillez réessayer.`)
+      }
+    } catch {
+      setFormErr("Erreur réseau — veuillez réessayer.")
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
   }
 
   return (
@@ -149,6 +159,11 @@ export default function SourcingPage() {
               <label className="block text-xs font-medium text-neutral-500 mb-1.5">Notes complémentaires</label>
               <textarea placeholder="Couleur, taille, packaging, délai souhaité…" rows={4} value={form.notes} onChange={set("notes")} className={INPUT + " resize-none"} />
             </div>
+            {formErr && (
+              <div className="flex items-center gap-2.5 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 text-red-400 text-sm">
+                <AlertCircle className="w-4 h-4 flex-shrink-0" />{formErr}
+              </div>
+            )}
             <div className="flex gap-3 pt-1">
               <button type="submit" disabled={loading}
                 className="flex items-center gap-2 font-bold text-sm text-white px-6 py-3 rounded-xl transition-all disabled:opacity-60"
