@@ -65,7 +65,6 @@ const FAQ_LABELS = {
 }
 
 export function FaqSection({ lang = "en" }: { lang?: Lang }) {
-  const [open, setOpen] = useState<number | null>(null)
   const faqs  = FAQS[lang]
   const label = FAQ_LABELS[lang]
 
@@ -83,32 +82,41 @@ export function FaqSection({ lang = "en" }: { lang?: Lang }) {
 
         <div className="space-y-2">
           {faqs.map((item, i) => (
-            <div key={i}
-              className="rounded-2xl border overflow-hidden transition-all duration-200"
-              style={{
-                border: open === i ? "1px solid rgba(249,115,22,0.25)" : "1px solid rgba(255,255,255,0.05)",
-                background: open === i ? "rgba(249,115,22,0.04)" : "rgba(12,12,12,0.8)",
-              }}>
-              <button
-                className="w-full flex items-center justify-between gap-4 px-6 py-5 text-left"
-                onClick={() => setOpen(open === i ? null : i)}
-              >
-                <span className="text-sm font-semibold text-white">{item.q}</span>
-                <ChevronDown
-                  className="w-4 h-4 text-neutral-500 flex-shrink-0 transition-transform duration-300"
-                  style={{ transform: open === i ? "rotate(180deg)" : "rotate(0deg)" }}
-                />
-              </button>
-              <div
-                className="overflow-hidden transition-all duration-300"
-                style={{ maxHeight: open === i ? "300px" : "0px" }}
-              >
-                <p className="px-6 pb-5 text-sm text-neutral-500 leading-relaxed">{item.a}</p>
-              </div>
-            </div>
+            <FaqItem key={i} q={item.q} a={item.a} />
           ))}
         </div>
       </div>
     </section>
+  )
+}
+
+function FaqItem({ q, a }: { q: string; a: string }) {
+  const [open, setOpen] = useState(false)
+  return (
+    <div
+      className="rounded-2xl overflow-hidden transition-all duration-200"
+      style={{
+        border: open ? "1px solid rgba(249,115,22,0.25)" : "1px solid rgba(255,255,255,0.05)",
+        background: open ? "rgba(249,115,22,0.04)" : "rgba(12,12,12,0.8)",
+      }}
+    >
+      <button
+        type="button"
+        className="w-full flex items-center justify-between gap-4 px-6 py-5 text-left"
+        onClick={() => setOpen(o => !o)}
+      >
+        <span className="text-sm font-semibold text-white">{q}</span>
+        <ChevronDown
+          className="w-4 h-4 text-neutral-500 flex-shrink-0 transition-transform duration-300"
+          style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)" }}
+        />
+      </button>
+      <div
+        className="overflow-hidden transition-all duration-300"
+        style={{ maxHeight: open ? "300px" : "0px" }}
+      >
+        <p className="px-6 pb-5 text-sm text-neutral-500 leading-relaxed">{a}</p>
+      </div>
+    </div>
   )
 }
