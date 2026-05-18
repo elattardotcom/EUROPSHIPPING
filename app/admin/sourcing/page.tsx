@@ -23,6 +23,7 @@ interface SourcingRequest {
   budget_eur: number | null
   notes: string | null
   admin_reply: string | null
+  image_url: string | null
   status: Status
   created_at: string
 }
@@ -213,6 +214,21 @@ export default function AdminSourcingPage() {
             </div>
 
             <div className="p-5 space-y-5 max-h-[80vh] overflow-y-auto">
+
+              {/* Product image */}
+              {selected.image_url && (
+                <div>
+                  <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-2">Photo produit</p>
+                  <a href={selected.image_url} target="_blank" rel="noopener noreferrer">
+                    <img
+                      src={selected.image_url}
+                      alt={selected.product_name}
+                      className="w-full rounded-xl object-cover max-h-48 border border-neutral-700 hover:opacity-90 transition-opacity"
+                    />
+                  </a>
+                </div>
+              )}
+
               {/* Client info */}
               <div>
                 <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-2">Client</p>

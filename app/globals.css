@@ -156,10 +156,25 @@ html.light [data-dashboard] .bg-neutral-800 { background-color: #f8fafc !importa
 html.light [data-dashboard] .bg-neutral-700 { background-color: #e2e8f0 !important; }
 
 /* Opacity variants */
-html.light [data-dashboard] .bg-neutral-800\/50 { background-color: rgba(248,250,252,0.9) !important; }
-html.light [data-dashboard] .bg-neutral-800\/40 { background-color: rgba(248,250,252,0.7) !important; }
-html.light [data-dashboard] .bg-neutral-900\/60 { background-color: rgba(255,255,255,0.7) !important; }
-html.light [data-dashboard] .bg-black\/60       { background-color: rgba(0,0,0,0.4)       !important; }
+html.light [data-dashboard] .bg-neutral-800\/50  { background-color: rgba(248,250,252,0.9)  !important; }
+html.light [data-dashboard] .bg-neutral-800\/40  { background-color: rgba(248,250,252,0.7)  !important; }
+html.light [data-dashboard] .bg-neutral-800\/60  { background-color: rgba(248,250,252,0.95) !important; }
+html.light [data-dashboard] .bg-neutral-800\/30  { background-color: rgba(241,245,249,0.8)  !important; }
+html.light [data-dashboard] .bg-neutral-800\/5   { background-color: rgba(241,245,249,0.4)  !important; }
+html.light [data-dashboard] .bg-neutral-900\/60  { background-color: rgba(255,255,255,0.7)  !important; }
+html.light [data-dashboard] .bg-black\/60        { background-color: rgba(0,0,0,0.4)        !important; }
+html.light [data-dashboard] .hover\:bg-neutral-800\/30:hover { background-color: rgba(241,245,249,0.9) !important; }
+/* Input & select backgrounds in light mode */
+html.light [data-dashboard] input[type="text"],
+html.light [data-dashboard] input[type="url"],
+html.light [data-dashboard] input[type="number"],
+html.light [data-dashboard] input[type="email"],
+html.light [data-dashboard] textarea,
+html.light [data-dashboard] select {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
 
 /* Text colors */
 html.light [data-dashboard] .text-white       { color: #0f172a !important; }

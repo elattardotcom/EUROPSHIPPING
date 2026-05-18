@@ -19,16 +19,19 @@ interface SourcingRequest {
   budget_eur: number | null
   notes: string | null
   admin_reply: string | null
+  image_url: string | null
   status: keyof typeof STATUS_CFG
   created_at: string
 }
 
-const INPUT = "w-full bg-neutral-800/60 border border-neutral-700 rounded-xl px-4 py-3 text-white text-sm placeholder:text-neutral-600 focus:outline-none focus:border-teal-500/60 focus:bg-neutral-800 transition-all"
+const INPUT = "w-full bg-neutral-800 border border-neutral-700 rounded-xl px-4 py-3 text-white text-sm placeholder:text-neutral-600 focus:outline-none focus:border-teal-500/60 transition-all"
 
-const SECTION_NUM = (n: string, color: string) => (
-  <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg text-[11px] font-black tracking-widest"
-    style={{ color, background: `${color}18`, border: `1px solid ${color}40` }}>{n}</span>
-)
+function SectionNum({ n, color }: { n: string; color: string }) {
+  return (
+    <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg text-[11px] font-black tracking-widest flex-shrink-0"
+      style={{ color, background: `${color}18`, border: `1px solid ${color}40` }}>{n}</span>
+  )
+}
 
 export default function SourcingPage() {
   const [requests,    setRequests]    = useState<SourcingRequest[]>([])
@@ -70,26 +73,23 @@ export default function SourcingPage() {
     setLoading(true)
     setFormErr("")
 
-    const noteParts = [
-      form.destination ? `Destination: ${form.destination}` : "",
-      form.shipping === "air"  ? "Expédition: Fret aérien ✈️" :
-      form.shipping === "sea"  ? "Expédition: Fret maritime 🚢" :
-      form.shipping === "road" ? "Expédition: Transport routier 🚛" : "",
-      form.notes,
-    ].filter(Boolean).join("\n")
+    const shippingLabel =
+      form.shipping === "air"  ? "Fret aérien ✈️" :
+      form.shipping === "sea"  ? "Fret maritime 🚢" :
+      form.shipping === "road" ? "Transport routier 🚛" : ""
 
     try {
-      const res = await fetch("/api/sourcing", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          product_name:  form.product_name,
-          reference_url: form.reference_url || null,
-          quantity:      parseInt(form.quantity) || null,
-          budget_eur:    parseFloat(form.budget_eur) || null,
-          notes:         noteParts || null,
-        }),
-      })
+      const fd = new FormData()
+      fd.append("product_name",  form.product_name.trim())
+      fd.append("reference_url", form.reference_url || "")
+      fd.append("quantity",      form.quantity || "")
+      fd.append("budget_eur",    form.budget_eur || "")
+      fd.append("destination",   form.destination || "")
+      fd.append("shipping",      shippingLabel)
+      fd.append("notes",         form.notes || "")
+      if (imageFile) fd.append("image", imageFile)
+
+      const res = await fetch("/api/sourcing", { method: "POST", body: fd })
       if (res.ok) {
         setSent(true)
         setShowForm(false)
@@ -112,6 +112,12 @@ export default function SourcingPage() {
     const file = e.dataTransfer.files?.[0]
     if (file && file.type.startsWith("image/")) setImageFile(file)
   }
+
+  const SHIPPING_OPTS = [
+    { value:"air",  icon:"✈️", label:"Fret aérien",       badge:"Le plus rapide", badgeCls:"text-orange-400 bg-orange-500/10 border-orange-500/25", desc:"Idéal pour les commandes urgentes ou légères.",     delay:"10–15 jours" },
+    { value:"sea",  icon:"🚢", label:"Fret maritime",      badge:"Meilleur prix",  badgeCls:"text-blue-400 bg-blue-500/10 border-blue-500/25",       desc:"Idéal pour les grandes quantités à moindre coût.",  delay:"30–45 jours" },
+    { value:"road", icon:"🚛", label:"Transport routier",  badge:"Équilibré",      badgeCls:"text-teal-400 bg-teal-500/10 border-teal-500/25",       desc:"Pour les pays européens proches.",                  delay:"20–30 jours" },
+  ]
 
   return (
     <div className="p-4 md:p-6 max-w-4xl space-y-6">
@@ -185,19 +191,16 @@ export default function SourcingPage() {
             {/* ── 01 Informations produit ── */}
             <div>
               <div className="flex items-center gap-3 mb-5">
-                {SECTION_NUM("01", "#14b8a6")}
+                <SectionNum n="01" color="#14b8a6" />
                 <p className="text-white font-bold text-xs uppercase tracking-widest">Informations produit</p>
               </div>
-
               <div className="space-y-4">
                 <div>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <label className="text-xs font-medium text-neutral-400">Nom du produit *</label>
-                  </div>
-                  <input type="text" required placeholder="Ex: Montre smartwatch X4 noire, Sac à main femme, etc."
+                  <label className="block text-xs font-medium text-neutral-400 mb-1.5">Nom du produit *</label>
+                  <input type="text" required
+                    placeholder="Ex: Montre smartwatch X4 noire, Sac à main femme, etc."
                     value={form.product_name} onChange={set("product_name")} className={INPUT} />
                 </div>
-
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
                     <label className="text-xs font-medium text-neutral-400 flex items-center gap-1.5">
@@ -205,22 +208,23 @@ export default function SourcingPage() {
                     </label>
                     <span className="text-[10px] text-neutral-600">Alibaba, AliExpress, 1688…</span>
                   </div>
-                  <input type="url" placeholder="https://alibaba.com/... ou AliExpress, 1688 URL"
+                  <input type="url"
+                    placeholder="https://alibaba.com/... ou AliExpress, 1688 URL"
                     value={form.reference_url} onChange={set("reference_url")} className={INPUT} />
                 </div>
 
-                {/* Image drop zone */}
+                {/* Drag & drop image */}
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
                     <label className="text-xs font-medium text-neutral-400">Image produit</label>
                     <span className="text-[10px] text-neutral-600">Requis si pas de lien</span>
                   </div>
                   {imageFile ? (
-                    <div className="flex items-center gap-3 bg-teal-500/8 border border-teal-500/20 rounded-xl px-4 py-3">
+                    <div className="flex items-center gap-3 bg-teal-500/10 border border-teal-500/20 rounded-xl px-4 py-3">
                       <CheckCircle className="w-4 h-4 text-teal-400 flex-shrink-0" />
                       <p className="text-teal-300 text-sm flex-1 truncate">{imageFile.name}</p>
                       <button type="button" onClick={() => setImageFile(null)}
-                        className="w-6 h-6 rounded-md bg-teal-500/10 hover:bg-red-500/20 flex items-center justify-center transition-colors">
+                        className="w-6 h-6 rounded-md bg-neutral-800 hover:bg-neutral-700 flex items-center justify-center transition-colors">
                         <X className="w-3 h-3 text-neutral-400" />
                       </button>
                     </div>
@@ -230,18 +234,18 @@ export default function SourcingPage() {
                       onDragLeave={() => setDragOver(false)}
                       onDrop={handleDrop}
                       onClick={() => document.getElementById("sourcing-file-input")?.click()}
-                      className="border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all"
-                      style={{
-                        borderColor: dragOver ? "rgba(20,184,166,0.5)" : "rgba(255,255,255,0.08)",
-                        background: dragOver ? "rgba(20,184,166,0.05)" : "transparent",
-                      }}
+                      className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all ${
+                        dragOver
+                          ? "border-teal-500/50 bg-teal-500/5"
+                          : "border-neutral-700 hover:border-neutral-600 bg-neutral-800/30"
+                      }`}
                     >
                       <ImageIcon className="w-7 h-7 text-neutral-600 mx-auto mb-2" />
                       <p className="text-neutral-400 text-sm">
                         Déposer une image ici ou{" "}
                         <span className="text-teal-400 font-medium">parcourir</span>
                       </p>
-                      <p className="text-neutral-700 text-xs mt-1">JPG, PNG, WEBP — max 15 Mo</p>
+                      <p className="text-neutral-600 text-xs mt-1">JPG, PNG, WEBP — max 15 Mo</p>
                       <input id="sourcing-file-input" type="file" accept="image/*" className="hidden"
                         onChange={e => setImageFile(e.target.files?.[0] ?? null)} />
                     </div>
@@ -253,10 +257,9 @@ export default function SourcingPage() {
             {/* ── 02 Détails commande ── */}
             <div>
               <div className="flex items-center gap-3 mb-5">
-                {SECTION_NUM("02", "#f97316")}
+                <SectionNum n="02" color="#f97316" />
                 <p className="text-white font-bold text-xs uppercase tracking-widest">Détails commande</p>
               </div>
-
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-xs font-medium text-neutral-400 mb-1.5">Budget cible (€/unité)</label>
@@ -270,8 +273,7 @@ export default function SourcingPage() {
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-neutral-400 mb-1.5">Pays de destination</label>
-                  <select value={form.destination} onChange={set("destination")}
-                    className="w-full bg-neutral-800/60 border border-neutral-700 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-teal-500/60 transition-all appearance-none">
+                  <select value={form.destination} onChange={set("destination")} className={INPUT}>
                     <option value="">Sélectionner…</option>
                     <option value="Espagne">🇪🇸 Espagne</option>
                     <option value="Portugal">🇵🇹 Portugal</option>
@@ -291,49 +293,20 @@ export default function SourcingPage() {
             {/* ── 03 Mode d'expédition ── */}
             <div>
               <div className="flex items-center gap-3 mb-5">
-                {SECTION_NUM("03", "#8b5cf6")}
+                <SectionNum n="03" color="#8b5cf6" />
                 <p className="text-white font-bold text-xs uppercase tracking-widest">Mode d&apos;expédition</p>
               </div>
-
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                {([
-                  {
-                    value: "air",
-                    icon: "✈️",
-                    label: "Fret aérien",
-                    badge: "Le plus rapide",
-                    badgeCls: "text-orange-400 bg-orange-500/10 border-orange-500/25",
-                    desc: "Idéal pour les commandes urgentes ou légères.",
-                    delay: "10–15 jours",
-                  },
-                  {
-                    value: "sea",
-                    icon: "🚢",
-                    label: "Fret maritime",
-                    badge: "Meilleur prix",
-                    badgeCls: "text-blue-400 bg-blue-500/10 border-blue-500/25",
-                    desc: "Idéal pour les grandes quantités à moindre coût.",
-                    delay: "30–45 jours",
-                  },
-                  {
-                    value: "road",
-                    icon: "🚛",
-                    label: "Transport routier",
-                    badge: "Équilibré",
-                    badgeCls: "text-teal-400 bg-teal-500/10 border-teal-500/25",
-                    desc: "Option équilibrée pour les pays européens proches.",
-                    delay: "20–30 jours",
-                  },
-                ] as { value:string; icon:string; label:string; badge:string; badgeCls:string; desc:string; delay:string }[]).map(opt => (
+                {SHIPPING_OPTS.map(opt => (
                   <button
                     key={opt.value}
                     type="button"
                     onClick={() => setForm(f => ({ ...f, shipping: opt.value }))}
-                    className="relative p-4 rounded-xl border text-left transition-all"
-                    style={{
-                      borderColor: form.shipping === opt.value ? "rgba(20,184,166,0.5)" : "rgba(255,255,255,0.08)",
-                      background:  form.shipping === opt.value ? "rgba(20,184,166,0.07)" : "rgba(255,255,255,0.02)",
-                    }}
+                    className={`relative p-4 rounded-xl border text-left transition-all ${
+                      form.shipping === opt.value
+                        ? "border-teal-500/50 bg-teal-500/10"
+                        : "border-neutral-700 bg-neutral-800/30 hover:border-neutral-600"
+                    }`}
                   >
                     {form.shipping === opt.value && (
                       <div className="absolute top-3 right-3 w-5 h-5 rounded-full flex items-center justify-center"
@@ -360,16 +333,13 @@ export default function SourcingPage() {
             {/* ── 04 Notes ── */}
             <div>
               <div className="flex items-center gap-3 mb-5">
-                {SECTION_NUM("04", "#10b981")}
+                <SectionNum n="04" color="#10b981" />
                 <p className="text-white font-bold text-xs uppercase tracking-widest">Notes complémentaires</p>
               </div>
               <textarea
                 placeholder="Couleur, taille, packaging, délai souhaité, instructions spéciales…"
-                rows={4}
-                value={form.notes}
-                onChange={set("notes")}
-                className={INPUT + " resize-none"}
-              />
+                rows={4} value={form.notes} onChange={set("notes")}
+                className={INPUT + " resize-none"} />
             </div>
 
             {formErr && (
@@ -378,19 +348,18 @@ export default function SourcingPage() {
               </div>
             )}
 
-            <div className="flex gap-3 pt-1 border-t border-neutral-800">
+            <div className="flex gap-3 pt-4 border-t border-neutral-800">
               <button type="submit" disabled={loading}
-                className="flex items-center gap-2 font-bold text-sm text-white px-7 py-3 rounded-xl transition-all disabled:opacity-60 mt-4"
+                className="flex items-center gap-2 font-bold text-sm text-white px-7 py-3 rounded-xl transition-all disabled:opacity-60"
                 style={{ background: "linear-gradient(135deg,#14b8a6,#0d9488)", boxShadow: "0 4px 16px rgba(20,184,166,0.25)" }}>
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                 {loading ? "Envoi…" : "Envoyer la demande"}
               </button>
               <button type="button" onClick={() => { setShowForm(false); resetForm() }}
-                className="text-sm text-neutral-500 hover:text-white border border-neutral-700 px-5 py-3 rounded-xl transition-all hover:border-neutral-500 mt-4">
+                className="text-sm text-neutral-500 hover:text-white border border-neutral-700 px-5 py-3 rounded-xl transition-all hover:border-neutral-500">
                 Annuler
               </button>
             </div>
-
           </form>
         </div>
       )}
@@ -431,6 +400,10 @@ export default function SourcingPage() {
                 return (
                   <div key={r.id} className="px-5 py-4 space-y-3">
                     <div className="flex items-center gap-4">
+                      {r.image_url && (
+                        <img src={r.image_url} alt={r.product_name}
+                          className="w-10 h-10 rounded-lg object-cover border border-neutral-700 flex-shrink-0" />
+                      )}
                       <div className="flex-1 min-w-0">
                         <p className="text-white font-semibold text-sm truncate">{r.product_name}</p>
                         <p className="text-neutral-500 text-xs mt-0.5">
