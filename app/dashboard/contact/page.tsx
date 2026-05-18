@@ -27,7 +27,6 @@ const FAQS = [
 ]
 
 export default function ContactPage() {
-  const [openFaq, setOpenFaq]   = useState<number | null>(null)
   const [sent,    setSent]      = useState(false)
   const [loading, setLoading]   = useState(false)
   const [form,    setForm]      = useState({ name: "", email: "", category: "", subject: "", message: "" })
@@ -212,30 +211,34 @@ export default function ContactPage() {
           <p className="text-neutral-600 text-xs">· Can't find what you're looking for? Contact us!</p>
         </div>
         <div className="divide-y divide-neutral-800">
-          {FAQS.map((faq, i) => {
-            const open = openFaq === i
-            return (
-              <div key={i}>
-                <button
-                  type="button"
-                  onClick={() => setOpenFaq(open ? null : i)}
-                  className="w-full flex items-center justify-between py-4 text-left gap-4 cursor-pointer"
-                >
-                  <div className="flex items-center gap-3">
-                    <CheckCircle className="w-4 h-4 text-emerald-500 flex-shrink-0" />
-                    <span className="text-white text-sm font-medium">{faq.q}</span>
-                  </div>
-                  <ChevronDown className={`w-4 h-4 text-neutral-500 flex-shrink-0 transition-transform ${open ? "rotate-180" : ""}`} />
-                </button>
-                {open && (
-                  <p className="text-neutral-400 text-sm pb-4 pl-7 leading-relaxed">{faq.a}</p>
-                )}
-              </div>
-            )
-          })}
+          {FAQS.map((faq, i) => (
+            <FaqItem key={i} q={faq.q} a={faq.a} />
+          ))}
         </div>
       </div>
 
+    </div>
+  )
+}
+
+function FaqItem({ q, a }: { q: string; a: string }) {
+  const [open, setOpen] = useState(false)
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        className="w-full flex items-center justify-between py-4 text-left gap-4 cursor-pointer"
+      >
+        <div className="flex items-center gap-3">
+          <CheckCircle className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+          <span className="text-white text-sm font-medium">{q}</span>
+        </div>
+        <ChevronDown className={`w-4 h-4 text-neutral-500 flex-shrink-0 transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
+      </button>
+      {open && (
+        <p className="text-neutral-400 text-sm pb-4 pl-7 leading-relaxed">{a}</p>
+      )}
     </div>
   )
 }
