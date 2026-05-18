@@ -671,85 +671,149 @@ export default function LandingPage() {
       </section>
 
       {/* ── Sourcing ───────────────────────────────────────────── */}
-      <section id="sourcing" className="py-16 sm:py-24 px-4 sm:px-6" style={{ background: "linear-gradient(180deg,#080808 0%,#0a0f0c 100%)" }}>
+      <section id="sourcing" className="py-16 sm:py-28 px-4 sm:px-6 overflow-hidden" style={{ background: "linear-gradient(180deg,#080808 0%,#040a07 100%)" }}>
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-10 sm:mb-16">
+
+          {/* Header */}
+          <div className="text-center mb-10 sm:mb-14">
             <div className="inline-flex items-center gap-2 text-teal-400 text-xs font-bold border border-teal-500/20 bg-teal-500/8 px-3 py-1.5 rounded-full mb-4 sm:mb-5 uppercase tracking-widest">
-              <Globe2 className="w-3.5 h-3.5" />{lang === "fr" ? "Nouveau service" : "New service"}
+              <Globe2 className="w-3.5 h-3.5" />{lang === "fr" ? "Sourcing produit" : "Product sourcing"}
             </div>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-white mb-3 sm:mb-4">
-              {lang === "fr" ? <>Sourcing produit <span className="text-teal-400">clé en main</span></> : <>Product sourcing <span className="text-teal-400">made easy</span></>}
-            </h2>
-            <p className="text-neutral-500 text-sm max-w-xl mx-auto">
               {lang === "fr"
-                ? "Trouvez les meilleurs fournisseurs, négociez les prix et recevez vos produits directement en entrepôt — sans vous déplacer."
-                : "Find the best suppliers, negotiate prices and receive your products directly to the warehouse — without moving an inch."}
+                ? <>De la Chine à votre entrepôt,<br className="hidden sm:block" /> <span className="text-teal-400">en quelques clics</span></>
+                : <>From factory to warehouse,<br className="hidden sm:block" /> <span className="text-teal-400">in a few clicks</span></>}
+            </h2>
+            <p className="text-neutral-500 text-sm max-w-xl mx-auto leading-relaxed">
+              {lang === "fr"
+                ? "Notre équipe sourcing négocie, inspecte et expédie vos produits directement dans nos entrepôts européens."
+                : "Our sourcing team negotiates, inspects and ships your products directly to our European warehouses."}
             </p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-            {/* Steps */}
-            <div className="space-y-4">
-              {(lang === "fr" ? [
-                { n:"01", title:"Partagez votre produit",   desc:"Envoyez un lien AliExpress, 1688 ou une description produit. Notre équipe prend en charge le reste.",           color:"#14b8a6", bg:"rgba(20,184,166,0.1)",  border:"rgba(20,184,166,0.2)"  },
-                { n:"02", title:"Contrôle qualité",         desc:"Chaque commande passe par une inspection qualité avant expédition. Zéro mauvaise surprise.",                   color:"#f97316", bg:"rgba(249,115,22,0.1)",  border:"rgba(249,115,22,0.2)"  },
-                { n:"03", title:"Livraison entrepôt direct",desc:"Vos produits arrivent directement dans votre entrepôt CODShipEurope, prêts pour le COD.",                     color:"#8b5cf6", bg:"rgba(139,92,246,0.1)",  border:"rgba(139,92,246,0.2)"  },
-                { n:"04", title:"Suivi en temps réel",      desc:"Suivez l'avancement de votre commande sourcing depuis votre dashboard, de la commande à la réception.",        color:"#10b981", bg:"rgba(16,185,129,0.1)",  border:"rgba(16,185,129,0.2)"  },
-              ] : [
-                { n:"01", title:"Share your product",       desc:"Send an AliExpress, 1688 link or a product description. Our team handles the rest.",                          color:"#14b8a6", bg:"rgba(20,184,166,0.1)",  border:"rgba(20,184,166,0.2)"  },
-                { n:"02", title:"Quality control",          desc:"Every order goes through a quality inspection before shipping. Zero bad surprises.",                           color:"#f97316", bg:"rgba(249,115,22,0.1)",  border:"rgba(249,115,22,0.2)"  },
-                { n:"03", title:"Direct warehouse delivery",desc:"Your products arrive directly to your CODShipEurope warehouse, ready for COD.",                               color:"#8b5cf6", bg:"rgba(139,92,246,0.1)",  border:"rgba(139,92,246,0.2)"  },
-                { n:"04", title:"Real-time tracking",       desc:"Track your sourcing order from your dashboard, from order to reception.",                                      color:"#10b981", bg:"rgba(16,185,129,0.1)",  border:"rgba(16,185,129,0.2)"  },
-              ]).map(s => (
-                <div key={s.n} className="flex gap-4 p-5 rounded-2xl border" style={{ background: s.bg, borderColor: s.border }}>
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm flex-shrink-0"
-                    style={{ background: s.bg, border: `1px solid ${s.border}`, color: s.color }}>{s.n}</div>
-                  <div>
-                    <p className="text-white font-bold text-sm mb-1">{s.title}</p>
-                    <p className="text-neutral-500 text-xs leading-relaxed">{s.desc}</p>
+          {/* Photo grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-14">
+            {([
+              {
+                src: "https://images.unsplash.com/photo-1565793298595-6a879b1d9492?w=900&q=80",
+                alt: "Manufacturing factory",
+                badge: `🏭 ${lang === "fr" ? "Fournisseurs" : "Suppliers"}`,
+                badgeColor: "#14b8a6",
+                title: lang === "fr" ? "Fournisseurs vérifiés" : "Verified suppliers",
+                sub:   lang === "fr" ? "Chine · Turquie · Europe" : "China · Turkey · Europe",
+              },
+              {
+                src: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=900&q=80",
+                alt: "Quality inspection",
+                badge: `✅ ${lang === "fr" ? "Contrôle qualité" : "Quality control"}`,
+                badgeColor: "#f97316",
+                title: lang === "fr" ? "Inspection avant expédition" : "Pre-shipment inspection",
+                sub:   lang === "fr" ? "Zéro mauvaise surprise" : "Zero bad surprises",
+              },
+              {
+                src: "https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=900&q=80",
+                alt: "Products ready for COD",
+                badge: `🚚 ${lang === "fr" ? "Entrepôt COD" : "COD Warehouse"}`,
+                badgeColor: "#8b5cf6",
+                title: lang === "fr" ? "Livraison directe entrepôt" : "Direct warehouse delivery",
+                sub:   lang === "fr" ? "Prêt pour le COD en Europe" : "Ready for COD across Europe",
+              },
+            ] as { src:string; alt:string; badge:string; badgeColor:string; title:string; sub:string }[]).map(card => (
+              <div key={card.alt} className="relative rounded-2xl overflow-hidden h-60 md:h-80 group cursor-default">
+                <img
+                  src={card.src}
+                  alt={card.alt}
+                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                />
+                <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.35) 55%, rgba(0,0,0,0.05) 100%)" }} />
+                <div className="absolute top-4 left-4">
+                  <div className="inline-flex items-center gap-1.5 text-[10px] font-bold border bg-black/60 px-2.5 py-1 rounded-full uppercase tracking-widest backdrop-blur-sm"
+                    style={{ color: card.badgeColor, borderColor: `${card.badgeColor}60` }}>
+                    {card.badge}
                   </div>
+                </div>
+                <div className="absolute bottom-0 left-0 right-0 p-5">
+                  <p className="text-white font-bold text-sm leading-tight">{card.title}</p>
+                  <p className="text-neutral-400 text-xs mt-1">{card.sub}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* 4-step horizontal process */}
+          <div className="relative mb-14">
+            <div className="absolute top-5 left-[12.5%] right-[12.5%] h-px hidden md:block"
+              style={{ background: "linear-gradient(90deg,rgba(20,184,166,0.6),rgba(20,184,166,0.15),rgba(20,184,166,0.6))" }} />
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              {(lang === "fr" ? [
+                { n:"01", icon:"📝", title:"Décrivez votre produit",  desc:"Lien AliExpress, 1688 ou description — notre équipe prend le relais.",        bg:"rgba(20,184,166,0.12)",  bd:"rgba(20,184,166,0.45)",  cl:"#14b8a6", sh:"rgba(20,184,166,0.25)" },
+                { n:"02", icon:"🤝", title:"On négocie pour vous",    desc:"Meilleur prix et conditions garantis — vous ne payez que le produit.",         bg:"rgba(249,115,22,0.12)",  bd:"rgba(249,115,22,0.45)",  cl:"#f97316", sh:"rgba(249,115,22,0.25)" },
+                { n:"03", icon:"🔍", title:"Inspection qualité",      desc:"Chaque commande est inspectée et photographiée avant expédition.",             bg:"rgba(139,92,246,0.12)",  bd:"rgba(139,92,246,0.45)",  cl:"#8b5cf6", sh:"rgba(139,92,246,0.25)" },
+                { n:"04", icon:"🏭", title:"Réception entrepôt",      desc:"Vos produits arrivent prêts pour vos campagnes COD en Europe.",                bg:"rgba(16,185,129,0.12)",  bd:"rgba(16,185,129,0.45)",  cl:"#10b981", sh:"rgba(16,185,129,0.25)" },
+              ] : [
+                { n:"01", icon:"📝", title:"Describe your product",   desc:"AliExpress, 1688 link or description — our team takes it from there.",         bg:"rgba(20,184,166,0.12)",  bd:"rgba(20,184,166,0.45)",  cl:"#14b8a6", sh:"rgba(20,184,166,0.25)" },
+                { n:"02", icon:"🤝", title:"We negotiate for you",    desc:"Best price and terms guaranteed — you only pay for the product.",               bg:"rgba(249,115,22,0.12)",  bd:"rgba(249,115,22,0.45)",  cl:"#f97316", sh:"rgba(249,115,22,0.25)" },
+                { n:"03", icon:"🔍", title:"Quality inspection",      desc:"Every order is inspected and photographed before shipping.",                    bg:"rgba(139,92,246,0.12)",  bd:"rgba(139,92,246,0.45)",  cl:"#8b5cf6", sh:"rgba(139,92,246,0.25)" },
+                { n:"04", icon:"🏭", title:"Warehouse reception",     desc:"Your products arrive ready for your European COD campaigns.",                   bg:"rgba(16,185,129,0.12)",  bd:"rgba(16,185,129,0.45)",  cl:"#10b981", sh:"rgba(16,185,129,0.25)" },
+              ]).map(s => (
+                <div key={s.n} className="relative flex flex-col items-center text-center px-2">
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-black mb-3 relative z-10"
+                    style={{ background: s.bg, border: `1.5px solid ${s.bd}`, color: s.cl, boxShadow: `0 0 20px ${s.sh}` }}>
+                    {s.n}
+                  </div>
+                  <div className="text-2xl mb-2">{s.icon}</div>
+                  <p className="text-white font-bold text-sm mb-1.5">{s.title}</p>
+                  <p className="text-neutral-500 text-[11px] leading-relaxed">{s.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Stats + CTA card */}
+          <div className="relative rounded-2xl border border-teal-500/15 overflow-hidden"
+            style={{ background: "linear-gradient(135deg,rgba(20,184,166,0.07) 0%,rgba(4,10,7,0.97) 60%)" }}>
+            <div className="absolute inset-x-0 top-0 h-px"
+              style={{ background: "linear-gradient(90deg,transparent,rgba(20,184,166,0.5),transparent)" }} />
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-52 pointer-events-none"
+              style={{ background: "radial-gradient(ellipse,rgba(20,184,166,0.08),transparent 70%)" }} />
+
+            {/* Stats strip */}
+            <div className="grid grid-cols-2 md:grid-cols-4 border-b border-teal-500/10">
+              {([
+                { v:"500+", label: lang === "fr" ? "Fournisseurs partenaires" : "Partner suppliers",       color:"#14b8a6" },
+                { v:"98%",  label: lang === "fr" ? "Taux conformité qualité" : "Quality pass rate",        color:"#f97316" },
+                { v:"15j",  label: lang === "fr" ? "Délai moyen livraison" : "Avg. delivery time",         color:"#8b5cf6" },
+                { v:"10",   label: lang === "fr" ? "Pays de livraison COD" : "COD delivery countries",     color:"#10b981" },
+              ] as { v:string; label:string; color:string }[]).map((s, i) => (
+                <div key={s.label} className={`flex flex-col items-center justify-center py-7 px-4 text-center ${i < 3 ? "border-r border-teal-500/10" : ""}`}>
+                  <p className="text-2xl font-black mb-1" style={{ color: s.color }}>{s.v}</p>
+                  <p className="text-neutral-500 text-xs">{s.label}</p>
                 </div>
               ))}
             </div>
 
-            {/* CTA card */}
-            <div className="relative rounded-2xl border border-teal-500/20 overflow-hidden p-8 text-center"
-              style={{ background: "linear-gradient(135deg,rgba(20,184,166,0.08) 0%,rgba(8,8,8,1) 70%)" }}>
-              <div className="absolute inset-x-0 top-0 h-px" style={{ background: "linear-gradient(90deg,transparent,rgba(20,184,166,0.5),transparent)" }} />
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-40 pointer-events-none"
-                style={{ background: "radial-gradient(ellipse,rgba(20,184,166,0.1),transparent 70%)" }} />
-              <div className="relative">
-                <div className="text-6xl mb-5">🌏</div>
-                <h3 className="text-2xl font-black text-white mb-3">
-                  {lang === "fr" ? "Prêt à sourcer ?" : "Ready to source?"}
-                </h3>
-                <p className="text-neutral-500 text-sm mb-6 leading-relaxed max-w-xs mx-auto">
-                  {lang === "fr"
-                    ? "Accédez au service sourcing directement depuis votre tableau de bord après votre inscription."
-                    : "Access the sourcing service directly from your dashboard after signing up."}
-                </p>
-                <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                  {[
-                    { icon:"🏭", label: lang === "fr" ? "Fournisseurs vérifiés" : "Verified suppliers" },
-                    { icon:"✅", label: lang === "fr" ? "Contrôle qualité" : "Quality control" },
-                    { icon:"🚀", label: lang === "fr" ? "Livraison rapide" : "Fast delivery" },
-                  ].map(b => (
-                    <div key={b.label} className="flex items-center gap-2 bg-teal-500/10 border border-teal-500/20 px-3 py-2 rounded-lg">
-                      <span>{b.icon}</span>
-                      <span className="text-teal-300 text-xs font-semibold">{b.label}</span>
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-8">
-                  <OpenModalButton step="signup" className="inline-flex items-center gap-2 font-bold text-sm text-white px-8 py-3.5 rounded-xl transition-all"
-                    style={{ background: "linear-gradient(135deg,#14b8a6,#0d9488)", boxShadow: "0 8px 24px rgba(20,184,166,0.25)" }}>
-                    {lang === "fr" ? "Commencer le sourcing" : "Start sourcing"}
-                    <ArrowRight className="w-4 h-4" />
-                  </OpenModalButton>
-                </div>
-              </div>
+            {/* CTA */}
+            <div className="relative px-6 py-10 text-center">
+              <p className="text-teal-400 text-[10px] font-bold uppercase tracking-widest mb-3">
+                {lang === "fr" ? "Disponible dans votre dashboard" : "Available in your dashboard"}
+              </p>
+              <h3 className="text-xl sm:text-2xl font-black text-white mb-3">
+                {lang === "fr" ? "Prêt à sourcer vos produits ?" : "Ready to source your products?"}
+              </h3>
+              <p className="text-neutral-500 text-sm mb-8 max-w-md mx-auto leading-relaxed">
+                {lang === "fr"
+                  ? "Créez votre compte gratuitement et soumettez votre première demande sourcing en 2 minutes."
+                  : "Create your account for free and submit your first sourcing request in 2 minutes."}
+              </p>
+              <OpenModalButton step="signup"
+                className="inline-flex items-center gap-2 font-bold text-sm text-white px-8 py-3.5 rounded-xl transition-all"
+                style={{ background: "linear-gradient(135deg,#14b8a6,#0d9488)", boxShadow: "0 8px 24px rgba(20,184,166,0.3)" }}>
+                {lang === "fr" ? "Commencer le sourcing" : "Start sourcing"}
+                <ArrowRight className="w-4 h-4" />
+              </OpenModalButton>
             </div>
           </div>
+
         </div>
       </section>
 
