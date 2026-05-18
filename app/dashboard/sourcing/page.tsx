@@ -18,6 +18,7 @@ interface SourcingRequest {
   quantity: number
   budget_eur: number | null
   notes: string | null
+  admin_reply: string | null
   status: keyof typeof STATUS_CFG
   created_at: string
 }
@@ -204,15 +205,23 @@ export default function SourcingPage() {
               {requests.map(r => {
                 const cfg = STATUS_CFG[r.status] ?? STATUS_CFG.PENDING
                 return (
-                  <div key={r.id} className="px-5 py-4 flex items-center gap-4">
-                    <div className="flex-1 min-w-0">
-                      <p className="text-white font-semibold text-sm truncate">{r.product_name}</p>
-                      <p className="text-neutral-500 text-xs mt-0.5">
-                        {r.quantity ? `${r.quantity} unités` : ""}{r.budget_eur ? ` · €${r.budget_eur}/u` : ""}
-                      </p>
+                  <div key={r.id} className="px-5 py-4 space-y-3">
+                    <div className="flex items-center gap-4">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-white font-semibold text-sm truncate">{r.product_name}</p>
+                        <p className="text-neutral-500 text-xs mt-0.5">
+                          {r.quantity ? `${r.quantity} unités` : ""}{r.budget_eur ? ` · €${r.budget_eur}/u` : ""}
+                        </p>
+                      </div>
+                      <span className={`text-xs font-bold px-2.5 py-1 rounded-full border flex-shrink-0 ${cfg.cls}`}>{cfg.label}</span>
+                      <span className="text-neutral-600 text-xs whitespace-nowrap">{new Date(r.created_at).toLocaleDateString("fr-FR")}</span>
                     </div>
-                    <span className={`text-xs font-bold px-2.5 py-1 rounded-full border ${cfg.cls}`}>{cfg.label}</span>
-                    <span className="text-neutral-600 text-xs whitespace-nowrap">{new Date(r.created_at).toLocaleDateString("fr-FR")}</span>
+                    {r.admin_reply && (
+                      <div className="bg-teal-500/10 border border-teal-500/20 rounded-xl px-4 py-3">
+                        <p className="text-teal-400 text-[10px] font-bold uppercase tracking-wider mb-1">Réponse de l&apos;équipe</p>
+                        <p className="text-neutral-300 text-sm leading-relaxed whitespace-pre-wrap">{r.admin_reply}</p>
+                      </div>
+                    )}
                   </div>
                 )
               })}
