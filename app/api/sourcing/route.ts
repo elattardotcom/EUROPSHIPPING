@@ -46,24 +46,25 @@ export async function POST(req: NextRequest) {
 
     const imageFile = fd.get("image") as File | null
     if (imageFile && imageFile.size > 0) {
-      try {
-        const bytes  = await imageFile.arrayBuffer()
-        const buffer = Buffer.from(bytes)
-        const ext    = imageFile.name.split(".").pop() ?? "jpg"
-        const path   = `${clientId}/${Date.now()}.${ext}`
+      const bytes  = await imageFile.arrayBuffer()
+      const buffer = Buffer.from(bytes)
+      const ext    = imageFile.name.split(".").pop() ?? "jpg"
+      const path   = `${clientId}/${Date.now()}.${ext}`
 
-        const { data: up, error: upErr } = await sb.storage
+      const { data: up, error: upErr } = await sb.storage
+        .from("sourcing-images")
+        .upload(path, buffer, { contentType: imageFile.type, upsert: false })
+
+      if (upErr) {
+        console.error("[sourcing] image upload error:", upErr)
+        return NextResponse.json({ error: `Image upload failed: ${upErr.message}` }, { status: 500 })
+      }
+
+      if (up) {
+        const { data: { publicUrl } } = sb.storage
           .from("sourcing-images")
-          .upload(path, buffer, { contentType: imageFile.type, upsert: false })
-
-        if (!upErr && up) {
-          const { data: { publicUrl } } = sb.storage
-            .from("sourcing-images")
-            .getPublicUrl(up.path)
-          image_url = publicUrl
-        }
-      } catch {
-        // image upload failed — proceed without it
+          .getPublicUrl(up.path)
+        image_url = publicUrl
       }
     }
   } else {
