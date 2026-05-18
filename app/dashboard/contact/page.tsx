@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Mail, MessageCircle, Clock, Send, ChevronDown, ChevronUp, CheckCircle } from "lucide-react"
+import { Mail, MessageCircle, Clock, Send, ChevronDown, CheckCircle } from "lucide-react"
 
 const FAQS = [
   {
@@ -212,25 +212,27 @@ export default function ContactPage() {
           <p className="text-neutral-600 text-xs">· Can't find what you're looking for? Contact us!</p>
         </div>
         <div className="divide-y divide-neutral-800">
-          {FAQS.map((faq, i) => (
-            <div key={i}>
-              <button
-                onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                className="w-full flex items-center justify-between py-4 text-left gap-4"
-              >
-                <div className="flex items-center gap-3">
-                  <CheckCircle className="w-4 h-4 text-emerald-500 flex-shrink-0" />
-                  <span className="text-white text-sm font-medium">{faq.q}</span>
-                </div>
-                {openFaq === i
-                  ? <ChevronUp className="w-4 h-4 text-neutral-500 flex-shrink-0" />
-                  : <ChevronDown className="w-4 h-4 text-neutral-500 flex-shrink-0" />}
-              </button>
-              {openFaq === i && (
-                <p className="text-neutral-400 text-sm pb-4 pl-7">{faq.a}</p>
-              )}
-            </div>
-          ))}
+          {FAQS.map((faq, i) => {
+            const open = openFaq === i
+            return (
+              <div key={i}>
+                <button
+                  type="button"
+                  onClick={() => setOpenFaq(open ? null : i)}
+                  className="w-full flex items-center justify-between py-4 text-left gap-4 cursor-pointer"
+                >
+                  <div className="flex items-center gap-3">
+                    <CheckCircle className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                    <span className="text-white text-sm font-medium">{faq.q}</span>
+                  </div>
+                  <ChevronDown className={`w-4 h-4 text-neutral-500 flex-shrink-0 transition-transform ${open ? "rotate-180" : ""}`} />
+                </button>
+                {open && (
+                  <p className="text-neutral-400 text-sm pb-4 pl-7 leading-relaxed">{faq.a}</p>
+                )}
+              </div>
+            )
+          })}
         </div>
       </div>
 

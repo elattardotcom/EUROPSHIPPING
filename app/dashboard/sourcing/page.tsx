@@ -28,6 +28,7 @@ const INPUT = "w-full bg-neutral-800 border border-neutral-700 rounded-xl px-4 p
 export default function SourcingPage() {
   const [requests, setRequests]   = useState<SourcingRequest[]>([])
   const [loadedList, setLoadedList] = useState(false)
+  const [showList,  setShowList]  = useState(false)
   const [sent,    setSent]        = useState(false)
   const [loading, setLoading]     = useState(false)
   const [formErr, setFormErr]     = useState("")
@@ -40,11 +41,13 @@ export default function SourcingPage() {
     (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
       setForm(f => ({ ...f, [k]: e.target.value }))
 
-  async function loadRequests() {
-    if (loadedList) return
-    const d = await fetch("/api/sourcing").then(r => r.json()).catch(() => [])
-    setRequests(Array.isArray(d) ? d : [])
-    setLoadedList(true)
+  async function toggleList() {
+    if (!loadedList) {
+      const d = await fetch("/api/sourcing").then(r => r.json()).catch(() => [])
+      setRequests(Array.isArray(d) ? d : [])
+      setLoadedList(true)
+    }
+    setShowList(s => !s)
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -184,17 +187,18 @@ export default function SourcingPage() {
       {/* My requests */}
       <div className="bg-neutral-900 border border-neutral-800 rounded-2xl overflow-hidden">
         <button
-          onClick={loadRequests}
+          type="button"
+          onClick={toggleList}
           className="w-full px-5 py-4 border-b border-neutral-800 flex items-center justify-between hover:bg-neutral-800/30 transition-colors"
         >
           <div className="flex items-center gap-2">
             <Clock className="w-4 h-4 text-neutral-500" />
             <p className="text-white font-semibold text-sm">Mes demandes</p>
           </div>
-          <ChevronDown className="w-4 h-4 text-neutral-500" />
+          <ChevronDown className={`w-4 h-4 text-neutral-500 transition-transform ${showList ? "rotate-180" : ""}`} />
         </button>
 
-        {loadedList && (
+        {showList && (
           requests.length === 0 ? (
             <div className="py-10 text-center">
               <AlertCircle className="w-6 h-6 text-neutral-700 mx-auto mb-2" />
