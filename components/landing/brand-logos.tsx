@@ -41,8 +41,11 @@ export function WiseLogo({ size = 28 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
       <rect width="40" height="40" rx="8" fill="#9FE870"/>
-      <path d="M8 12h5l4 12 4-12h5l-7 18h-4L8 12z" fill="#163300"/>
-      <path d="M25 12h5l2 6 2-6h5l-5 12h-4L25 12z" fill="#163300"/>
+      {/* Wise W — bold letterform */}
+      <path
+        d="M4 11 L9.5 11 L15 26.5 L20 15 L25 26.5 L30.5 11 L36 11 L27.5 31 L22.5 31 L20 23.5 L17.5 31 L12.5 31 Z"
+        fill="#163300"
+      />
     </svg>
   )
 }
@@ -51,11 +54,17 @@ export function BinanceLogo({ size = 28 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
       <rect width="40" height="40" rx="8" fill="#F3BA2F"/>
-      <path d="M20 8l3.5 3.5L16 19l-3.5-3.5L20 8z" fill="#1A1A2E"/>
-      <path d="M24.5 12.5L28 16l-7.5 7.5-3.5-3.5 7.5-7.5zM12 16.5l3.5 3.5-3.5 3.5L8.5 20l3.5-3.5z" fill="#1A1A2E"/>
-      <path d="M20 21l3.5 3.5-3.5 3.5-3.5-3.5L20 21z" fill="#1A1A2E"/>
-      <path d="M27.5 16.5L31 20l-3.5 3.5-3.5-3.5 3.5-3.5zM16 25.5l3.5 3.5-3.5 3.5L12 28.5l4-3z" fill="#1A1A2E"/>
-      <path d="M20 24.5l3.5 3.5-3.5 3.5-3.5-3.5 3.5-3.5z" fill="#1A1A2E"/>
+      {/* BNB — 5-diamond pattern (Binance official mark) */}
+      {/* Center */}
+      <path d="M20 14 L26 20 L20 26 L14 20 Z" fill="#1E2026"/>
+      {/* Top */}
+      <path d="M20 4  L23.5 7.5 L20 11 L16.5 7.5 Z" fill="#1E2026"/>
+      {/* Bottom */}
+      <path d="M20 29 L23.5 32.5 L20 36 L16.5 32.5 Z" fill="#1E2026"/>
+      {/* Left */}
+      <path d="M4  20 L7.5 16.5 L11 20 L7.5 23.5 Z" fill="#1E2026"/>
+      {/* Right */}
+      <path d="M29 20 L32.5 16.5 L36 20 L32.5 23.5 Z" fill="#1E2026"/>
     </svg>
   )
 }
