@@ -15,23 +15,27 @@ export async function GET(req: Request) {
   const state       = searchParams.get("state")
   const shop        = searchParams.get("shop")
 
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://europs-shipping.vercel.app"
+  const errRedirect = (msg: string) =>
+    NextResponse.redirect(`${appUrl}/dashboard/stores?error=${encodeURIComponent(msg)}`)
+
   // Vérifie que le state correspond (protection CSRF)
   if (!state || state !== storedState) {
-    return NextResponse.json({ error: "State invalide" }, { status: 403 })
+    return errRedirect("state_invalide")
   }
 
   // Vérifie que le shop correspond
   if (!shop || shop !== storedShop) {
-    return NextResponse.json({ error: "Shop invalide" }, { status: 403 })
+    return errRedirect("shop_invalide")
   }
 
   // Vérifie la signature HMAC des query params
   if (!verifyOAuthCallback(searchParams)) {
-    return NextResponse.json({ error: "Signature HMAC invalide" }, { status: 403 })
+    return errRedirect("hmac_invalide")
   }
 
   if (!code) {
-    return NextResponse.json({ error: "Code OAuth manquant" }, { status: 400 })
+    return errRedirect("code_manquant")
   }
 
   // Échange le code contre un access token
@@ -39,7 +43,7 @@ export async function GET(req: Request) {
 
   const sb = getSupabaseAdmin()
   if (!sb) {
-    return NextResponse.json({ error: "Base de données non configurée" }, { status: 500 })
+    return errRedirect("db_non_configuree")
   }
 
   // Check plan store limit
@@ -73,7 +77,6 @@ export async function GET(req: Request) {
   }
 
   // Enregistre les webhooks pour la sync automatique
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://europs-shipping.vercel.app"
   await Promise.allSettled([
     registerWebhook(shop, accessToken, "products/create"),
     registerWebhook(shop, accessToken, "products/update"),
