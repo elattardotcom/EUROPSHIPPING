@@ -41,11 +41,13 @@ export function WiseLogo({ size = 28 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
       <rect width="40" height="40" rx="8" fill="#9FE870"/>
-      {/* Wise W — bold letterform */}
-      <path
-        d="M4 11 L9.5 11 L15 26.5 L20 15 L25 26.5 L30.5 11 L36 11 L27.5 31 L22.5 31 L20 23.5 L17.5 31 L12.5 31 Z"
-        fill="#163300"
-      />
+      {/* Official Wise SVG mark from simple-icons, centered in 40×40 */}
+      <g transform="translate(8, 8)">
+        <path
+          d="M6.488 7.469 0 15.05h11.585l1.301-3.576H7.922l3.033-3.507.01-.092L8.993 4.48h8.873l-6.878 18.925h4.706L24 .595H2.543l3.945 6.874Z"
+          fill="#163300"
+        />
+      </g>
     </svg>
   )
 }
@@ -53,18 +55,14 @@ export function WiseLogo({ size = 28 }: { size?: number }) {
 export function BinanceLogo({ size = 28 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect width="40" height="40" rx="8" fill="#F3BA2F"/>
-      {/* BNB — 5-diamond pattern (Binance official mark) */}
-      {/* Center */}
-      <path d="M20 14 L26 20 L20 26 L14 20 Z" fill="#1E2026"/>
-      {/* Top */}
-      <path d="M20 4  L23.5 7.5 L20 11 L16.5 7.5 Z" fill="#1E2026"/>
-      {/* Bottom */}
-      <path d="M20 29 L23.5 32.5 L20 36 L16.5 32.5 Z" fill="#1E2026"/>
-      {/* Left */}
-      <path d="M4  20 L7.5 16.5 L11 20 L7.5 23.5 Z" fill="#1E2026"/>
-      {/* Right */}
-      <path d="M29 20 L32.5 16.5 L36 20 L32.5 23.5 Z" fill="#1E2026"/>
+      <rect width="40" height="40" rx="8" fill="#F0B90B"/>
+      {/* Official Binance BNB SVG mark from simple-icons, centered in 40×40 */}
+      <g transform="translate(8, 8)">
+        <path
+          d="M16.624 13.9202l2.7175 2.7154-7.353 7.353-7.353-7.352 2.7175-2.7164 4.6355 4.659 4.6356-4.659zm4.6366-4.6366L24 12l-2.7154 2.7164L18.5682 12l2.6924-2.7164zm-9.272.001l2.7163 2.6914-2.7164 2.7174v-.001L9.2721 12l2.7164-2.7154zm-9.2722-.001L5.4088 12l-2.6914 2.6924L0 12l2.7164-2.7164zM11.9885.0115l7.353 7.329-2.7174 2.7154-4.6356-4.6356-4.6355 4.6595-2.7174-2.7154 7.353-7.353z"
+          fill="#1E2026"
+        />
+      </g>
     </svg>
   )
 }
