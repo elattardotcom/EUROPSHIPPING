@@ -296,6 +296,257 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ── Visual Delivery Network ────────────────────────────── */}
+      <section className="py-16 sm:py-24 px-4 sm:px-6 overflow-hidden" style={{ background: "#060606" }}>
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-10 sm:mb-14">
+            <div className="inline-flex items-center gap-2 text-orange-400 text-xs font-bold border border-orange-500/20 bg-orange-500/8 px-3 py-1.5 rounded-full mb-4 uppercase tracking-widest">
+              <Globe2 className="w-3.5 h-3.5" />
+              {lang === "fr" ? "Notre réseau" : "Our network"}
+            </div>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-white mb-3">
+              {lang === "fr" ? <>Une logistique <span className="text-orange-400">pensée pour le COD</span></> : <>Logistics <span className="text-orange-400">built for COD</span></>}
+            </h2>
+            <p className="text-neutral-500 text-sm max-w-xl mx-auto">
+              {lang === "fr"
+                ? "Des entrepôts stratégiques, des transporteurs de confiance et une technologie de suivi temps réel pour chaque colis."
+                : "Strategic warehouses, trusted carriers and real-time tracking technology for every parcel."}
+            </p>
+          </div>
+
+          {/* Photo cards grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            {/* Card 1 — Cargo ship */}
+            <div className="relative h-64 md:h-80 rounded-2xl overflow-hidden group">
+              <img
+                src="https://images.unsplash.com/photo-1494412519320-aa613dfb7738?w=900&q=80"
+                alt="Cargo ship logistics"
+                className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+              />
+              <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.3) 50%, transparent 100%)" }} />
+              <div className="absolute inset-x-0 top-0 h-px" style={{ background: "linear-gradient(90deg,transparent,rgba(249,115,22,0.6),transparent)" }} />
+              <div className="absolute bottom-0 left-0 p-5">
+                <div className="inline-flex items-center gap-1.5 text-[10px] font-bold text-orange-400 border border-orange-500/30 bg-orange-500/10 px-2.5 py-1 rounded-full mb-2 uppercase tracking-widest">
+                  🚢 {lang === "fr" ? "Transport maritime" : "Sea freight"}
+                </div>
+                <h3 className="text-white font-black text-lg leading-tight">
+                  {lang === "fr" ? "Import direct\nChine → Europe" : "Direct import\nChina → Europe"}
+                </h3>
+              </div>
+            </div>
+
+            {/* Card 2 — Delivery van (tall center) */}
+            <div className="relative h-64 md:h-80 rounded-2xl overflow-hidden group md:row-span-1">
+              <img
+                src="https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=900&q=80"
+                alt="Delivery van last mile"
+                className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+              />
+              <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.2) 60%, transparent 100%)" }} />
+              <div className="absolute inset-x-0 top-0 h-px" style={{ background: "linear-gradient(90deg,transparent,rgba(16,185,129,0.6),transparent)" }} />
+              <div className="absolute bottom-0 left-0 p-5">
+                <div className="inline-flex items-center gap-1.5 text-[10px] font-bold text-emerald-400 border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 rounded-full mb-2 uppercase tracking-widest">
+                  🚚 {lang === "fr" ? "Dernier kilomètre" : "Last mile"}
+                </div>
+                <h3 className="text-white font-black text-lg leading-tight">
+                  {lang === "fr" ? "Livraison COD\nen 24-48h" : "COD delivery\nin 24-48h"}
+                </h3>
+              </div>
+            </div>
+
+            {/* Card 3 — Warehouse */}
+            <div className="relative h-64 md:h-80 rounded-2xl overflow-hidden group">
+              <img
+                src="https://images.unsplash.com/photo-1553413077-190dd305871c?w=900&q=80"
+                alt="Warehouse fulfillment"
+                className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+              />
+              <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.2) 60%, transparent 100%)" }} />
+              <div className="absolute inset-x-0 top-0 h-px" style={{ background: "linear-gradient(90deg,transparent,rgba(99,102,241,0.6),transparent)" }} />
+              <div className="absolute bottom-0 left-0 p-5">
+                <div className="inline-flex items-center gap-1.5 text-[10px] font-bold text-indigo-400 border border-indigo-500/30 bg-indigo-500/10 px-2.5 py-1 rounded-full mb-2 uppercase tracking-widest">
+                  🏭 {lang === "fr" ? "Entrepôt" : "Warehouse"}
+                </div>
+                <h3 className="text-white font-black text-lg leading-tight">
+                  {lang === "fr" ? "Stock & préparation\ncommandes" : "Stock & order\nfulfillment"}
+                </h3>
+              </div>
+            </div>
+          </div>
+
+          {/* Stats strip */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {(lang === "fr" ? [
+              { v: "10",   unit: "pays",         label: "couverts en Europe",  color: "#f97316" },
+              { v: "48h",  unit: "",             label: "délai de livraison",   color: "#10b981" },
+              { v: "99%",  unit: "",             label: "taux de tracking",     color: "#6366f1" },
+              { v: "24/7", unit: "",             label: "suivi temps réel",     color: "#f59e0b" },
+            ] : [
+              { v: "10",   unit: "countries",    label: "covered in Europe",    color: "#f97316" },
+              { v: "48h",  unit: "",             label: "delivery timeline",    color: "#10b981" },
+              { v: "99%",  unit: "",             label: "tracking rate",        color: "#6366f1" },
+              { v: "24/7", unit: "",             label: "live tracking",        color: "#f59e0b" },
+            ]).map(s => (
+              <div key={s.label} className="bg-neutral-950 border border-neutral-900 rounded-xl px-4 py-4 text-center">
+                <p className="font-black text-2xl sm:text-3xl mb-0.5" style={{ color: s.color }}>{s.v}<span className="text-lg">{s.unit}</span></p>
+                <p className="text-neutral-500 text-xs">{s.label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Live Tracking Showcase ──────────────────────────────── */}
+      <section className="py-16 sm:py-24 px-4 sm:px-6" style={{ background: "linear-gradient(180deg,#060606 0%,#080808 100%)" }}>
+        <div className="max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+
+            {/* Left — text */}
+            <div>
+              <div className="inline-flex items-center gap-2 text-emerald-400 text-xs font-bold border border-emerald-500/20 bg-emerald-500/8 px-3 py-1.5 rounded-full mb-5 uppercase tracking-widest">
+                <Zap className="w-3.5 h-3.5" />
+                {lang === "fr" ? "Tracking live" : "Live tracking"}
+              </div>
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-white mb-4 leading-tight">
+                {lang === "fr"
+                  ? <><span className="text-emerald-400">Chaque colis</span> suivi en temps réel</>
+                  : <><span className="text-emerald-400">Every parcel</span> tracked in real time</>}
+              </h2>
+              <p className="text-neutral-500 text-sm leading-relaxed mb-8">
+                {lang === "fr"
+                  ? "Dès l'expédition, vos clients et votre équipe voient l'état exact de chaque commande — mise à jour automatique à chaque étape, de l'entrepôt à la porte."
+                  : "From the moment of shipment, your customers and team see the exact status of every order — automatically updated at every step, from warehouse to doorstep."}
+              </p>
+              <div className="space-y-3">
+                {(lang === "fr" ? [
+                  { icon: "📍", t: "Position GPS en temps réel",        d: "Localisation du transporteur à chaque scan" },
+                  { icon: "📱", t: "Notifications automatiques",         d: "SMS et email envoyés au client à chaque étape" },
+                  { icon: "🔔", t: "Alertes anomalie instantanées",      d: "Vous êtes notifié dès qu'un colis est bloqué" },
+                ] : [
+                  { icon: "📍", t: "Real-time GPS position",             d: "Carrier location updated at every scan" },
+                  { icon: "📱", t: "Automatic notifications",            d: "SMS and email sent to customer at each step" },
+                  { icon: "🔔", t: "Instant anomaly alerts",             d: "You're notified as soon as a parcel is stuck" },
+                ]).map(f => (
+                  <div key={f.t} className="flex items-start gap-3">
+                    <span className="text-xl mt-0.5">{f.icon}</span>
+                    <div>
+                      <p className="text-white font-semibold text-sm">{f.t}</p>
+                      <p className="text-neutral-600 text-xs">{f.d}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Right — animated tracking widget */}
+            <div className="relative">
+              {/* Glow */}
+              <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse at 60% 40%, rgba(16,185,129,0.08), transparent 65%)" }} />
+
+              {/* Widget card */}
+              <div className="relative rounded-2xl border border-white/[0.07] overflow-hidden" style={{ background: "rgba(8,8,8,0.95)" }}>
+                {/* Header */}
+                <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06]">
+                  <div>
+                    <p className="text-xs text-neutral-600 uppercase tracking-wider mb-0.5">
+                      {lang === "fr" ? "Commande" : "Order"} #COD-7821
+                    </p>
+                    <p className="text-white font-bold text-sm">Premium Watch — 🇪🇸 Madrid</p>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-[10px] font-bold text-emerald-400 border border-emerald-500/25 bg-emerald-500/8 px-2.5 py-1 rounded-full animate-pulse">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" />
+                    LIVE
+                  </div>
+                </div>
+
+                {/* Progress bar */}
+                <div className="px-5 pt-5 pb-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[10px] text-neutral-600 uppercase tracking-wider">{lang === "fr" ? "Progression" : "Progress"}</span>
+                    <span className="text-[10px] font-bold text-emerald-400">75%</span>
+                  </div>
+                  <div className="h-1.5 rounded-full bg-white/[0.06] overflow-hidden">
+                    <div className="h-full rounded-full w-3/4 relative overflow-hidden" style={{ background: "linear-gradient(90deg,#10b981,#34d399)" }}>
+                      <div className="absolute inset-0 animate-pulse" style={{ background: "linear-gradient(90deg,transparent,rgba(255,255,255,0.3),transparent)", animation: "shimmer 2s infinite" }} />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Steps */}
+                <div className="px-5 pb-5 space-y-0">
+                  {[
+                    { label: lang === "fr" ? "Commande confirmée" : "Order confirmed",    time: "09:14", done: true,  active: false, icon: "✅" },
+                    { label: lang === "fr" ? "Expédié — DPD Express" : "Shipped — DPD Express", time: "11:32", done: true,  active: false, icon: "📦" },
+                    { label: lang === "fr" ? "En transit — Barcelone" : "In transit — Barcelona", time: "16:05", done: true,  active: false, icon: "🚚" },
+                    { label: lang === "fr" ? "En cours de livraison" : "Out for delivery", time: "08:47", done: false, active: true,  icon: "🛵" },
+                    { label: lang === "fr" ? "Livré — Signature client" : "Delivered — Customer signed", time: "—",    done: false, active: false, icon: "🏠" },
+                  ].map((step, i, arr) => (
+                    <div key={step.label} className="flex gap-3 items-start py-2.5">
+                      {/* Timeline line + dot */}
+                      <div className="flex flex-col items-center flex-shrink-0 mt-0.5">
+                        <div className={`w-7 h-7 rounded-full flex items-center justify-center text-sm border transition-all ${
+                          step.done   ? "border-emerald-500/40 bg-emerald-500/10" :
+                          step.active ? "border-orange-500/50 bg-orange-500/10 ring-2 ring-orange-500/20" :
+                                        "border-white/[0.06] bg-white/[0.02]"
+                        }`}>
+                          {step.icon}
+                        </div>
+                        {i < arr.length - 1 && (
+                          <div className={`w-px flex-1 min-h-[16px] mt-1 ${step.done ? "bg-emerald-500/30" : "bg-white/[0.06]"}`} />
+                        )}
+                      </div>
+                      {/* Text */}
+                      <div className="flex-1 min-w-0 pt-0.5">
+                        <div className="flex items-center justify-between gap-2">
+                          <p className={`text-xs font-semibold truncate ${step.active ? "text-orange-300" : step.done ? "text-white" : "text-neutral-600"}`}>
+                            {step.label}
+                          </p>
+                          <span className={`text-[10px] flex-shrink-0 ${step.done || step.active ? "text-neutral-500" : "text-neutral-700"}`}>{step.time}</span>
+                        </div>
+                        {step.active && (
+                          <p className="text-[10px] text-orange-400/80 mt-0.5 flex items-center gap-1">
+                            <span className="w-1 h-1 rounded-full bg-orange-400 inline-block animate-pulse" />
+                            {lang === "fr" ? "Mise à jour il y a 3 min" : "Updated 3 min ago"}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Footer */}
+                <div className="px-5 py-3 border-t border-white/[0.04] flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="flex -space-x-1">
+                      {["🇵🇹","🇪🇸"].map(f => <span key={f} className="text-base">{f}</span>)}
+                    </div>
+                    <span className="text-neutral-600 text-[10px]">Lisbonne → Madrid</span>
+                  </div>
+                  <div className="text-[10px] text-neutral-600">DPD · {lang === "fr" ? "Estimé" : "ETA"}: 13h–17h</div>
+                </div>
+              </div>
+
+              {/* Floating notif */}
+              <div className="absolute -right-4 -top-4 flex items-center gap-2 bg-[#0d0d0d] border border-emerald-500/25 rounded-xl px-3 py-2.5 shadow-2xl">
+                <div className="w-6 h-6 rounded-lg bg-emerald-500/15 border border-emerald-500/25 flex items-center justify-center text-xs">📬</div>
+                <div>
+                  <p className="text-[10px] text-neutral-500">{lang === "fr" ? "Notif client" : "Client notif"}</p>
+                  <p className="text-xs font-bold text-white">{lang === "fr" ? "SMS envoyé ✓" : "SMS sent ✓"}</p>
+                </div>
+              </div>
+
+              <div className="absolute -left-4 -bottom-4 flex items-center gap-2 bg-[#0d0d0d] border border-orange-500/25 rounded-xl px-3 py-2.5 shadow-2xl">
+                <div className="w-6 h-6 rounded-lg bg-orange-500/15 border border-orange-500/25 flex items-center justify-center text-xs">📦</div>
+                <div>
+                  <p className="text-[10px] text-neutral-500">{lang === "fr" ? "Colis scanné" : "Parcel scanned"}</p>
+                  <p className="text-xs font-bold text-white">Barcelone Hub</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ── Bento Features ─────────────────────────────────────── */}
       <section id="features" className="py-16 sm:py-24 px-4 sm:px-6" style={{ background: "#080808" }}>
         <div className="max-w-6xl mx-auto">
