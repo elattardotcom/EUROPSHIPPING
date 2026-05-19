@@ -9,11 +9,8 @@ export async function POST(req: Request) {
   const topic   = req.headers.get("X-Shopify-Topic") ?? ""
   const shop    = req.headers.get("X-Shopify-Shop-Domain") ?? ""
 
-  // Vérifie la signature HMAC seulement si le secret est configuré
-  if (process.env.SHOPIFY_WEBHOOK_SECRET && hmac) {
-    if (!verifyWebhookHmac(rawBody, hmac)) {
-      return NextResponse.json({ error: "HMAC invalide" }, { status: 401 })
-    }
+  if (!hmac || !verifyWebhookHmac(rawBody, hmac)) {
+    return NextResponse.json({ error: "HMAC invalide" }, { status: 401 })
   }
 
   const sb = getSupabaseAdmin()
