@@ -44,8 +44,8 @@ export async function POST(req: NextRequest) {
     }
 
     const phoneDigits = (phone ?? "").replace(/\D/g, "")
-    if (phoneDigits.length !== 9 || phoneDigits.startsWith("0")) {
-      return NextResponse.json({ error: "Numéro de téléphone invalide (9 chiffres sans le 0 initial)" }, { status: 400 })
+    if (phoneDigits.length < 6 || phoneDigits.length > 15) {
+      return NextResponse.json({ error: "Numéro de téléphone invalide" }, { status: 400 })
     }
 
     const storedPhone = fullPhone?.trim() ?? phoneDigits

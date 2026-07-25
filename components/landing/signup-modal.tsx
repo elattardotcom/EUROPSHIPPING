@@ -61,12 +61,8 @@ export function SignupModal({
     e.preventDefault(); setError("")
 
     const phoneDigits = signup.phone.replace(/\D/g, "")
-    if (phoneDigits.startsWith("0")) {
-      setError("Ne pas inclure le 0 au début — le code pays (+212, +33…) est déjà ajouté.")
-      return
-    }
-    if (phoneDigits.length !== 9) {
-      setError("Le numéro doit contenir exactement 9 chiffres sans le 0 initial.")
+    if (phoneDigits.length < 6 || phoneDigits.length > 15) {
+      setError("Numéro de téléphone invalide.")
       return
     }
 
@@ -234,10 +230,10 @@ export function SignupModal({
                 </select>
                 <input type="tel" placeholder="612345678" required
                   value={signup.phone}
-                  onChange={e => setSignup(f => ({ ...f, phone: e.target.value.replace(/\D/g, "").slice(0, 9) }))}
+                  onChange={e => setSignup(f => ({ ...f, phone: e.target.value.replace(/\D/g, "").slice(0, 15) }))}
                   className={INPUT} />
               </div>
-              <p className="text-[11px] text-neutral-700 mt-1">9 chiffres sans le 0 initial</p>
+              <p className="text-[11px] text-neutral-700 mt-1">Numéro sans le code pays</p>
             </div>
             <div>
               <label className="block text-xs font-medium text-neutral-500 mb-1.5">Boutique</label>
