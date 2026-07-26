@@ -26,6 +26,10 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
   const [drawerOpen,   setDrawerOpen]   = useState(false)
   const [showNotifs,   setShowNotifs]   = useState(false)
   const [counts,       setCounts]       = useState<Counts>({ clients: 0, orders: 0, leads: 0, withdrawals: 0, requests: 0 })
+  const [seenCounts,   setSeenCounts]   = useState<Record<string, number>>(() => {
+    if (typeof window === "undefined") return {}
+    try { return JSON.parse(localStorage.getItem("admin_notif_seen") ?? "{}") } catch { return {} }
+  })
   const [showWarning,  setShowWarning]  = useState(false)
   const [countdown,    setCountdown]    = useState(300) // seconds remaining when warning shows
   const drawerRef      = useRef<HTMLDivElement>(null)
@@ -102,6 +106,23 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
   }, [showNotifs])
 
   if (pathname === "/admin/login") return <>{children}</>
+
+  const markSeen = (key: string) => {
+    const count = (counts as unknown as Record<string, number>)[key] ?? 0
+    setSeenCounts(prev => {
+      const next = { ...prev, [key]: count }
+      try { localStorage.setItem("admin_notif_seen", JSON.stringify(next)) } catch {}
+      return next
+    })
+  }
+
+  const unread = {
+    requests:    Math.max(0, counts.requests    - (seenCounts.requests    ?? 0)),
+    withdrawals: Math.max(0, counts.withdrawals - (seenCounts.withdrawals ?? 0)),
+    orders:      Math.max(0, counts.orders      - (seenCounts.orders      ?? 0)),
+    leads:       Math.max(0, counts.leads       - (seenCounts.leads       ?? 0)),
+  }
+  const totalUnread = unread.requests + unread.withdrawals + unread.orders + unread.leads
 
   const logout = async () => {
     await fetch("/api/admin/logout", { method: "POST" })
@@ -340,8 +361,10 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
                 onClick={() => setShowNotifs(v => !v)}
                 className="relative text-neutral-500 hover:text-white hover:bg-neutral-800 w-9 h-9">
                 <Bell className="w-4 h-4 md:w-5 md:h-5" />
-                {(counts.orders + counts.withdrawals + counts.requests) > 0 && (
-                  <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-orange-500 rounded-full animate-pulse border border-neutral-900" />
+                {totalUnread > 0 && (
+                  <span className="absolute -top-1 -right-1 min-w-[16px] h-4 bg-orange-500 rounded-full animate-pulse border border-neutral-900 flex items-center justify-center text-[9px] font-black text-white px-0.5">
+                    {totalUnread > 9 ? "9+" : totalUnread}
+                  </span>
                 )}
               </Button>
 
@@ -354,9 +377,9 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
                       <Bell className="w-3.5 h-3.5 text-orange-400" />
                       <span className="text-sm font-bold text-white">Notifications</span>
                     </div>
-                    {(counts.orders + counts.withdrawals + counts.requests) > 0 && (
+                    {totalUnread > 0 && (
                       <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400 border border-orange-500/30">
-                        {counts.orders + counts.withdrawals + counts.requests} nouvelles
+                        {totalUnread} nouvelle{totalUnread > 1 ? "s" : ""}
                       </span>
                     )}
                   </div>
@@ -364,38 +387,45 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
                   {/* Items */}
                   <div className="py-1">
                     {[
-                      { label: "Demandes d'inscription",  count: counts.requests,    href: "/admin/requests",    color: "#8b5cf6", dot: "rgba(139,92,246,0.2)",  desc: "En attente d'approbation" },
-                      { label: "Retraits en attente",      count: counts.withdrawals, href: "/admin/withdrawals", color: "#f59e0b", dot: "rgba(245,158,11,0.2)",  desc: "À traiter" },
-                      { label: "Nouvelles commandes",      count: counts.orders,      href: "/admin/orders",      color: "#f97316", dot: "rgba(249,115,22,0.2)",  desc: "Commandes récentes" },
-                      { label: "Leads en attente",         count: counts.leads,       href: "/admin/leads",       color: "#3b82f6", dot: "rgba(59,130,246,0.2)",  desc: "À confirmer" },
+                      { key: "requests",    label: "Demandes d'inscription", count: counts.requests,    unreadCount: unread.requests,    href: "/admin/requests",    color: "#8b5cf6", dot: "rgba(139,92,246,0.15)", desc: "En attente d'approbation" },
+                      { key: "withdrawals", label: "Retraits en attente",     count: counts.withdrawals, unreadCount: unread.withdrawals, href: "/admin/withdrawals", color: "#f59e0b", dot: "rgba(245,158,11,0.15)", desc: "À traiter" },
+                      { key: "orders",      label: "Nouvelles commandes",     count: counts.orders,      unreadCount: unread.orders,      href: "/admin/orders",      color: "#f97316", dot: "rgba(249,115,22,0.15)", desc: "Commandes récentes" },
+                      { key: "leads",       label: "Leads en attente",        count: counts.leads,       unreadCount: unread.leads,       href: "/admin/leads",       color: "#3b82f6", dot: "rgba(59,130,246,0.15)", desc: "À confirmer" },
                     ].map(item => (
-                      <Link key={item.href} href={item.href} onClick={() => setShowNotifs(false)}
-                        className="flex items-center gap-3 px-4 py-3 hover:bg-white/[0.03] transition-colors group">
+                      <Link key={item.href} href={item.href}
+                        onClick={() => { markSeen(item.key); setShowNotifs(false) }}
+                        className="flex items-center gap-3 px-4 py-3 hover:bg-white/[0.03] transition-colors group relative">
+                        {item.unreadCount > 0 && (
+                          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-6 rounded-r-full" style={{ background: item.color }} />
+                        )}
                         <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-                          style={{ background: item.dot }}>
-                          <span className="text-sm font-black" style={{ color: item.color }}>
+                          style={{ background: item.unreadCount > 0 ? item.dot : "rgba(255,255,255,0.04)" }}>
+                          <span className="text-sm font-black" style={{ color: item.unreadCount > 0 ? item.color : "#4b5563" }}>
                             {item.count > 0 ? item.count : "—"}
                           </span>
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm text-white font-medium group-hover:text-orange-400 transition-colors">{item.label}</p>
-                          <p className="text-[10px] text-neutral-600">{item.desc}</p>
+                          <p className={`text-sm font-medium transition-colors group-hover:text-orange-400 ${item.unreadCount > 0 ? "text-white" : "text-neutral-500"}`}>
+                            {item.label}
+                          </p>
+                          <p className="text-[10px] text-neutral-600">{item.unreadCount > 0 ? `${item.unreadCount} non lu${item.unreadCount > 1 ? "s" : ""}` : item.desc}</p>
                         </div>
-                        {item.count > 0 && (
-                          <span className="w-2 h-2 rounded-full flex-shrink-0 animate-pulse" style={{ background: item.color }} />
-                        )}
+                        {item.unreadCount > 0
+                          ? <span className="text-[10px] font-black px-1.5 py-0.5 rounded-full" style={{ background: item.dot, color: item.color }}>{item.unreadCount}</span>
+                          : <span className="text-[10px] text-neutral-700">✓ Lu</span>
+                        }
                       </Link>
                     ))}
                   </div>
 
                   {/* Footer */}
                   <div className="px-4 py-2.5" style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
-                    {(counts.orders + counts.withdrawals + counts.requests + counts.leads) === 0
+                    {totalUnread === 0
                       ? <p className="text-xs text-neutral-600 text-center py-1">Tout est à jour ✓</p>
-                      : <Link href="/admin/requests" onClick={() => setShowNotifs(false)}
-                          className="block w-full text-center text-xs font-bold text-orange-400 hover:text-orange-300 py-1 transition-colors">
-                          Voir toutes les demandes →
-                        </Link>
+                      : <button onClick={() => { ["requests","withdrawals","orders","leads"].forEach(markSeen); setShowNotifs(false) }}
+                          className="block w-full text-center text-xs font-bold text-neutral-500 hover:text-neutral-300 py-1 transition-colors">
+                          Tout marquer comme lu
+                        </button>
                     }
                   </div>
                 </div>
