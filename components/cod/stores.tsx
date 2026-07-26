@@ -133,7 +133,21 @@ function WebhookView({
   banner: { type: "success" | "error"; msg: string } | null
   setBanner: (b: { type: "success" | "error"; msg: string } | null) => void
 }) {
-  const [copied, setCopied] = useState(false)
+  const [copied,      setCopied]      = useState(false)
+  const [stores,      setStores]      = useState<RealStore[]>([])
+  const [domain,      setDomain]      = useState("")
+  const [token,       setToken]       = useState("")
+  const [showToken,   setShowToken]   = useState(false)
+  const [connecting,  setConnecting]  = useState(false)
+  const [formErr,     setFormErr]     = useState("")
+  const [syncing,     setSyncing]     = useState<string | null>(null)
+  const [disconnecting, setDisconnecting] = useState<string | null>(null)
+
+  useEffect(() => {
+    fetch("/api/stores").then(r => r.json()).then(d => {
+      if (Array.isArray(d)) setStores(d)
+    }).catch(() => {})
+  }, [])
 
   const copy = () => {
     if (!webhookUrl) return
@@ -143,101 +157,182 @@ function WebhookView({
     })
   }
 
+  const handleConnect = async (e: React.FormEvent) => {
+    e.preventDefault()
+    const clean = domain.trim().toLowerCase().replace(/^https?:\/\//, "").replace(/\/$/, "")
+    if (!clean.includes(".myshopify.com")) { setFormErr("Le domaine doit se terminer par .myshopify.com"); return }
+    if (!token.trim()) { setFormErr("Le token est requis"); return }
+    setConnecting(true); setFormErr("")
+    const res  = await fetch("/api/stores/connect", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ domain: clean, accessToken: token.trim() }),
+    }).catch(() => null)
+    if (!res || !res.ok) {
+      const data = res ? await res.json().catch(() => ({})) : {}
+      setFormErr(data.error ?? "Erreur de connexion")
+      setConnecting(false); return
+    }
+    const { store } = await res.json()
+    setStores(prev => [...prev.filter(s => s.domain !== store.domain), { ...store, status: "connected", last_sync: null }])
+    setDomain(""); setToken("")
+    setBanner({ type: "success", msg: `Boutique ${store.name} connectée ! Synchronisation des produits en cours…` })
+    setConnecting(false)
+  }
+
+  const syncStore = async (id: string) => {
+    setSyncing(id)
+    await fetch("/api/shopify/sync-store", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ storeId: id }) }).catch(() => {})
+    setSyncing(null)
+    setBanner({ type: "success", msg: "Synchronisation terminée." })
+  }
+
+  const disconnectStore = async (id: string) => {
+    if (!confirm("Déconnecter cette boutique ? Les produits associés seront supprimés.")) return
+    setDisconnecting(id)
+    const res = await fetch(`/api/stores/${id}`, { method: "DELETE" }).catch(() => null)
+    if (res?.ok) setStores(prev => prev.filter(s => s.id !== id))
+    setDisconnecting(null)
+  }
+
+  const INPUT = "w-full bg-neutral-800 border border-neutral-700 rounded-xl px-4 py-3 text-white text-sm placeholder:text-neutral-500 focus:outline-none focus:border-orange-500/60 transition-colors font-mono"
+
   return (
-    <div className="max-w-2xl mx-auto py-8">
+    <div className="max-w-2xl mx-auto py-8 space-y-8">
+
       {/* Banner */}
       {banner && (
-        <div className={`flex items-start gap-3 mb-6 px-4 py-3.5 rounded-xl border text-sm ${
-          banner.type === "success"
-            ? "bg-emerald-500/10 border-emerald-500/25 text-emerald-300"
-            : "bg-red-500/10 border-red-500/25 text-red-300"
-        }`}>
-          {banner.type === "success"
-            ? <CheckCircle className="w-4 h-4 flex-shrink-0 mt-0.5 text-emerald-400" />
-            : <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5 text-red-400" />
-          }
+        <div className={`flex items-start gap-3 px-4 py-3.5 rounded-xl border text-sm ${banner.type === "success" ? "bg-emerald-500/10 border-emerald-500/25 text-emerald-300" : "bg-red-500/10 border-red-500/25 text-red-300"}`}>
+          {banner.type === "success" ? <CheckCircle className="w-4 h-4 flex-shrink-0 mt-0.5 text-emerald-400" /> : <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5 text-red-400" />}
           <p className="flex-1">{banner.msg}</p>
           <button onClick={() => setBanner(null)}><X className="w-4 h-4" /></button>
         </div>
       )}
 
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-black text-white mb-1">Connecter Shopify</h1>
-        <p className="text-neutral-500 text-sm">Copiez votre URL webhook et collez-la dans Shopify — 3 étapes, moins de 2 minutes.</p>
+      <div>
+        <h1 className="text-2xl font-black text-white mb-1">Intégrations Shopify</h1>
+        <p className="text-neutral-500 text-sm">Connectez vos boutiques pour recevoir commandes et produits automatiquement.</p>
       </div>
 
-      {/* Webhook URL card */}
-      <div className="relative rounded-2xl border border-orange-500/20 bg-neutral-900 overflow-hidden mb-8">
-        <div className="absolute inset-x-0 top-0 h-px" style={{ background: "linear-gradient(90deg,transparent,rgba(249,115,22,0.5),transparent)" }} />
-        <div className="p-6">
-          <div className="flex items-center gap-2 mb-3">
+      {/* ── SECTION 1 : Commandes via webhook ── */}
+      <div className="rounded-2xl border border-neutral-800 bg-neutral-900 overflow-hidden">
+        <div className="px-6 py-4 border-b border-neutral-800 flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-orange-500/10 border border-orange-500/20 flex items-center justify-center flex-shrink-0">
             <Zap className="w-4 h-4 text-orange-400" />
-            <p className="text-white font-bold text-sm">Votre URL Webhook unique</p>
-            <span className="text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-full font-bold">PRÊT</span>
           </div>
-          <div className="flex items-center gap-3">
-            <div className="flex-1 bg-neutral-800 border border-neutral-700 rounded-xl px-4 py-3 font-mono text-xs text-neutral-300 overflow-x-auto whitespace-nowrap">
-              {webhookUrl || "Chargement…"}
+          <div>
+            <p className="text-white font-bold text-sm">Commandes en temps réel</p>
+            <p className="text-neutral-500 text-xs">Webhook Shopify — aucune app requise</p>
+          </div>
+          <span className="ml-auto text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-full font-bold">PRÊT</span>
+        </div>
+        <div className="p-6 space-y-4">
+          <div>
+            <p className="text-xs font-semibold text-neutral-500 mb-2 uppercase tracking-wider">Votre URL webhook</p>
+            <div className="flex items-center gap-3">
+              <div className="flex-1 bg-neutral-800 border border-neutral-700 rounded-xl px-4 py-3 font-mono text-xs text-neutral-300 overflow-x-auto whitespace-nowrap">
+                {webhookUrl || "Chargement…"}
+              </div>
+              <button onClick={copy} disabled={!webhookUrl}
+                className={`flex-shrink-0 flex items-center gap-2 px-4 py-3 rounded-xl font-bold text-sm transition-all disabled:opacity-40 ${copied ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30" : "text-white border border-neutral-700 hover:border-orange-500/40"}`}
+                style={copied ? {} : { background: "rgba(249,115,22,0.08)" }}>
+                {copied ? <><Check className="w-4 h-4" />Copié !</> : <><Copy className="w-4 h-4" />Copier</>}
+              </button>
             </div>
-            <button
-              onClick={copy}
-              disabled={!webhookUrl}
-              className={`flex-shrink-0 flex items-center gap-2 px-4 py-3 rounded-xl font-bold text-sm transition-all disabled:opacity-40 ${
-                copied
-                  ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
-                  : "text-white border border-neutral-600 hover:border-orange-500/50 hover:bg-orange-500/5"
-              }`}
-              style={copied ? {} : { background: "rgba(249,115,22,0.1)" }}
-            >
-              {copied ? <><Check className="w-4 h-4" />Copié !</> : <><Copy className="w-4 h-4" />Copier</>}
-            </button>
           </div>
-          <p className="text-neutral-600 text-xs mt-2">Cette URL est unique à votre compte — ne la partagez pas.</p>
+          <div className="space-y-2">
+            {WEBHOOK_STEPS.map((s, i) => (
+              <div key={i} className="flex items-start gap-3 text-sm">
+                <span className="flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black mt-0.5" style={{ background: s.bg, color: s.color, border: `1px solid ${s.border}` }}>{s.num}</span>
+                <div>
+                  <span className="text-white font-medium">{s.title} </span>
+                  <span className="text-neutral-500">{s.desc}</span>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Steps */}
-      <p className="text-xs font-bold text-neutral-600 uppercase tracking-widest mb-5">Comment configurer Shopify</p>
-      <div className="space-y-3 mb-8">
-        {WEBHOOK_STEPS.map((s, i) => (
-          <div key={i} className="group flex gap-4 p-5 rounded-2xl border border-neutral-800 hover:border-neutral-700 transition-all bg-neutral-900">
-            <div className="flex-shrink-0 flex flex-col items-center gap-2">
-              <div className="w-11 h-11 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110"
-                style={{ background: s.bg, border: `1px solid ${s.border}` }}>
-                <s.icon className="w-5 h-5" style={{ color: s.color }} />
-              </div>
-              {i < WEBHOOK_STEPS.length - 1 && (
-                <div className="w-px flex-1 min-h-[20px]" style={{ background: `${s.color}20` }} />
-              )}
-            </div>
-            <div className="pt-1.5 pb-1">
-              <div className="flex items-center gap-2 mb-1.5">
-                <span className="text-[10px] font-black px-1.5 py-0.5 rounded" style={{ color: s.color, background: s.bg }}>
-                  ÉTAPE {s.num}
-                </span>
-                <h3 className="text-white font-bold text-sm">{s.title}</h3>
-              </div>
-              <p className="text-neutral-500 text-sm leading-relaxed">{s.desc}</p>
-            </div>
+      {/* ── SECTION 2 : Boutiques connectées ── */}
+      {stores.length > 0 && (
+        <div className="rounded-2xl border border-neutral-800 bg-neutral-900 overflow-hidden">
+          <div className="px-5 py-4 border-b border-neutral-800">
+            <p className="text-white font-bold text-sm">Boutiques connectées ({stores.length})</p>
           </div>
-        ))}
+          <div className="divide-y divide-neutral-800">
+            {stores.map(s => (
+              <div key={s.id} className="flex items-center gap-4 px-5 py-4 hover:bg-neutral-800/30 transition-colors">
+                <div className="text-xl flex-shrink-0">🛍️</div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <p className="text-white font-semibold text-sm">{s.name}</p>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full border text-emerald-400 bg-emerald-500/10 border-emerald-500/20">Connectée</span>
+                  </div>
+                  <p className="text-neutral-600 text-xs font-mono">{s.domain}</p>
+                </div>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <a href="/dashboard/products" className="text-xs text-orange-400 hover:text-orange-300 flex items-center gap-1">
+                    Produits <ArrowRight className="w-3 h-3" />
+                  </a>
+                  <button onClick={() => syncStore(s.id)} disabled={syncing === s.id}
+                    className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium text-blue-400 border border-blue-500/20 bg-blue-500/5 hover:bg-blue-500/15 transition-colors disabled:opacity-50">
+                    {syncing === s.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
+                    Sync
+                  </button>
+                  <button onClick={() => disconnectStore(s.id)} disabled={disconnecting === s.id}
+                    className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium text-red-400 border border-red-500/20 bg-red-500/5 hover:bg-red-500/15 transition-colors disabled:opacity-50">
+                    {disconnecting === s.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Unplug className="w-3 h-3" />}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── SECTION 3 : Produits via token ── */}
+      <div className="rounded-2xl border border-neutral-800 bg-neutral-900 overflow-hidden">
+        <div className="px-6 py-4 border-b border-neutral-800 flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center flex-shrink-0">
+            <Package className="w-4 h-4 text-purple-400" />
+          </div>
+          <div>
+            <p className="text-white font-bold text-sm">Synchroniser les produits</p>
+            <p className="text-neutral-500 text-xs">Via application personnalisée Shopify — importe votre catalogue</p>
+          </div>
+        </div>
+        <form onSubmit={handleConnect} className="p-6 space-y-4">
+          {formErr && (
+            <div className="flex items-center gap-2 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 text-red-400 text-sm">
+              <AlertCircle className="w-4 h-4 flex-shrink-0" />{formErr}
+            </div>
+          )}
+          <div>
+            <label className="block text-xs font-semibold text-neutral-500 mb-2 uppercase tracking-wider">Domaine Shopify</label>
+            <input type="text" value={domain} onChange={e => { setDomain(e.target.value); setFormErr("") }}
+              placeholder="ma-boutique.myshopify.com" required className={INPUT} />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-neutral-500 mb-2 uppercase tracking-wider">Token d&apos;accès Admin API</label>
+            <div className="relative">
+              <input type={showToken ? "text" : "password"} value={token} onChange={e => { setToken(e.target.value); setFormErr("") }}
+                placeholder="shpat_xxxxxxxxxxxxxxxxxxxx" required className={INPUT + " pr-12"} />
+              <button type="button" onClick={() => setShowToken(v => !v)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-neutral-300">
+                {showToken ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+              </button>
+            </div>
+            <p className="text-neutral-600 text-xs mt-1.5">Paramètres → Applications → Développer des applications → Credentials de l&apos;API</p>
+          </div>
+          <button type="submit" disabled={connecting}
+            className="flex items-center gap-2 font-bold text-sm text-white px-6 py-3 rounded-xl transition-all disabled:opacity-60"
+            style={{ background: "linear-gradient(135deg,#a855f7,#7c3aed)", boxShadow: "0 4px 16px rgba(168,85,247,0.2)" }}>
+            {connecting ? <><Loader2 className="w-4 h-4 animate-spin" />Connexion…</> : <><CheckCircle className="w-4 h-4" />Connecter et importer les produits</>}
+          </button>
+        </form>
       </div>
 
-      {/* Info footer */}
-      <div className="grid grid-cols-3 gap-3">
-        {[
-          { icon: "⚡", label: "Temps réel", sub: "Nouvelles commandes instantanées" },
-          { icon: "🛒", label: "Multi-boutiques", sub: "Répétez pour chaque boutique" },
-          { icon: "🔒", label: "Sécurisé", sub: "URL unique par compte" },
-        ].map(b => (
-          <div key={b.label} className="text-center p-4 rounded-xl border border-neutral-800 bg-neutral-900">
-            <div className="text-2xl mb-2">{b.icon}</div>
-            <p className="text-white text-xs font-bold mb-0.5">{b.label}</p>
-            <p className="text-neutral-600 text-[10px]">{b.sub}</p>
-          </div>
-        ))}
-      </div>
     </div>
   )
 }
