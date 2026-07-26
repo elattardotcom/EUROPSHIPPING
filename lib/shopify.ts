@@ -31,14 +31,19 @@ export async function exchangeCodeForToken(shop: string, code: string): Promise<
 
 export function verifyOAuthCallback(query: URLSearchParams): boolean {
   const hmac = query.get("hmac")
-  if (!hmac) return false
+  if (!hmac || !API_SECRET) return false
   const params = [...query.entries()]
     .filter(([k]) => k !== "hmac")
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([k, v]) => `${k}=${v}`)
     .join("&")
   const computed = crypto.createHmac("sha256", API_SECRET).update(params).digest("hex")
-  return crypto.timingSafeEqual(Buffer.from(computed), Buffer.from(hmac))
+  try {
+    const a = Buffer.from(computed, "hex")
+    const b = Buffer.from(hmac,     "hex")
+    if (a.length !== b.length) return false
+    return crypto.timingSafeEqual(a, b)
+  } catch { return false }
 }
 
 /* ── API Shopify ────────────────────────────────────────────────────────── */
