@@ -68,9 +68,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: storeErr?.message ?? "Erreur sauvegarde boutique" }, { status: 500 })
   }
 
+  const debug: Record<string, unknown> = {}
+
   // ── Sync produits ────────────────────────────────────────────────────────
   try {
     const shopifyProducts = await fetchShopifyProducts(cleanDomain, token)
+    debug.products_fetched = shopifyProducts.length
     const productRows = shopifyProducts.map(p => {
       const { price, currency } = extractPricing(p)
       return {
@@ -84,24 +87,24 @@ export async function POST(req: NextRequest) {
       }
     })
     if (productRows.length > 0) {
-      await sb.from("products").upsert(productRows, { onConflict: "store_id,shopify_id" })
+      const { error: pe } = await sb.from("products").upsert(productRows, { onConflict: "store_id,shopify_id" })
+      debug.products_error = pe?.message ?? null
     }
     await sb.from("stores").update({ last_sync: new Date().toISOString() }).eq("id", store.id)
-  } catch { /* sync produits échouée silencieusement */ }
+  } catch (e) { debug.products_exception = String(e) }
 
   // ── Sync commandes historiques ───────────────────────────────────────────
   try {
     const orders = await fetchShopifyOrders(cleanDomain, token)
+    debug.orders_fetched = orders.length
     const leadRows = orders.map(order => {
       const customer  = order.customer  as Record<string, string> | undefined
       const billing   = order.billing_address  as Record<string, string> | undefined
       const shipping  = order.shipping_address as Record<string, string> | undefined
       const lineItems = order.line_items as Array<{ title: string }> | undefined
-
       const firstName    = customer?.first_name ?? ""
       const lastName     = customer?.last_name  ?? ""
       const customerName = `${firstName} ${lastName}`.trim() || billing?.name || "Client"
-
       return {
         id:             `shopify_${order.id}`,
         client_id:      clientId,
@@ -119,12 +122,13 @@ export async function POST(req: NextRequest) {
         created_at:     (order.created_at as string) ?? new Date().toISOString(),
       }
     })
-
     const CHUNK = 100
     for (let i = 0; i < leadRows.length; i += CHUNK) {
-      await sb.from("leads").upsert(leadRows.slice(i, i + CHUNK), { onConflict: "id" })
+      const { error: le } = await sb.from("leads").upsert(leadRows.slice(i, i + CHUNK), { onConflict: "id" })
+      if (le) { debug.leads_error = le.message; break }
     }
-  } catch { /* sync commandes échouée silencieusement */ }
+    debug.leads_inserted = leadRows.length
+  } catch (e) { debug.orders_exception = String(e) }
 
-  return NextResponse.json({ store })
+  return NextResponse.json({ store, debug })
 }
