@@ -37,11 +37,15 @@ export async function GET(req: Request) {
         headers: { "Content-Type": "application/json" },
         body:    JSON.stringify({ client_id: API_KEY, client_secret: API_SECRET, code }),
       })
-      if (!res.ok) return errRedirect(`token_${res.status}`)
+      if (!res.ok) {
+        let body = ""
+        try { body = await res.text() } catch { /* ignore */ }
+        return errRedirect(`token_${res.status}_${body.slice(0, 60)}`)
+      }
       const data = await res.json()
       accessToken = data.access_token as string
     } catch (e) {
-      return errRedirect(`token_error_${String(e).slice(0, 30)}`)
+      return errRedirect(`token_error_${String(e).slice(0, 50)}`)
     }
 
     if (!accessToken) return errRedirect("token_vide")
