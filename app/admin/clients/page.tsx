@@ -111,9 +111,7 @@ export default function AdminClients() {
             <select value={planF} onChange={e=>{setPlan(e.target.value as Plan|"ALL");setPage(1)}}
               className="w-full appearance-none bg-neutral-900 border border-neutral-800 rounded-xl pl-4 pr-9 py-2.5 text-sm text-neutral-300 focus:outline-none focus:border-orange-500 cursor-pointer">
               <option value="ALL">{t("clients_all_plans")}</option>
-              <option value="enterprise">Enterprise</option>
               <option value="pro">Pro</option>
-              <option value="starter">Starter</option>
             </select>
             <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-neutral-500 pointer-events-none" />
           </div>

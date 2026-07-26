@@ -194,9 +194,7 @@ export default function ClientDetail({ params }: { params: Promise<{ id: string 
             <div className="flex items-center gap-2">
               <select value={editPlan} onChange={e => setEditPlan(e.target.value)}
                 className="flex-1 bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-orange-500">
-                <option value="starter">Starter</option>
-                <option value="pro">Pro</option>
-                <option value="enterprise">Enterprise</option>
+                <option value="pro">Pro — €31.99/mois</option>
               </select>
               <select value={editStatus} onChange={e => setEditStatus(e.target.value)}
                 className="flex-1 bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-orange-500">

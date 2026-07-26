@@ -89,9 +89,7 @@ export default function AdminAnalytics() {
   ).sort((a,b) => b[1].mrr - a[1].mrr)
 
   const byPlan = [
-    { plan:"Enterprise", clients:clients.filter(c=>c.plan==="enterprise").length, price:89, color:"bg-orange-500" },
-    { plan:"Pro",        clients:clients.filter(c=>c.plan==="pro").length,        price:59, color:"bg-amber-500"  },
-    { plan:"Starter",    clients:clients.filter(c=>c.plan==="starter").length,    price:29, color:"bg-neutral-400" },
+    { plan:"Pro", clients:clients.filter(c=>c.plan==="pro"||c.plan==="Pro"||c.plan==="starter"||c.plan==="enterprise").length, price:31.99, color:"bg-orange-500" },
   ]
 
   const topClients = [...clients].filter(c=>c.status==="active").sort((a,b)=>b.ordersCount-a.ordersCount).slice(0,5)

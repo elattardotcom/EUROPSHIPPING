@@ -186,29 +186,23 @@ export default function AdminDashboard() {
       {/* Revenue by plan */}
       <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-5">
         <h2 className="font-semibold text-white mb-5">{t("dash_revenue_plan")}</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {[
-            { plan:"Enterprise", key:"enterprise", price:89, color:"from-orange-500 to-red-600",      bar:"bg-orange-500" },
-            { plan:"Pro",        key:"pro",        price:59, color:"from-amber-500 to-orange-500",    bar:"bg-amber-500"  },
-            { plan:"Starter",    key:"starter",    price:29, color:"from-neutral-500 to-neutral-600", bar:"bg-neutral-500" },
-          ].map(r => {
-            const count = active.filter(c => c.plan === r.key).length
-            const rev   = count * r.price
-            const pct   = mrr > 0 ? Math.round((rev / mrr) * 100) : 0
-            return (
-              <div key={r.plan} className="bg-neutral-800/50 rounded-xl p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <span className={`px-2.5 py-1 rounded-lg bg-gradient-to-r ${r.color} text-white text-xs font-bold`}>{r.plan}</span>
-                  <span className="text-neutral-500 text-xs">{count} client{count!==1?"s":""}</span>
-                </div>
-                <div className="text-2xl font-bold text-white mb-1">€{rev}<span className="text-sm text-neutral-500 font-normal">/mo</span></div>
-                <div className="w-full h-1.5 bg-neutral-700 rounded-full overflow-hidden mb-1">
-                  <div className={`h-full ${r.bar} rounded-full transition-all duration-500`} style={{width:`${pct}%`}}/>
-                </div>
-                <p className="text-xs text-neutral-600">{pct}% {t("dash_of_mrr")}</p>
+        <div className="bg-neutral-800/50 rounded-xl p-5 flex items-center justify-between gap-6">
+          <div className="flex items-center gap-3">
+            <span className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-orange-500 to-red-600 text-white text-xs font-black">Pro · €31.99</span>
+            <span className="text-neutral-400 text-sm">{active.length} client{active.length!==1?"s":""} actifs</span>
+          </div>
+          <div className="flex items-center gap-6">
+            <div>
+              <p className="text-xs text-neutral-500 mb-0.5">MRR</p>
+              <p className="text-2xl font-bold text-white">€{mrr}<span className="text-sm text-neutral-500 font-normal">/mo</span></p>
+            </div>
+            <div className="w-32">
+              <div className="w-full h-2 bg-neutral-700 rounded-full overflow-hidden">
+                <div className="h-full bg-gradient-to-r from-orange-500 to-red-600 rounded-full" style={{width:"100%"}}/>
               </div>
-            )
-          })}
+              <p className="text-xs text-neutral-600 mt-1">100% du MRR</p>
+            </div>
+          </div>
         </div>
       </div>
 
