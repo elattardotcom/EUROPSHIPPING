@@ -92,7 +92,7 @@ export async function GET(req: Request) {
   }).catch(() => {}) // fire-and-forget, ne bloque pas la réponse
 
   // Supprime les cookies OAuth
-  const response = NextResponse.redirect(`${appUrl}/dashboard/products?connected=1`)
+  const response = NextResponse.redirect(`${appUrl}/dashboard/stores?connected=1`)
   response.cookies.delete("shopify_oauth_state")
   response.cookies.delete("shopify_oauth_shop")
 

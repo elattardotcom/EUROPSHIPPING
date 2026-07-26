@@ -1,14 +1,25 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useSearchParams, useRouter } from "next/navigation"
 import {
   Store, Plus, Settings, Trash2, RefreshCw, CheckCircle,
   AlertCircle, ExternalLink, ArrowRight, Copy, Check,
   Zap, Link2, ShoppingBag, Package, Lock, Unplug, Loader2,
+  X,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { getPlanLimits } from "@/lib/plan-limits"
 import { getClientIdFromCookie } from "@/lib/client-cookie"
+
+const ERROR_MESSAGES: Record<string, string> = {
+  state_invalide:    "Erreur de sécurité OAuth (state). Recommencez la connexion.",
+  shop_invalide:     "Le domaine Shopify ne correspond pas. Recommencez.",
+  hmac_invalide:     "Signature Shopify invalide. Vérifiez votre app Shopify.",
+  code_manquant:     "Code d'autorisation manquant. Recommencez la connexion.",
+  db_non_configuree: "Erreur de configuration serveur. Contactez le support.",
+  plan_limit:        "Limite de boutiques atteinte pour votre plan.",
+}
 
 interface ShopifyStore {
   id: string
@@ -176,6 +187,8 @@ interface RealStore {
 }
 
 export default function StoresPage() {
+  const searchParams = useSearchParams()
+  const router       = useRouter()
   const [clientId,       setClientId]       = useState(getClientIdFromCookie)
   const [plan,           setPlan]           = useState("starter")
   const [stores,         setStores]         = useState(DEMO_STORES)
@@ -184,8 +197,22 @@ export default function StoresPage() {
   const [showForm,       setShowForm]       = useState(false)
   const [disconnecting,  setDisconnecting]  = useState<string | null>(null)
   const [syncing,        setSyncing]        = useState<string | null>(null)
+  const [banner,         setBanner]         = useState<{ type: "success" | "error"; msg: string } | null>(null)
 
   const isDemo = clientId === "c1"
+
+  // Read OAuth result from URL params
+  useEffect(() => {
+    const connected = searchParams.get("connected")
+    const error     = searchParams.get("error")
+    if (connected === "1") {
+      setBanner({ type: "success", msg: "Boutique connectée avec succès ! Synchronisation des produits en cours…" })
+      router.replace("/dashboard/stores")
+    } else if (error) {
+      setBanner({ type: "error", msg: ERROR_MESSAGES[error] ?? `Erreur : ${error}` })
+      router.replace("/dashboard/stores")
+    }
+  }, [searchParams, router])
 
   useEffect(() => {
     fetch("/api/auth/me")
@@ -239,6 +266,24 @@ export default function StoresPage() {
           }
           .float-shop { animation: float-shop 3s ease-in-out infinite }
         `}</style>
+
+        {/* Success / error banner */}
+        {banner && (
+          <div className={`flex items-start gap-3 mb-6 px-4 py-3.5 rounded-xl border text-sm ${
+            banner.type === "success"
+              ? "bg-emerald-500/10 border-emerald-500/25 text-emerald-300"
+              : "bg-red-500/10 border-red-500/25 text-red-300"
+          }`}>
+            {banner.type === "success"
+              ? <CheckCircle className="w-4 h-4 flex-shrink-0 mt-0.5 text-emerald-400" />
+              : <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5 text-red-400" />
+            }
+            <p className="flex-1">{banner.msg}</p>
+            <button onClick={() => setBanner(null)} className="text-neutral-500 hover:text-white ml-2">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
 
         {/* Header */}
         <div className="flex items-center justify-between mb-10">

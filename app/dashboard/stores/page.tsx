@@ -1,9 +1,12 @@
+import { Suspense } from "react"
 import StoresPage from "@/components/cod/stores"
 
 export default function Page() {
   return (
     <div className="p-4 md:p-6">
-      <StoresPage />
+      <Suspense fallback={null}>
+        <StoresPage />
+      </Suspense>
     </div>
   )
 }
