@@ -230,13 +230,8 @@ export default function SettingsPage() {
     router.push("/")
   }
 
-  const PLANS = [
-    { id: "starter",    label: "Starter",    price: 29, stores: "1",       orders: "500 / mois",      support: "Email" },
-    { id: "pro",        label: "Pro",        price: 59, stores: "3",       orders: "2 000 / mois",    support: "Prioritaire" },
-    { id: "enterprise", label: "Enterprise", price: 89, stores: "Illimitées", orders: "Illimitées",   support: "Dédié 24/7" },
-  ]
-  const PLAN_LABELS: Record<string, string> = { starter: "Starter", pro: "Pro", enterprise: "Enterprise" }
-  const PLAN_PRICES: Record<string, string> = { starter: "€29 / mois", pro: "€59 / mois", enterprise: "€89 / mois" }
+  const PLAN_LABELS: Record<string, string> = { starter: "Pro", pro: "Pro", enterprise: "Pro" }
+  const PLAN_PRICES: Record<string, string> = { starter: "€31.99 / mois", pro: "€31.99 / mois", enterprise: "€31.99 / mois" }
 
   async function changePlan() {
     if (isDemo) { setPlanMsg({ type: "error", text: "Le compte démo ne peut pas être modifié." }); return }
@@ -705,136 +700,59 @@ export default function SettingsPage() {
             <div className="space-y-4">
               <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-6">
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-lg font-medium text-white">Plan actuel</h2>
-                  <span className="px-3 py-1 bg-orange-500/20 text-orange-400 border border-orange-500/30 rounded-full text-sm font-medium">
-                    {PLAN_LABELS[plan] ?? "Starter"}
+                  <h2 className="text-lg font-medium text-white">Abonnement</h2>
+                  <span className="px-3 py-1 bg-orange-500/20 text-orange-400 border border-orange-500/30 rounded-full text-sm font-black">
+                    Pro · €31.99/mois
                   </span>
                 </div>
 
                 {planMsg && <div className="mb-4"><Alert type={planMsg.type} msg={planMsg.text} /></div>}
 
-                {/* Static info */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                  {[
-                    { label: "Abonnement mensuel",   value: PLAN_PRICES[plan] ?? "€29 / mois" },
-                    { label: "Prochaine facturation", value: "—" },
-                  ].map((item) => (
-                    <div key={item.label} className="bg-neutral-800/50 rounded-xl p-4">
-                      <p className="text-xs text-neutral-500 mb-1">{item.label}</p>
-                      <p className="text-white font-medium text-sm">{item.value}</p>
+                {/* Plan card */}
+                <div className="rounded-xl border border-orange-500/20 bg-orange-500/5 p-5 mb-6">
+                  <div className="flex items-start justify-between mb-4">
+                    <div>
+                      <p className="text-white font-black text-lg">CODShipEurope Pro</p>
+                      <p className="text-neutral-500 text-xs mt-0.5">Accès complet à toutes les fonctionnalités</p>
                     </div>
-                  ))}
-                </div>
-
-                {/* Usage bars */}
-                {(() => {
-                  const limits = getPlanLimits(plan)
-                  const storeMax   = limits.stores === Infinity ? null : limits.stores
-                  const orderMax   = limits.ordersPerMonth === Infinity ? null : limits.ordersPerMonth
-                  const storePct   = storeMax ? Math.min(100, (storesUsed / storeMax) * 100) : 0
-                  const orderPct   = orderMax ? Math.min(100, (ordersUsed / orderMax) * 100) : 0
-                  const storeWarn  = storePct >= 100
-                  const orderWarn  = orderPct >= 80
-                  return (
-                    <div className="space-y-4 mb-6">
-                      <div className="bg-neutral-800/50 rounded-xl p-4">
-                        <div className="flex items-center justify-between mb-2">
-                          <p className="text-xs text-neutral-400 font-medium">Boutiques connectées</p>
-                          <p className={`text-xs font-bold ${storeWarn ? "text-red-400" : "text-white"}`}>
-                            {storesUsed} / {storeMax ?? "∞"}
-                          </p>
-                        </div>
-                        <div className="h-1.5 rounded-full bg-neutral-700 overflow-hidden">
-                          <div
-                            className={`h-full rounded-full transition-all ${storeWarn ? "bg-red-500" : "bg-orange-500"}`}
-                            style={{ width: storeMax ? `${storePct}%` : "0%" }}
-                          />
-                        </div>
-                        {storeWarn && (
-                          <p className="text-[10px] text-red-400 mt-1.5">Limite atteinte — <a href="#" onClick={() => setShowPlans(true)} className="underline">passez à un plan supérieur</a></p>
-                        )}
-                      </div>
-                      <div className="bg-neutral-800/50 rounded-xl p-4">
-                        <div className="flex items-center justify-between mb-2">
-                          <p className="text-xs text-neutral-400 font-medium">Commandes ce mois-ci</p>
-                          <p className={`text-xs font-bold ${orderWarn ? "text-amber-400" : "text-white"}`}>
-                            {ordersUsed} / {orderMax ?? "∞"}
-                          </p>
-                        </div>
-                        <div className="h-1.5 rounded-full bg-neutral-700 overflow-hidden">
-                          <div
-                            className={`h-full rounded-full transition-all ${orderPct >= 100 ? "bg-red-500" : orderWarn ? "bg-amber-500" : "bg-emerald-500"}`}
-                            style={{ width: orderMax ? `${orderPct}%` : "0%" }}
-                          />
-                        </div>
-                        {orderPct >= 100 && (
-                          <p className="text-[10px] text-red-400 mt-1.5">Limite mensuelle atteinte — <a href="#" onClick={() => setShowPlans(true)} className="underline">passez à un plan supérieur</a></p>
-                        )}
-                        {orderWarn && orderPct < 100 && (
-                          <p className="text-[10px] text-amber-400 mt-1.5">Vous approchez de votre limite mensuelle</p>
-                        )}
-                      </div>
-                    </div>
-                  )
-                })()}
-
-                <div className="flex gap-3">
-                  <Button
-                    variant="outline"
-                    onClick={() => { setShowPlans(v => !v); setSelectedPlan(plan); setPlanMsg(null) }}
-                    className="bg-neutral-800 border-neutral-700 text-neutral-300 hover:bg-neutral-700"
-                  >
-                    Changer de plan
-                  </Button>
-                </div>
-
-                {showPlans && (
-                  <div className="mt-6 space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      {PLANS.map((p) => (
-                        <button
-                          key={p.id}
-                          onClick={() => setSelectedPlan(p.id)}
-                          className={`relative text-left p-4 rounded-xl border-2 transition-all ${
-                            selectedPlan === p.id
-                              ? "border-orange-500 bg-orange-500/5"
-                              : "border-neutral-700 hover:border-neutral-600 bg-neutral-800/50"
-                          }`}
-                        >
-                          {selectedPlan === p.id && (
-                            <div className="absolute top-3 right-3 w-5 h-5 bg-orange-500 rounded-full flex items-center justify-center">
-                              <Check className="w-3 h-3 text-white" />
-                            </div>
-                          )}
-                          <p className="text-white font-semibold text-sm mb-1">{p.label}</p>
-                          <p className="text-orange-400 font-bold text-lg mb-3">€{p.price}<span className="text-xs text-neutral-400 font-normal"> / mois</span></p>
-                          <ul className="space-y-1.5">
-                            <li className="text-xs text-neutral-400"><span className="text-neutral-300">{p.stores}</span> boutique{p.stores !== "1" ? "s" : ""}</li>
-                            <li className="text-xs text-neutral-400"><span className="text-neutral-300">{p.orders}</span> commandes</li>
-                            <li className="text-xs text-neutral-400">Support <span className="text-neutral-300">{p.support}</span></li>
-                          </ul>
-                        </button>
-                      ))}
-                    </div>
-                    <div className="flex items-center gap-3 pt-2">
-                      <Button
-                        onClick={changePlan}
-                        disabled={savingPlan || selectedPlan === plan}
-                        className="bg-orange-500 hover:bg-orange-600 text-white gap-2"
-                      >
-                        {savingPlan ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
-                        Confirmer
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        onClick={() => setShowPlans(false)}
-                        className="text-neutral-400 hover:text-white"
-                      >
-                        Annuler
-                      </Button>
+                    <div className="text-right">
+                      <p className="text-orange-400 font-black text-2xl">€31.99</p>
+                      <p className="text-neutral-600 text-xs">/mois</p>
                     </div>
                   </div>
-                )}
+                  <div className="grid grid-cols-2 gap-2">
+                    {["Boutiques illimitées","Leads & commandes illimités","Wallet & virements 48h","Support prioritaire 7j/7"].map(f => (
+                      <div key={f} className="flex items-center gap-1.5 text-xs text-neutral-400">
+                        <div className="w-3.5 h-3.5 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
+                          <Check className="w-2 h-2 text-emerald-400" />
+                        </div>
+                        {f}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Usage */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="bg-neutral-800/50 rounded-xl p-4">
+                    <div className="flex items-center justify-between mb-1">
+                      <p className="text-xs text-neutral-400">Boutiques connectées</p>
+                      <p className="text-xs font-bold text-white">{storesUsed} / ∞</p>
+                    </div>
+                    <div className="h-1.5 rounded-full bg-neutral-700 overflow-hidden">
+                      <div className="h-full bg-orange-500 rounded-full" style={{ width: "8%" }} />
+                    </div>
+                  </div>
+                  <div className="bg-neutral-800/50 rounded-xl p-4">
+                    <div className="flex items-center justify-between mb-1">
+                      <p className="text-xs text-neutral-400">Commandes ce mois</p>
+                      <p className="text-xs font-bold text-white">{ordersUsed} / ∞</p>
+                    </div>
+                    <div className="h-1.5 rounded-full bg-neutral-700 overflow-hidden">
+                      <div className="h-full bg-emerald-500 rounded-full" style={{ width: "12%" }} />
+                    </div>
+                  </div>
+                </div>
               </div>
 
               <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-6">
