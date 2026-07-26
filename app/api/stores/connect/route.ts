@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
   if (!sb) return NextResponse.json({ error: "Base de données non configurée" }, { status: 500 })
 
   // Check plan store limit
-  const { data: clientRow } = await sb.from("clients").select("plan").eq("id", clientId).single()
+  const { data: clientRow } = await sb.from("clients").select("plan, first_name, last_name").eq("id", clientId).single()
   const plan = clientRow?.plan ?? "starter"
 
   const { count: existingCount } = await sb
@@ -62,12 +62,20 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: storeErr?.message ?? "Erreur sauvegarde boutique" }, { status: 500 })
   }
 
-  // Déclenche la sync des produits en arrière-plan
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? `http://localhost:3000`
+  // Déclenche la sync produits + historique commandes en arrière-plan
+  const appUrl     = process.env.NEXT_PUBLIC_APP_URL ?? `http://localhost:3000`
+  const clientName = clientRow ? `${clientRow.first_name ?? ""} ${clientRow.last_name ?? ""}`.trim() : ""
+
   fetch(`${appUrl}/api/shopify/sync`, {
     method:  "POST",
     headers: { "Content-Type": "application/json" },
     body:    JSON.stringify({ storeId: store.id, shop: cleanDomain, accessToken: accessToken.trim() }),
+  }).catch(() => {})
+
+  fetch(`${appUrl}/api/shopify/sync-orders`, {
+    method:  "POST",
+    headers: { "Content-Type": "application/json" },
+    body:    JSON.stringify({ storeId: store.id, shop: cleanDomain, accessToken: accessToken.trim(), clientId, clientName }),
   }).catch(() => {})
 
   return NextResponse.json({ store })

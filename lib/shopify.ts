@@ -43,6 +43,25 @@ export function verifyOAuthCallback(query: URLSearchParams): boolean {
 
 /* ── API Shopify ────────────────────────────────────────────────────────── */
 
+/** Récupère toutes les commandes d'une boutique (max 250 par page, toutes) */
+export async function fetchShopifyOrders(shop: string, accessToken: string) {
+  const allOrders: Record<string, unknown>[] = []
+  let url: string | null =
+    `https://${shop}/admin/api/${API_VERSION}/orders.json?limit=250&status=any&fields=id,created_at,customer,billing_address,shipping_address,line_items,total_price,currency`
+
+  while (url) {
+    const res: Response = await fetch(url, { headers: { "X-Shopify-Access-Token": accessToken } })
+    if (!res.ok) break
+    const data = await res.json()
+    allOrders.push(...(data.orders ?? []))
+    const link: string = res.headers.get("Link") ?? ""
+    const next: RegExpMatchArray | null = link.match(/<([^>]+)>;\s*rel="next"/)
+    url = next ? next[1] : null
+  }
+
+  return allOrders
+}
+
 /** Récupère tous les produits d'une boutique (max 250 par page) */
 export async function fetchShopifyProducts(shop: string, accessToken: string) {
   const allProducts: ShopifyProduct[] = []
