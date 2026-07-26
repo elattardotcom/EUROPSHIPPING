@@ -828,8 +828,13 @@ export default function LandingPage() {
       </section>
 
       {/* ── Pricing ────────────────────────────────────────────── */}
-      <section id="pricing" className="py-16 sm:py-24 px-4 sm:px-6 diag-mid" style={{ background: "linear-gradient(180deg,#0c0c0c 0%,#080808 100%)" }}>
-        <div className="max-w-5xl mx-auto">
+      <section id="pricing" className="py-16 sm:py-28 px-4 sm:px-6 diag-mid relative overflow-hidden" style={{ background: "linear-gradient(180deg,#0c0c0c 0%,#080808 100%)" }}>
+        {/* Background glow orbs */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full opacity-10" style={{ background: "radial-gradient(circle,#f97316 0%,transparent 70%)" }} />
+          <div className="absolute top-1/4 right-1/4 w-64 h-64 rounded-full opacity-5" style={{ background: "radial-gradient(circle,#dc2626 0%,transparent 70%)" }} />
+        </div>
+        <div className="max-w-3xl mx-auto relative">
           <div className="text-center mb-10 sm:mb-16">
             <div className="inline-flex items-center gap-2 text-violet-400 text-xs font-bold border border-violet-500/20 bg-violet-500/8 px-3 py-1.5 rounded-full mb-4 sm:mb-5 uppercase tracking-widest">
               <Globe2 className="w-3.5 h-3.5" />{t.pricing_badge}
@@ -837,45 +842,72 @@ export default function LandingPage() {
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-white mb-3 sm:mb-4">{t.pricing_h2}</h2>
             <p className="text-neutral-500 text-sm max-w-md mx-auto">{t.pricing_sub}</p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-5">
-            {(t.pricing_plans as readonly { name: string; price: string; desc: string; features: readonly string[] }[]).map((p, idx) => {
-              const highlight = idx === 1
-              return (
-                <div key={p.name} className={`relative rounded-2xl p-6 sm:p-7 transition-all hover:-translate-y-1 ${highlight ? "cash-border" : "border border-white/[0.05]"}`}
-                  style={{
-                    background: highlight ? "linear-gradient(160deg,rgba(249,115,22,0.08),rgba(8,8,8,1) 60%)" : "rgba(12,12,12,0.8)",
-                    boxShadow: highlight ? "0 0 60px rgba(249,115,22,0.1), 0 20px 40px rgba(0,0,0,0.5)" : undefined,
-                  }}>
-                  {highlight && (
-                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 text-[10px] font-black text-black px-4 py-1 rounded-full uppercase tracking-widest whitespace-nowrap"
-                      style={{ background: "linear-gradient(90deg,#f97316,#dc2626)", boxShadow: "0 4px 20px rgba(249,115,22,0.5)" }}>
-                      {t.pricing_popular}
-                    </div>
-                  )}
-                  <div className="mb-4 sm:mb-5">
-                    <h3 className="text-white font-black text-lg">{p.name}</h3>
-                    <p className="text-neutral-600 text-xs mt-1">{p.desc}</p>
+
+          {(() => {
+            const p = (t.pricing_plans as readonly { name: string; price: string; desc: string; features: readonly string[] }[])[0]
+            return (
+              <div className="relative rounded-3xl overflow-hidden" style={{ background: "linear-gradient(160deg,rgba(249,115,22,0.07),rgba(8,8,8,0.98) 55%)", border: "1px solid rgba(249,115,22,0.25)", boxShadow: "0 0 80px rgba(249,115,22,0.12), 0 40px 80px rgba(0,0,0,0.6)" }}>
+                {/* Top badge */}
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-px">
+                  <div className="text-[10px] font-black text-white px-6 py-1.5 rounded-b-xl uppercase tracking-widest" style={{ background: "linear-gradient(90deg,#f97316,#dc2626)", boxShadow: "0 4px 24px rgba(249,115,22,0.5)" }}>
+                    {t.pricing_popular}
                   </div>
-                  <div className="flex items-baseline gap-1 mb-5 sm:mb-7">
-                    <span className={`text-4xl sm:text-5xl font-black ${highlight ? "text-orange-400" : "text-white"}`}>{p.price}</span>
-                    <span className="text-neutral-600 text-sm">{t.pricing_period}</span>
-                  </div>
-                  <ul className="space-y-2 sm:space-y-2.5 mb-6 sm:mb-8">
-                    {p.features.map(f => (
-                      <li key={f} className="flex items-center gap-2.5 text-xs text-neutral-400">
-                        <CheckCircle className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" />{f}
-                      </li>
-                    ))}
-                  </ul>
-                  <OpenModalButton step="signup" plan={p.name}
-                    className={`w-full py-3 rounded-xl text-sm font-bold transition-all ${highlight ? "text-white" : "text-neutral-300 hover:text-white border border-white/[0.08] hover:border-white/20 bg-white/[0.03] hover:bg-white/[0.06]"}`}
-                    style={highlight ? { background: "linear-gradient(135deg,#f97316,#dc2626)", boxShadow: "0 8px 24px rgba(249,115,22,0.25)" } : undefined}>
-                    {t.pricing_cta}
-                  </OpenModalButton>
                 </div>
-              )
-            })}
-          </div>
+
+                {/* Shimmer line at top */}
+                <div className="h-px w-full" style={{ background: "linear-gradient(90deg,transparent,rgba(249,115,22,0.6),transparent)" }} />
+
+                <div className="p-8 sm:p-12">
+                  <div className="flex flex-col sm:flex-row items-center sm:items-start gap-8 sm:gap-12">
+                    {/* Left: price block */}
+                    <div className="text-center sm:text-left flex-shrink-0">
+                      <div className="inline-flex items-center gap-2 bg-orange-500/10 border border-orange-500/20 rounded-full px-3 py-1 mb-4">
+                        <span className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse" />
+                        <span className="text-orange-400 text-xs font-bold uppercase tracking-wider">{p.name}</span>
+                      </div>
+                      <div className="flex items-end gap-1 justify-center sm:justify-start mb-1">
+                        <span className="text-6xl sm:text-7xl font-black text-white leading-none">{p.price}</span>
+                      </div>
+                      <p className="text-neutral-500 text-sm mb-2">{t.pricing_period}</p>
+                      <p className="text-neutral-600 text-xs max-w-[180px]">{p.desc}</p>
+                    </div>
+
+                    {/* Divider */}
+                    <div className="hidden sm:block w-px self-stretch bg-white/[0.06]" />
+                    <div className="block sm:hidden h-px w-full bg-white/[0.06]" />
+
+                    {/* Right: features grid */}
+                    <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      {p.features.map(f => (
+                        <div key={f} className="flex items-center gap-2.5 group">
+                          <div className="w-5 h-5 rounded-full bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center flex-shrink-0">
+                            <CheckCircle className="w-3 h-3 text-emerald-400" />
+                          </div>
+                          <span className="text-sm text-neutral-300">{f}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* CTA */}
+                  <div className="mt-10 flex flex-col sm:flex-row items-center gap-4">
+                    <OpenModalButton step="signup" plan={p.name}
+                      className="flex-1 sm:flex-none sm:min-w-[260px] py-4 rounded-xl text-base font-black text-white transition-all hover:-translate-y-0.5 text-center"
+                      style={{ background: "linear-gradient(135deg,#f97316,#dc2626)", boxShadow: "0 8px 32px rgba(249,115,22,0.4)" }}>
+                      {t.pricing_cta}
+                    </OpenModalButton>
+                    <div className="flex items-center gap-4 text-xs text-neutral-600">
+                      <span className="flex items-center gap-1.5"><CheckCircle className="w-3 h-3 text-neutral-700" />{lang === "fr" ? "Sans carte" : "No card"}</span>
+                      <span className="flex items-center gap-1.5"><CheckCircle className="w-3 h-3 text-neutral-700" />{lang === "fr" ? "Annulation facile" : "Cancel anytime"}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Bottom shimmer */}
+                <div className="h-px w-full" style={{ background: "linear-gradient(90deg,transparent,rgba(249,115,22,0.3),transparent)" }} />
+              </div>
+            )
+          })()}
         </div>
       </section>
 

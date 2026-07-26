@@ -52,14 +52,12 @@ export const T = {
     feat_security_desc: "Your data and transactions protected. 99.9% SLA guaranteed.",
     // Pricing
     pricing_badge: "Pricing",
-    pricing_h2: "Simple pricing",
-    pricing_sub: "No hidden fees. The tool pays for itself within the first week.",
-    pricing_popular: "MOST POPULAR",
+    pricing_h2: "One price. Everything included.",
+    pricing_sub: "No hidden fees. No limits. The tool pays for itself within the first week.",
+    pricing_popular: "FULL ACCESS",
     pricing_cta: "Start — 14 days free",
     pricing_plans: [
-      { name: "Starter",    price: "€29", desc: "To start your COD business",         features: ["1 Shopify store", "Up to 500 leads/month", "Order management", "Wallet & transfers", "Email support"] },
-      { name: "Pro",        price: "€59", desc: "For growing merchants",               features: ["3 Shopify stores", "Unlimited leads", "Affiliate program", "COD Drop catalog", "Priority support", "Advanced reports"] },
-      { name: "Enterprise", price: "€89", desc: "For teams and large operations",      features: ["Unlimited stores", "Unlimited leads", "Multi-users", "Full API", "Dedicated manager", "99.9% SLA"] },
+      { name: "Pro", price: "€31.99", desc: "Full access to every feature — for serious COD merchants", features: ["Unlimited Shopify stores", "Unlimited leads & orders", "Affiliate program", "Wallet & 48h transfers", "COD Drop catalog", "Advanced analytics", "Priority support 7/7", "99.9% SLA guaranteed"] },
     ],
     pricing_period: "/month",
     // Testimonials
@@ -164,14 +162,12 @@ export const T = {
     feat_security_desc: "Vos données et transactions protégées. SLA 99.9% garanti.",
     // Pricing
     pricing_badge: "Tarifs",
-    pricing_h2: "Investissement simple",
-    pricing_sub: "Aucun frais caché. L'outil paye pour lui-même dès la première semaine.",
-    pricing_popular: "LE PLUS POPULAIRE",
+    pricing_h2: "Un prix. Tout inclus.",
+    pricing_sub: "Aucun frais caché. Aucune limite. L'outil se rentabilise dès la première semaine.",
+    pricing_popular: "ACCÈS COMPLET",
     pricing_cta: "Commencer — 14j gratuits",
     pricing_plans: [
-      { name: "Starter",    price: "€29", desc: "Pour démarrer votre activité COD",       features: ["1 boutique Shopify", "Jusqu'à 500 leads/mois", "Gestion commandes", "Wallet & virements", "Support email"] },
-      { name: "Pro",        price: "€59", desc: "Pour les marchands en croissance",        features: ["3 boutiques Shopify", "Leads illimités", "Programme affiliés", "COD Drop catalog", "Support prioritaire", "Rapports avancés"] },
-      { name: "Enterprise", price: "€89", desc: "Pour les équipes et grandes opérations",  features: ["Boutiques illimitées", "Leads illimités", "Multi-utilisateurs", "API complète", "Manager dédié", "SLA 99.9%"] },
+      { name: "Pro", price: "€31.99", desc: "Accès complet à toutes les fonctionnalités — pour les marchands COD sérieux", features: ["Boutiques Shopify illimitées", "Leads & commandes illimités", "Programme affiliés", "Wallet & virements 48h", "COD Drop catalog", "Analytics avancées", "Support prioritaire 7j/7", "SLA 99.9% garanti"] },
     ],
     pricing_period: "/mois",
     // Testimonials

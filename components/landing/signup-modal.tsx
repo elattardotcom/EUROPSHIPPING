@@ -6,7 +6,7 @@ import { Logo } from "@/components/logo"
 
 const INPUT = "w-full bg-[#111] border border-white/10 rounded-xl px-3.5 py-2.5 text-white text-sm placeholder:text-neutral-600 focus:outline-none focus:border-orange-500 transition-colors"
 
-const PLAN_AMOUNTS: Record<string, number> = { Starter: 29, Pro: 59, Enterprise: 89 }
+const PLAN_AMOUNT = 31.99
 const PAYPAL_ME = process.env.NEXT_PUBLIC_PAYPAL_ME ?? ""
 
 const Spinner = () => (
@@ -33,7 +33,7 @@ export function SignupModal({
   const [signup, setSignup] = useState({
     firstName: "", lastName: "", email: "", phone: "",
     dialCode: "+212", company: "", countryCode: "",
-    password: "", plan: initialPlan ?? "Starter",
+    password: "", plan: "Pro",
   })
   const [login,        setLogin]       = useState({ email: "", password: "" })
   const [forgotEmail,  setForgotEmail] = useState("")
@@ -90,7 +90,7 @@ export function SignupModal({
     } catch { setError("Erreur de connexion au serveur"); setIsLoading(false) }
   }
 
-  const planAmount  = PLAN_AMOUNTS[signup.plan] ?? 29
+  const planAmount  = PLAN_AMOUNT
   const paypalLink  = PAYPAL_ME ? `https://paypal.me/${PAYPAL_ME}/${planAmount}EUR` : "#"
 
   return (
@@ -124,8 +124,9 @@ export function SignupModal({
             {/* Plan recap */}
             <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-4 flex items-center justify-between">
               <div>
-                <p className="text-xs text-neutral-500 mb-0.5">Pack choisi</p>
-                <p className="text-white font-bold">{signup.plan}</p>
+                <p className="text-xs text-neutral-500 mb-0.5">Abonnement</p>
+                <p className="text-white font-bold">CODShipEurope Pro</p>
+                <p className="text-neutral-600 text-[10px]">Accès complet — toutes fonctionnalités</p>
               </div>
               <div className="text-right">
                 <p className="text-xs text-neutral-500 mb-0.5">Montant</p>
@@ -255,32 +256,6 @@ export function SignupModal({
                 <option value="SI">🇸🇮 Slovénie</option>
                 <option value="CZ">🇨🇿 République tchèque</option>
               </select>
-            </div>
-
-            {/* ── Plan selection ──────────────────────────────────── */}
-            <div>
-              <label className="block text-xs font-medium text-neutral-500 mb-2">Pack *</label>
-              <div className="grid grid-cols-3 gap-2">
-                {([
-                  { id: "Starter",    price: "€29", color: "#10b981" },
-                  { id: "Pro",        price: "€59", color: "#f97316", popular: true },
-                  { id: "Enterprise", price: "€89", color: "#6366f1" },
-                ] as const).map(p => (
-                  <button
-                    key={p.id}
-                    type="button"
-                    onClick={() => setSignup(f => ({ ...f, plan: p.id }))}
-                    className={`relative flex flex-col items-center pt-4 pb-3 px-2 rounded-xl border text-center transition-all ${signup.plan === p.id ? "border-orange-500 bg-orange-500/10" : "border-white/10 bg-[#111] hover:border-white/20"}`}
-                  >
-                    {"popular" in p && p.popular && (
-                      <span className="absolute -top-2 left-1/2 -translate-x-1/2 text-[8px] font-black bg-orange-500 text-white px-2 py-0.5 rounded-full whitespace-nowrap">POPULAIRE</span>
-                    )}
-                    <span className="text-white font-bold text-xs">{p.id}</span>
-                    <span className="font-black text-base" style={{ color: p.color }}>{p.price}</span>
-                    <span className="text-neutral-600 text-[10px]">/mois</span>
-                  </button>
-                ))}
-              </div>
             </div>
 
             <div>

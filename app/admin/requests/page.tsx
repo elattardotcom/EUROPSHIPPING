@@ -25,12 +25,12 @@ interface RegistrationRequest {
 }
 
 const PLAN_CFG: Record<string, { color: string; bg: string }> = {
-  Starter:    { color: "text-emerald-400", bg: "bg-emerald-500/10 border-emerald-500/20" },
   Pro:        { color: "text-orange-400",  bg: "bg-orange-500/10 border-orange-500/20"  },
+  Starter:    { color: "text-emerald-400", bg: "bg-emerald-500/10 border-emerald-500/20" },
   Enterprise: { color: "text-violet-400",  bg: "bg-violet-500/10 border-violet-500/20"  },
 }
 
-const PLAN_PRICES: Record<string, string> = { Starter: "€29", Pro: "€59", Enterprise: "€89" }
+const PLAN_PRICES: Record<string, string> = { Pro: "€31.99", Starter: "€31.99", Enterprise: "€31.99" }
 
 const STATUS_CFG = {
   pending:  { label: "En attente", color: "text-amber-400",   bg: "bg-amber-500/10 border-amber-500/20",    Icon: Clock },
@@ -91,7 +91,7 @@ function ActionModal({
 
           {isApprove && (
             <p className="text-sm text-neutral-400">
-              Un compte client pack <span className="text-white font-medium">{req.plan ?? "Starter"}</span> ({PLAN_PRICES[req.plan ?? "Starter"] ?? "€29"}/mois) sera créé. Le client pourra se connecter immédiatement.
+              Un compte client <span className="text-white font-medium">CODShipEurope Pro</span> (€31.99/mois) sera créé. Le client pourra se connecter immédiatement.
             </p>
           )}
 
@@ -256,11 +256,9 @@ export default function RequestsPage() {
                     <p className="text-xs text-neutral-600">
                       {new Date(req.created_at).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
                     </p>
-                    {req.plan && (
-                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border ${(PLAN_CFG[req.plan] ?? PLAN_CFG.Starter).bg} ${(PLAN_CFG[req.plan] ?? PLAN_CFG.Starter).color}`}>
-                        {req.plan} · {PLAN_PRICES[req.plan] ?? "€29"}
-                      </span>
-                    )}
+                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border ${PLAN_CFG.Pro.bg} ${PLAN_CFG.Pro.color}`}>
+                      Pro · €31.99
+                    </span>
                   </div>
                 </div>
               </div>
