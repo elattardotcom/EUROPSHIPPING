@@ -1,6 +1,9 @@
-import { NextRequest, NextResponse } from "next/server"
-import { getSupabaseAdmin } from "@/lib/supabase"
-import { canAddStore } from "@/lib/plan-limits"
+import { NextRequest, NextResponse }              from "next/server"
+import { getSupabaseAdmin }                        from "@/lib/supabase"
+import { canAddStore }                             from "@/lib/plan-limits"
+import { fetchShopifyProducts, fetchShopifyOrders, extractPricing } from "@/lib/shopify"
+
+export const maxDuration = 60
 
 export async function POST(req: NextRequest) {
   const clientId = req.cookies.get("client_id")?.value
@@ -22,8 +25,12 @@ export async function POST(req: NextRequest) {
   const sb = getSupabaseAdmin()
   if (!sb) return NextResponse.json({ error: "Base de données non configurée" }, { status: 500 })
 
-  // Check plan store limit
-  const { data: clientRow } = await sb.from("clients").select("plan, first_name, last_name").eq("id", clientId).single()
+  const { data: clientRow } = await sb
+    .from("clients")
+    .select("plan, first_name, last_name")
+    .eq("id", clientId)
+    .single()
+
   const plan = clientRow?.plan ?? "starter"
 
   const { count: existingCount } = await sb
@@ -35,26 +42,25 @@ export async function POST(req: NextRequest) {
     const limits: Record<string, number> = { starter: 1, pro: 3 }
     const max = limits[plan] ?? 1
     return NextResponse.json({
-      error: `Votre plan ${plan.charAt(0).toUpperCase() + plan.slice(1)} est limité à ${max} boutique${max > 1 ? "s" : ""}. Passez à un plan supérieur pour en ajouter davantage.`,
+      error: `Votre plan est limité à ${max} boutique${max > 1 ? "s" : ""}. Passez à un plan supérieur.`,
       upgrade: true,
     }, { status: 403 })
   }
 
-  const storeName = cleanDomain.replace(".myshopify.com", "")
+  const storeName  = cleanDomain.replace(".myshopify.com", "")
+  const clientName = clientRow ? `${clientRow.first_name ?? ""} ${clientRow.last_name ?? ""}`.trim() : ""
+  const token      = accessToken.trim()
 
   const { data: store, error: storeErr } = await sb
     .from("stores")
-    .upsert(
-      {
-        client_id:    clientId,
-        name:         storeName,
-        domain:       cleanDomain,
-        status:       "connected",
-        access_token: accessToken.trim(),
-        last_sync:    null,
-      },
-      { onConflict: "domain" },
-    )
+    .upsert({
+      client_id:    clientId,
+      name:         storeName,
+      domain:       cleanDomain,
+      status:       "connected",
+      access_token: token,
+      last_sync:    null,
+    }, { onConflict: "domain" })
     .select("id, name, domain")
     .single()
 
@@ -62,21 +68,63 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: storeErr?.message ?? "Erreur sauvegarde boutique" }, { status: 500 })
   }
 
-  // Déclenche la sync produits + historique commandes en arrière-plan
-  const appUrl     = process.env.NEXT_PUBLIC_APP_URL ?? `http://localhost:3000`
-  const clientName = clientRow ? `${clientRow.first_name ?? ""} ${clientRow.last_name ?? ""}`.trim() : ""
+  // ── Sync produits ────────────────────────────────────────────────────────
+  try {
+    const shopifyProducts = await fetchShopifyProducts(cleanDomain, token)
+    const productRows = shopifyProducts.map(p => {
+      const { price, currency } = extractPricing(p)
+      return {
+        store_id:   store.id,
+        shopify_id: String(p.id),
+        title:      p.title,
+        image_url:  p.images?.[0]?.src ?? null,
+        price,
+        currency,
+        updated_at: new Date().toISOString(),
+      }
+    })
+    if (productRows.length > 0) {
+      await sb.from("products").upsert(productRows, { onConflict: "store_id,shopify_id" })
+    }
+    await sb.from("stores").update({ last_sync: new Date().toISOString() }).eq("id", store.id)
+  } catch { /* sync produits échouée silencieusement */ }
 
-  fetch(`${appUrl}/api/shopify/sync`, {
-    method:  "POST",
-    headers: { "Content-Type": "application/json" },
-    body:    JSON.stringify({ storeId: store.id, shop: cleanDomain, accessToken: accessToken.trim() }),
-  }).catch(() => {})
+  // ── Sync commandes historiques ───────────────────────────────────────────
+  try {
+    const orders = await fetchShopifyOrders(cleanDomain, token)
+    const leadRows = orders.map(order => {
+      const customer  = order.customer  as Record<string, string> | undefined
+      const billing   = order.billing_address  as Record<string, string> | undefined
+      const shipping  = order.shipping_address as Record<string, string> | undefined
+      const lineItems = order.line_items as Array<{ title: string }> | undefined
 
-  fetch(`${appUrl}/api/shopify/sync-orders`, {
-    method:  "POST",
-    headers: { "Content-Type": "application/json" },
-    body:    JSON.stringify({ storeId: store.id, shop: cleanDomain, accessToken: accessToken.trim(), clientId, clientName }),
-  }).catch(() => {})
+      const firstName    = customer?.first_name ?? ""
+      const lastName     = customer?.last_name  ?? ""
+      const customerName = `${firstName} ${lastName}`.trim() || billing?.name || "Client"
+
+      return {
+        id:             `shopify_${order.id}`,
+        client_id:      clientId,
+        client_name:    clientName,
+        customer_name:  customerName,
+        customer_phone: customer?.phone ?? billing?.phone ?? shipping?.phone ?? "",
+        country:        billing?.country      ?? shipping?.country      ?? "",
+        country_code:   billing?.country_code ?? shipping?.country_code ?? "",
+        product:        lineItems?.[0]?.title ?? "Produit",
+        value:          parseFloat((order.total_price as string) ?? "0"),
+        currency:       (order.currency as string) ?? "EUR",
+        status:         "PENDING",
+        store:          storeName,
+        attempts:       0,
+        created_at:     (order.created_at as string) ?? new Date().toISOString(),
+      }
+    })
+
+    const CHUNK = 100
+    for (let i = 0; i < leadRows.length; i += CHUNK) {
+      await sb.from("leads").upsert(leadRows.slice(i, i + CHUNK), { onConflict: "id" })
+    }
+  } catch { /* sync commandes échouée silencieusement */ }
 
   return NextResponse.json({ store })
 }
