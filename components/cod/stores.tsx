@@ -104,6 +104,144 @@ const STEPS = [
   },
 ]
 
+const WEBHOOK_STEPS = [
+  {
+    num: "1", color: "#10b981", bg: "rgba(16,185,129,0.08)", border: "rgba(16,185,129,0.2)",
+    icon: ShoppingBag,
+    title: "Ouvrez votre admin Shopify",
+    desc: "Connectez-vous à votre boutique Shopify et allez dans Paramètres (en bas à gauche).",
+  },
+  {
+    num: "2", color: "#6366f1", bg: "rgba(99,102,241,0.08)", border: "rgba(99,102,241,0.2)",
+    icon: Link2,
+    title: "Notifications → Webhooks",
+    desc: "Dans Paramètres, cliquez sur « Notifications ». Faites défiler jusqu'en bas → section « Webhooks » → « Créer un webhook ».",
+  },
+  {
+    num: "3", color: "#f97316", bg: "rgba(249,115,22,0.08)", border: "rgba(249,115,22,0.2)",
+    icon: Zap,
+    title: "Collez votre URL et enregistrez",
+    desc: "Évènement : « Création de commande » · Format : JSON · URL : copiez-la ci-dessus. Cliquez Enregistrer. C'est tout.",
+  },
+]
+
+function WebhookView({
+  clientId, webhookUrl, banner, setBanner,
+}: {
+  clientId: string
+  webhookUrl: string
+  banner: { type: "success" | "error"; msg: string } | null
+  setBanner: (b: { type: "success" | "error"; msg: string } | null) => void
+}) {
+  const [copied, setCopied] = useState(false)
+
+  const copy = () => {
+    if (!webhookUrl) return
+    navigator.clipboard.writeText(webhookUrl).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
+  }
+
+  return (
+    <div className="max-w-2xl mx-auto py-8">
+      {/* Banner */}
+      {banner && (
+        <div className={`flex items-start gap-3 mb-6 px-4 py-3.5 rounded-xl border text-sm ${
+          banner.type === "success"
+            ? "bg-emerald-500/10 border-emerald-500/25 text-emerald-300"
+            : "bg-red-500/10 border-red-500/25 text-red-300"
+        }`}>
+          {banner.type === "success"
+            ? <CheckCircle className="w-4 h-4 flex-shrink-0 mt-0.5 text-emerald-400" />
+            : <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5 text-red-400" />
+          }
+          <p className="flex-1">{banner.msg}</p>
+          <button onClick={() => setBanner(null)}><X className="w-4 h-4" /></button>
+        </div>
+      )}
+
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-2xl font-black text-white mb-1">Connecter Shopify</h1>
+        <p className="text-neutral-500 text-sm">Copiez votre URL webhook et collez-la dans Shopify — 3 étapes, moins de 2 minutes.</p>
+      </div>
+
+      {/* Webhook URL card */}
+      <div className="relative rounded-2xl border border-orange-500/20 bg-neutral-900 overflow-hidden mb-8">
+        <div className="absolute inset-x-0 top-0 h-px" style={{ background: "linear-gradient(90deg,transparent,rgba(249,115,22,0.5),transparent)" }} />
+        <div className="p-6">
+          <div className="flex items-center gap-2 mb-3">
+            <Zap className="w-4 h-4 text-orange-400" />
+            <p className="text-white font-bold text-sm">Votre URL Webhook unique</p>
+            <span className="text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-full font-bold">PRÊT</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="flex-1 bg-neutral-800 border border-neutral-700 rounded-xl px-4 py-3 font-mono text-xs text-neutral-300 overflow-x-auto whitespace-nowrap">
+              {webhookUrl || "Chargement…"}
+            </div>
+            <button
+              onClick={copy}
+              disabled={!webhookUrl}
+              className={`flex-shrink-0 flex items-center gap-2 px-4 py-3 rounded-xl font-bold text-sm transition-all disabled:opacity-40 ${
+                copied
+                  ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                  : "text-white border border-neutral-600 hover:border-orange-500/50 hover:bg-orange-500/5"
+              }`}
+              style={copied ? {} : { background: "rgba(249,115,22,0.1)" }}
+            >
+              {copied ? <><Check className="w-4 h-4" />Copié !</> : <><Copy className="w-4 h-4" />Copier</>}
+            </button>
+          </div>
+          <p className="text-neutral-600 text-xs mt-2">Cette URL est unique à votre compte — ne la partagez pas.</p>
+        </div>
+      </div>
+
+      {/* Steps */}
+      <p className="text-xs font-bold text-neutral-600 uppercase tracking-widest mb-5">Comment configurer Shopify</p>
+      <div className="space-y-3 mb-8">
+        {WEBHOOK_STEPS.map((s, i) => (
+          <div key={i} className="group flex gap-4 p-5 rounded-2xl border border-neutral-800 hover:border-neutral-700 transition-all bg-neutral-900">
+            <div className="flex-shrink-0 flex flex-col items-center gap-2">
+              <div className="w-11 h-11 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110"
+                style={{ background: s.bg, border: `1px solid ${s.border}` }}>
+                <s.icon className="w-5 h-5" style={{ color: s.color }} />
+              </div>
+              {i < WEBHOOK_STEPS.length - 1 && (
+                <div className="w-px flex-1 min-h-[20px]" style={{ background: `${s.color}20` }} />
+              )}
+            </div>
+            <div className="pt-1.5 pb-1">
+              <div className="flex items-center gap-2 mb-1.5">
+                <span className="text-[10px] font-black px-1.5 py-0.5 rounded" style={{ color: s.color, background: s.bg }}>
+                  ÉTAPE {s.num}
+                </span>
+                <h3 className="text-white font-bold text-sm">{s.title}</h3>
+              </div>
+              <p className="text-neutral-500 text-sm leading-relaxed">{s.desc}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Info footer */}
+      <div className="grid grid-cols-3 gap-3">
+        {[
+          { icon: "⚡", label: "Temps réel", sub: "Nouvelles commandes instantanées" },
+          { icon: "🛒", label: "Multi-boutiques", sub: "Répétez pour chaque boutique" },
+          { icon: "🔒", label: "Sécurisé", sub: "URL unique par compte" },
+        ].map(b => (
+          <div key={b.label} className="text-center p-4 rounded-xl border border-neutral-800 bg-neutral-900">
+            <div className="text-2xl mb-2">{b.icon}</div>
+            <p className="text-white text-xs font-bold mb-0.5">{b.label}</p>
+            <p className="text-neutral-600 text-[10px]">{b.sub}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 function StoreStatusBadge({ status }: { status: ShopifyStore["status"] }) {
   const cfg = {
     connected: { label: "Connectée",     cls: "bg-emerald-500/15 text-emerald-400 border-emerald-500/25", Icon: CheckCircle, spin: false },
@@ -310,219 +448,11 @@ export default function StoresPage() {
 
   /* ── Real clients view ────────────────────────────── */
   if (!isDemo) {
-    const hasStores   = realStores.length > 0
-    const limits      = getPlanLimits(plan)
-    const atStoreLimit = limits.stores !== Infinity && realStores.length >= limits.stores
+    const appUrl     = "https://www.codshipeurope.com"
+    const webhookUrl = clientId ? `${appUrl}/api/webhooks/orders/${clientId}` : ""
 
     return (
-      <div className="max-w-3xl mx-auto py-8">
-        <style>{`
-          @keyframes float-shop {
-            0%,100% { transform: translateY(0) }
-            50% { transform: translateY(-8px) }
-          }
-          .float-shop { animation: float-shop 3s ease-in-out infinite }
-        `}</style>
-
-        {/* Success / error banner */}
-        {banner && (
-          <div className={`flex items-start gap-3 mb-6 px-4 py-3.5 rounded-xl border text-sm ${
-            banner.type === "success"
-              ? "bg-emerald-500/10 border-emerald-500/25 text-emerald-300"
-              : "bg-red-500/10 border-red-500/25 text-red-300"
-          }`}>
-            {banner.type === "success"
-              ? <CheckCircle className="w-4 h-4 flex-shrink-0 mt-0.5 text-emerald-400" />
-              : <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5 text-red-400" />
-            }
-            <p className="flex-1">{banner.msg}</p>
-            <button onClick={() => setBanner(null)} className="text-neutral-500 hover:text-white ml-2">
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-        )}
-
-        {/* Header */}
-        <div className="flex items-center justify-between mb-10">
-          <div>
-            <h1 className="text-2xl font-black text-white mb-1">Intégrations Shopify</h1>
-            <p className="text-neutral-500 text-sm">Connectez vos boutiques pour synchroniser vos commandes automatiquement</p>
-          </div>
-          {hasStores && (
-            atStoreLimit ? (
-              <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-orange-500/30 bg-orange-500/5">
-                <Lock className="w-4 h-4 text-orange-400 flex-shrink-0" />
-                <div className="text-right">
-                  <p className="text-xs font-bold text-orange-400">{realStores.length}/{limits.stores} boutiques</p>
-                  <a href="/dashboard/settings" className="text-[10px] text-orange-400/70 hover:text-orange-300 underline">Passer au plan supérieur</a>
-                </div>
-              </div>
-            ) : (
-              <button onClick={() => setShowForm(!showForm)}
-                className="inline-flex items-center gap-2 font-bold text-sm text-white px-5 py-2.5 rounded-xl transition-all"
-                style={{ background: "linear-gradient(135deg,#f97316,#dc2626)", boxShadow: "0 4px 16px rgba(249,115,22,0.25)" }}>
-                <Plus className="w-4 h-4" />Ajouter une boutique
-              </button>
-            )
-          )}
-        </div>
-
-        {/* Connected stores list */}
-        {loadingReal ? (
-          <div className="flex items-center justify-center py-20">
-            <svg className="animate-spin w-6 h-6 text-orange-500" viewBox="0 0 24 24" fill="none">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
-            </svg>
-          </div>
-        ) : hasStores ? (
-          <div className="rounded-2xl border border-neutral-800 overflow-hidden mb-8 bg-neutral-900">
-            <div className="px-5 py-4 border-b border-neutral-800">
-              <p className="text-white font-bold text-sm">Mes boutiques ({realStores.length})</p>
-            </div>
-            <div className="divide-y divide-neutral-800">
-              {realStores.map(s => (
-                <div key={s.id} className="flex items-center gap-4 px-5 py-4 hover:bg-neutral-800/30 transition-colors">
-                  <div className="text-2xl flex-shrink-0">🛍️</div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-0.5">
-                      <p className="text-white font-semibold text-sm">{s.name}</p>
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
-                        s.status === "connected"
-                          ? "text-emerald-400 bg-emerald-500/10 border-emerald-500/20"
-                          : "text-amber-400 bg-amber-500/10 border-amber-500/20"
-                      }`}>
-                        {s.status === "connected" ? "Connectée" : "En cours"}
-                      </span>
-                    </div>
-                    <p className="text-neutral-600 text-xs font-mono">{s.domain}</p>
-                  </div>
-                  <div className="flex items-center gap-3 flex-shrink-0">
-                    <div className="text-right">
-                      {s.last_sync && (
-                        <p className="text-neutral-700 text-[10px]">
-                          Sync {new Date(s.last_sync).toLocaleDateString("fr-FR")}
-                        </p>
-                      )}
-                      <a href="/dashboard/products"
-                        className="text-xs text-orange-400 hover:text-orange-300 transition-colors flex items-center gap-1 justify-end mt-1">
-                        Voir les produits <ArrowRight className="w-3 h-3" />
-                      </a>
-                    </div>
-                    <button
-                      onClick={() => syncStore(s.id)}
-                      disabled={syncing === s.id}
-                      title="Synchroniser"
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-blue-400 border border-blue-500/20 bg-blue-500/5 hover:bg-blue-500/15 transition-colors disabled:opacity-50"
-                    >
-                      {syncing === s.id
-                        ? <Loader2 className="w-3 h-3 animate-spin" />
-                        : <RefreshCw className="w-3 h-3" />
-                      }
-                      Synchroniser
-                    </button>
-                    <button
-                      onClick={() => disconnectStore(s.id)}
-                      disabled={disconnecting === s.id}
-                      title="Déconnecter"
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-red-400 border border-red-500/20 bg-red-500/5 hover:bg-red-500/15 transition-colors disabled:opacity-50"
-                    >
-                      {disconnecting === s.id
-                        ? <Loader2 className="w-3 h-3 animate-spin" />
-                        : <Unplug className="w-3 h-3" />
-                      }
-                      Déconnecter
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        ) : null}
-
-        {/* Hero card — only shown when no stores yet */}
-        {!loadingReal && !hasStores && (
-        <div className="relative rounded-2xl border border-neutral-800 overflow-hidden mb-8 text-center py-14 px-8 bg-neutral-900">
-          <div className="absolute inset-x-0 top-0 h-px" style={{ background: "linear-gradient(90deg,transparent,rgba(16,185,129,0.4),transparent)" }} />
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-40 pointer-events-none"
-            style={{ background: "radial-gradient(ellipse,rgba(16,185,129,0.08),transparent 70%)" }} />
-
-          <div className="relative">
-            <div className="float-shop text-7xl mb-6 select-none">🛍️</div>
-            <h2 className="text-2xl font-black text-white mb-3">Aucune boutique connectée</h2>
-            <p className="text-neutral-500 text-sm max-w-sm mx-auto leading-relaxed mb-8">
-              Connectez votre première boutique Shopify et vos commandes arriveront automatiquement dans CODShipEurope en temps réel.
-            </p>
-            {atStoreLimit ? (
-              <div className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl border border-orange-500/30 bg-orange-500/5">
-                <Lock className="w-4 h-4 text-orange-400" />
-                <div className="text-left">
-                  <p className="text-sm font-bold text-orange-400">Limite atteinte — plan {limits.label}</p>
-                  <a href="/dashboard/settings" className="text-xs text-orange-400/70 hover:text-orange-300 underline">Passer à un plan supérieur</a>
-                </div>
-              </div>
-            ) : (
-              <button onClick={() => setShowForm(true)}
-                className="inline-flex items-center gap-2 font-bold text-sm text-white px-8 py-3.5 rounded-xl transition-all"
-                style={{ background: "linear-gradient(135deg,#f97316,#dc2626)", boxShadow: "0 8px 24px rgba(249,115,22,0.3)" }}>
-                <Plus className="w-4 h-4" />
-                Connecter ma boutique
-              </button>
-            )}
-          </div>
-        </div>
-        )}
-
-        {/* Steps — shown when no store yet, or when the add form is open */}
-        {(!hasStores || showForm) && <div className="mb-8">
-          <p className="text-xs font-bold text-neutral-600 uppercase tracking-widest mb-5">Comment ça marche</p>
-          <div className="space-y-3">
-            {STEPS.map((s, i) => (
-              <div key={i} className="group flex gap-4 p-5 rounded-2xl border border-neutral-800 hover:border-neutral-700 transition-all bg-neutral-900">
-                {/* Number + icon */}
-                <div className="flex-shrink-0 flex flex-col items-center gap-2">
-                  <div className="w-11 h-11 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110"
-                    style={{ background: s.bg, border: `1px solid ${s.border}` }}>
-                    <s.icon className="w-5 h-5" style={{ color: s.color }} />
-                  </div>
-                  {i < STEPS.length - 1 && (
-                    <div className="w-px flex-1 min-h-[20px]" style={{ background: `${s.color}20` }} />
-                  )}
-                </div>
-                {/* Text */}
-                <div className="pt-1.5 pb-1">
-                  <div className="flex items-center gap-2 mb-1.5">
-                    <span className="text-[10px] font-black px-1.5 py-0.5 rounded"
-                      style={{ color: s.color, background: s.bg }}>
-                      ÉTAPE {s.num}
-                    </span>
-                    <h3 className="text-white font-bold text-sm">{s.title}</h3>
-                  </div>
-                  <p className="text-neutral-500 text-sm leading-relaxed">{s.desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>}
-
-        {/* Benefits row — only when no stores yet */}
-        {!hasStores && <div className="grid grid-cols-3 gap-3 mb-8">
-          {[
-            { icon: "⚡", label: "Sync instantanée", sub: "Commandes en temps réel" },
-            { icon: "🔒", label: "Connexion sécurisée", sub: "API Shopify officielle" },
-            { icon: "🛒", label: "Multi-boutiques", sub: "Autant que vous voulez" },
-          ].map(b => (
-            <div key={b.label} className="text-center p-4 rounded-xl border border-neutral-800 bg-neutral-900">
-              <div className="text-2xl mb-2">{b.icon}</div>
-              <p className="text-white text-xs font-bold mb-0.5">{b.label}</p>
-              <p className="text-neutral-600 text-[10px]">{b.sub}</p>
-            </div>
-          ))}
-        </div>}
-
-        {/* Connect form */}
-        {(showForm || !hasStores) && <ConnectForm onCancel={() => setShowForm(false)} onConnected={handleConnected} />}
-      </div>
+      <WebhookView clientId={clientId} webhookUrl={webhookUrl} banner={banner} setBanner={setBanner} />
     )
   }
 
