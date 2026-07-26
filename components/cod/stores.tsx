@@ -70,7 +70,7 @@ const STEPS = [
     num: "1",
     icon: ShoppingBag,
     title: "Ouvrez votre admin Shopify",
-    desc: "Connectez-vous à votre boutique Shopify et allez dans Applications → Gérer les applications privées.",
+    desc: "Connectez-vous à votre boutique Shopify. Allez dans Paramètres → Applications et canaux de vente → Développer des applications.",
     color: "#10b981",
     bg: "rgba(16,185,129,0.08)",
     border: "rgba(16,185,129,0.2)",
@@ -78,8 +78,8 @@ const STEPS = [
   {
     num: "2",
     icon: Link2,
-    title: "Créez une app privée",
-    desc: "Activez le développement d'applications privées, créez une nouvelle app et copiez la clé API et le mot de passe.",
+    title: "Créez une application personnalisée",
+    desc: "Cliquez sur « Créer une application », donnez-lui un nom (ex : CODShipEurope), puis configurez les permissions : read_products, write_products, read_orders, write_orders.",
     color: "#6366f1",
     bg: "rgba(99,102,241,0.08)",
     border: "rgba(99,102,241,0.2)",
@@ -87,8 +87,8 @@ const STEPS = [
   {
     num: "3",
     icon: Settings,
-    title: "Entrez vos informations",
-    desc: "Collez votre domaine Shopify et la clé API dans le formulaire ci-dessous. Nous nous occupons du reste.",
+    title: "Copiez le token d'accès",
+    desc: "Installez l'application, allez dans l'onglet « Credentials de l'API » et copiez le « Jeton d'accès Admin API ».",
     color: "#f59e0b",
     bg: "rgba(245,158,11,0.08)",
     border: "rgba(245,158,11,0.2)",
@@ -96,8 +96,8 @@ const STEPS = [
   {
     num: "4",
     icon: Zap,
-    title: "Synchronisation automatique",
-    desc: "Dès la connexion établie, vos commandes et leads arrivent en temps réel dans votre tableau de bord CODShipEurope.",
+    title: "Collez dans le formulaire ci-dessous",
+    desc: "Entrez votre domaine .myshopify.com et le token. Vos commandes arrivent en temps réel dans CODShipEurope.",
     color: "#f97316",
     bg: "rgba(249,115,22,0.08)",
     border: "rgba(249,115,22,0.2)",
@@ -118,11 +118,14 @@ function StoreStatusBadge({ status }: { status: ShopifyStore["status"] }) {
   )
 }
 
-function ConnectForm({ onCancel }: { onCancel: () => void }) {
-  const [domain, setDomain] = useState("")
-  const [err,    setErr]    = useState("")
+function ConnectForm({ onCancel, onConnected }: { onCancel: () => void; onConnected: (store: RealStore) => void }) {
+  const [domain,      setDomain]      = useState("")
+  const [token,       setToken]       = useState("")
+  const [showToken,   setShowToken]   = useState(false)
+  const [loading,     setLoading]     = useState(false)
+  const [err,         setErr]         = useState("")
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     const clean = domain.trim().toLowerCase()
       .replace(/^https?:\/\//, "").replace(/\/$/, "")
@@ -130,7 +133,29 @@ function ConnectForm({ onCancel }: { onCancel: () => void }) {
       setErr("Le domaine doit se terminer par .myshopify.com")
       return
     }
-    window.location.href = `/api/shopify/auth?shop=${clean}`
+    if (!token.trim()) {
+      setErr("Le token d'accès Admin API est requis")
+      return
+    }
+    setLoading(true)
+    setErr("")
+    try {
+      const res = await fetch("/api/stores/connect", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ domain: clean, accessToken: token.trim() }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setErr(data.error ?? "Erreur de connexion")
+        setLoading(false)
+        return
+      }
+      onConnected(data.store)
+    } catch {
+      setErr("Erreur réseau. Vérifiez votre connexion et réessayez.")
+      setLoading(false)
+    }
   }
 
   return (
@@ -140,7 +165,7 @@ function ConnectForm({ onCancel }: { onCancel: () => void }) {
           <div className="w-8 h-8 rounded-lg flex items-center justify-center text-lg bg-neutral-800">🛍️</div>
           <div>
             <p className="text-white font-semibold text-sm">Connecter une boutique Shopify</p>
-            <p className="text-neutral-600 text-xs">Vous serez redirigé vers Shopify pour autoriser l&apos;accès</p>
+            <p className="text-neutral-600 text-xs">Via application personnalisée — aucune revue Shopify requise</p>
           </div>
         </div>
         <button onClick={onCancel} className="text-neutral-600 hover:text-white text-xl leading-none transition-colors">×</button>
@@ -152,6 +177,7 @@ function ConnectForm({ onCancel }: { onCancel: () => void }) {
             <AlertCircle className="w-4 h-4 flex-shrink-0" />{err}
           </div>
         )}
+
         <div>
           <label className="block text-xs font-semibold text-neutral-500 mb-2 uppercase tracking-wider">Domaine Shopify *</label>
           <input
@@ -162,17 +188,42 @@ function ConnectForm({ onCancel }: { onCancel: () => void }) {
             required
             className="w-full bg-neutral-800 border border-neutral-700 rounded-xl px-4 py-3 text-white text-sm placeholder:text-neutral-500 focus:outline-none focus:border-orange-500/60 transition-colors font-mono"
           />
-          <p className="text-neutral-700 text-xs mt-1.5">Ex : ma-boutique.myshopify.com — sans https://</p>
+          <p className="text-neutral-600 text-xs mt-1.5">Ex : ma-boutique.myshopify.com — sans https://</p>
+        </div>
+
+        <div>
+          <label className="block text-xs font-semibold text-neutral-500 mb-2 uppercase tracking-wider">Token d&apos;accès Admin API *</label>
+          <div className="relative">
+            <input
+              type={showToken ? "text" : "password"}
+              value={token}
+              onChange={e => { setToken(e.target.value); setErr("") }}
+              placeholder="shpat_xxxxxxxxxxxxxxxxxxxx"
+              required
+              className="w-full bg-neutral-800 border border-neutral-700 rounded-xl px-4 py-3 pr-12 text-white text-sm placeholder:text-neutral-500 focus:outline-none focus:border-orange-500/60 transition-colors font-mono"
+            />
+            <button
+              type="button"
+              onClick={() => setShowToken(v => !v)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-neutral-300"
+            >
+              {showToken ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+            </button>
+          </div>
+          <p className="text-neutral-600 text-xs mt-1.5">Paramètres → Applications → Développer des applications → Credentials de l&apos;API</p>
         </div>
 
         <div className="flex gap-3 pt-1">
-          <button type="submit"
-            className="flex items-center gap-2 font-bold text-sm text-white px-6 py-3 rounded-xl transition-all"
+          <button type="submit" disabled={loading}
+            className="flex items-center gap-2 font-bold text-sm text-white px-6 py-3 rounded-xl transition-all disabled:opacity-60"
             style={{ background: "linear-gradient(135deg,#f97316,#dc2626)", boxShadow: "0 4px 20px rgba(249,115,22,0.25)" }}>
-            <CheckCircle className="w-4 h-4" />Connecter via Shopify
+            {loading
+              ? <><Loader2 className="w-4 h-4 animate-spin" />Connexion en cours…</>
+              : <><CheckCircle className="w-4 h-4" />Connecter la boutique</>
+            }
           </button>
-          <button type="button" onClick={onCancel}
-            className="text-sm text-neutral-500 hover:text-white border border-neutral-700 px-5 py-3 rounded-xl transition-all hover:border-neutral-500">
+          <button type="button" onClick={onCancel} disabled={loading}
+            className="text-sm text-neutral-500 hover:text-white border border-neutral-700 px-5 py-3 rounded-xl transition-all hover:border-neutral-500 disabled:opacity-50">
             Annuler
           </button>
         </div>
@@ -200,6 +251,12 @@ export default function StoresPage() {
   const [banner,         setBanner]         = useState<{ type: "success" | "error"; msg: string } | null>(null)
 
   const isDemo = clientId === "c1"
+
+  const handleConnected = (store: RealStore) => {
+    setRealStores(prev => [...prev, { ...store, status: "connected", last_sync: null }])
+    setShowForm(false)
+    setBanner({ type: "success", msg: "Boutique connectée ! Synchronisation des produits en cours…" })
+  }
 
   // Read OAuth result from URL params
   useEffect(() => {
@@ -464,7 +521,7 @@ export default function StoresPage() {
         </div>}
 
         {/* Connect form */}
-        {(showForm || !hasStores) && <ConnectForm onCancel={() => setShowForm(false)} />}
+        {(showForm || !hasStores) && <ConnectForm onCancel={() => setShowForm(false)} onConnected={handleConnected} />}
       </div>
     )
   }
@@ -559,7 +616,7 @@ export default function StoresPage() {
       </div>
 
       {showForm && (
-        <ConnectForm onCancel={() => setShowForm(false)} />
+        <ConnectForm onCancel={() => setShowForm(false)} onConnected={() => setShowForm(false)} />
       )}
     </div>
   )
