@@ -32,7 +32,7 @@ export default function MentionsLegales() {
             <Row label="Legal form"           value="Sociedade por Quotas (Lda) — equivalent to a limited liability company" />
             <Row label="Registered office"    value="Lisbon, Portugal" />
             <Row label="Share capital"        value="€5,000" />
-            <Row label="Tax ID"               value="PT 516 XXX XXX" />
+            <Row label="Tax ID"               value="En cours d'enregistrement" />
             <Row label="Publication director" value="CODShipEurope — General Management" />
             <Row label="Email"                value="contact@codshipeurope.com" />
             <Row label="Phone"                value="+1 (385) 885-6423" />
@@ -106,7 +106,7 @@ export default function MentionsLegales() {
             <Row label="Forme juridique"                  value="Sociedade por Quotas (Lda) — équivalent SARL" />
             <Row label="Siège social"                     value="Lisbonne, Portugal" />
             <Row label="Capital social"                   value="5 000 EUR" />
-            <Row label="Numéro d'identification fiscale"  value="PT 516 XXX XXX" />
+            <Row label="Numéro d'identification fiscale"  value="En cours d'enregistrement" />
             <Row label="Directeur de la publication"      value="CODShipEurope — Direction générale" />
             <Row label="E-mail"                           value="contact@codshipeurope.com" />
             <Row label="Téléphone"                        value="+1 (385) 885-6423" />
