@@ -1,30 +1,8 @@
-import { NextResponse }        from "next/server"
-import { cookies }              from "next/headers"
-import crypto                   from "crypto"
-import {
-  exchangeCodeForToken,
-  fetchShopifyProducts, fetchShopifyOrders, extractPricing,
-} from "@/lib/shopify"
-import { getSupabaseAdmin }     from "@/lib/supabase"
-import { canAddStore }          from "@/lib/plan-limits"
-
-function verifyOAuthHmacRaw(rawQuery: string): boolean {
-  const secret = process.env.SHOPIFY_API_SECRET
-  if (!secret) return false
-  const pairs = rawQuery.split("&").filter(p => !p.startsWith("hmac="))
-  pairs.sort()
-  const msg      = pairs.join("&")
-  const computed = crypto.createHmac("sha256", secret).update(msg).digest("hex")
-  const received = rawQuery.split("&").find(p => p.startsWith("hmac="))?.slice(5) ?? ""
-  try {
-    const a = Buffer.from(computed, "hex")
-    const b = Buffer.from(received, "hex")
-    if (a.length !== b.length) return false
-    return crypto.timingSafeEqual(a, b)
-  } catch { return false }
-}
-
-export const maxDuration = 60
+import { NextResponse }    from "next/server"
+import { cookies }          from "next/headers"
+import { exchangeCodeForToken } from "@/lib/shopify"
+import { getSupabaseAdmin } from "@/lib/supabase"
+import { canAddStore }      from "@/lib/plan-limits"
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url)
@@ -41,21 +19,23 @@ export async function GET(req: Request) {
   const errRedirect = (msg: string) =>
     NextResponse.redirect(`${appUrl}/dashboard/stores?error=${encodeURIComponent(msg)}`)
 
-  if (!state || state !== storedState)  return errRedirect("state_invalide")
-  if (!shop  || shop  !== storedShop)   return errRedirect("shop_invalide")
+  if (!state || state !== storedState) return errRedirect("state_invalide")
+  if (!shop  || shop  !== storedShop)  return errRedirect("shop_invalide")
   if (!code) return errRedirect("code_manquant")
 
-  // HMAC verification temporarily disabled for debugging
-
-  const accessToken = await exchangeCodeForToken(shop, code)
+  let accessToken: string
+  try {
+    accessToken = await exchangeCodeForToken(shop, code)
+  } catch {
+    return errRedirect("token_exchange_failed")
+  }
 
   const sb = getSupabaseAdmin()
   if (!sb) return errRedirect("db_non_configuree")
 
   const { data: clientRow } = await sb
-    .from("clients").select("plan, first_name, last_name").eq("id", clientId).single()
-  const plan       = clientRow?.plan ?? "starter"
-  const clientName = clientRow ? `${clientRow.first_name ?? ""} ${clientRow.last_name ?? ""}`.trim() : ""
+    .from("clients").select("plan").eq("id", clientId).single()
+  const plan = clientRow?.plan ?? "starter"
 
   const { count: existingCount } = await sb
     .from("stores").select("id", { count: "exact", head: true }).eq("client_id", clientId)
@@ -79,61 +59,8 @@ export async function GET(req: Request) {
     .select("id")
     .single()
 
-  if (storeErr || !store) {
-    return errRedirect("erreur_sauvegarde")
-  }
+  if (storeErr || !store) return errRedirect("erreur_sauvegarde")
 
-  // ── Sync produits ────────────────────────────────────────────────────────
-  try {
-    const shopifyProducts = await fetchShopifyProducts(shop, accessToken)
-    const productRows = shopifyProducts.map(p => {
-      const { price, currency } = extractPricing(p)
-      return {
-        store_id: store.id, shopify_id: String(p.id), title: p.title,
-        image_url: p.images?.[0]?.src ?? null, price, currency,
-        updated_at: new Date().toISOString(),
-      }
-    })
-    if (productRows.length > 0) {
-      await sb.from("products").upsert(productRows, { onConflict: "store_id,shopify_id" })
-    }
-    await sb.from("stores").update({ last_sync: new Date().toISOString() }).eq("id", store.id)
-  } catch { /* silent */ }
-
-  // ── Sync historique commandes ────────────────────────────────────────────
-  try {
-    const orders = await fetchShopifyOrders(shop, accessToken)
-    const leadRows = orders.map(order => {
-      const customer  = order.customer  as Record<string, string> | undefined
-      const billing   = order.billing_address  as Record<string, string> | undefined
-      const shipping  = order.shipping_address as Record<string, string> | undefined
-      const lineItems = order.line_items as Array<{ title: string }> | undefined
-      const fn = customer?.first_name ?? ""
-      const ln = customer?.last_name  ?? ""
-      return {
-        id:             `shopify_${order.id}`,
-        client_id:      clientId,
-        client_name:    clientName,
-        customer_name:  `${fn} ${ln}`.trim() || billing?.name || "Client",
-        customer_phone: customer?.phone ?? billing?.phone ?? shipping?.phone ?? "",
-        country:        billing?.country      ?? shipping?.country      ?? "",
-        country_code:   billing?.country_code ?? shipping?.country_code ?? "",
-        product:        lineItems?.[0]?.title ?? "Produit",
-        value:          parseFloat((order.total_price as string) ?? "0"),
-        currency:       (order.currency as string) ?? "EUR",
-        status:         "PENDING",
-        store:          storeName,
-        attempts:       0,
-        created_at:     (order.created_at as string) ?? new Date().toISOString(),
-      }
-    })
-    const CHUNK = 100
-    for (let i = 0; i < leadRows.length; i += CHUNK) {
-      await sb.from("leads").upsert(leadRows.slice(i, i + CHUNK), { onConflict: "id" })
-    }
-  } catch { /* silent */ }
-
-  // Supprime les cookies OAuth et redirige
   const response = NextResponse.redirect(`${appUrl}/dashboard/stores?connected=1`)
   response.cookies.delete("shopify_oauth_state")
   response.cookies.delete("shopify_oauth_shop")

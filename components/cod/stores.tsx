@@ -145,7 +145,18 @@ function WebhookView({
 
   useEffect(() => {
     fetch("/api/stores").then(r => r.json()).then(d => {
-      if (Array.isArray(d)) setStores(d)
+      if (Array.isArray(d)) {
+        setStores(d)
+        // Auto-sync the most recently added store after OAuth connection
+        if (banner?.type === "success" && d.length > 0) {
+          const latest = d[d.length - 1]
+          fetch("/api/shopify/sync-store", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ storeId: latest.id }),
+          }).catch(() => {})
+        }
+      }
     }).catch(() => {})
   }, [])
 
