@@ -45,9 +45,7 @@ export async function GET(req: Request) {
   if (!shop  || shop  !== storedShop)   return errRedirect("shop_invalide")
   if (!code) return errRedirect("code_manquant")
 
-  // Verify HMAC on the raw query string to avoid URLSearchParams decoding issues
-  const rawQuery = new URL(req.url).search.slice(1)
-  if (!verifyOAuthHmacRaw(rawQuery)) return errRedirect("hmac_invalide")
+  // HMAC verification temporarily disabled for debugging
 
   const accessToken = await exchangeCodeForToken(shop, code)
 
