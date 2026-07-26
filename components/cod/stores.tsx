@@ -291,18 +291,23 @@ function WebhookView({
         </div>
       )}
 
-      {/* ── SECTION 3 : Produits via token ── */}
+      {/* ── SECTION 3 : Produits + historique via OAuth ── */}
       <div className="rounded-2xl border border-neutral-800 bg-neutral-900 overflow-hidden">
         <div className="px-6 py-4 border-b border-neutral-800 flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center flex-shrink-0">
             <Package className="w-4 h-4 text-purple-400" />
           </div>
           <div>
-            <p className="text-white font-bold text-sm">Synchroniser les produits</p>
-            <p className="text-neutral-500 text-xs">Via application personnalisée Shopify — importe votre catalogue</p>
+            <p className="text-white font-bold text-sm">Produits & historique des commandes</p>
+            <p className="text-neutral-500 text-xs">Connexion OAuth Shopify — importe catalogue + toutes les commandes passées</p>
           </div>
         </div>
-        <form onSubmit={handleConnect} className="p-6 space-y-4">
+        <form onSubmit={e => {
+          e.preventDefault()
+          const clean = domain.trim().toLowerCase().replace(/^https?:\/\//, "").replace(/\/$/, "")
+          if (!clean.includes(".myshopify.com")) { setFormErr("Le domaine doit se terminer par .myshopify.com"); return }
+          window.location.href = `/api/shopify/auth?shop=${clean}`
+        }} className="p-6 space-y-4">
           {formErr && (
             <div className="flex items-center gap-2 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 text-red-400 text-sm">
               <AlertCircle className="w-4 h-4 flex-shrink-0" />{formErr}
@@ -312,23 +317,12 @@ function WebhookView({
             <label className="block text-xs font-semibold text-neutral-500 mb-2 uppercase tracking-wider">Domaine Shopify</label>
             <input type="text" value={domain} onChange={e => { setDomain(e.target.value); setFormErr("") }}
               placeholder="ma-boutique.myshopify.com" required className={INPUT} />
+            <p className="text-neutral-600 text-xs mt-1.5">Ex : ma-boutique.myshopify.com — sans https://</p>
           </div>
-          <div>
-            <label className="block text-xs font-semibold text-neutral-500 mb-2 uppercase tracking-wider">Token d&apos;accès Admin API</label>
-            <div className="relative">
-              <input type={showToken ? "text" : "password"} value={token} onChange={e => { setToken(e.target.value); setFormErr("") }}
-                placeholder="shpat_xxxxxxxxxxxxxxxxxxxx" required className={INPUT + " pr-12"} />
-              <button type="button" onClick={() => setShowToken(v => !v)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-neutral-300">
-                {showToken ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-              </button>
-            </div>
-            <p className="text-neutral-600 text-xs mt-1.5">Paramètres → Applications → Développer des applications → Credentials de l&apos;API</p>
-          </div>
-          <button type="submit" disabled={connecting}
-            className="flex items-center gap-2 font-bold text-sm text-white px-6 py-3 rounded-xl transition-all disabled:opacity-60"
+          <button type="submit"
+            className="flex items-center gap-2 font-bold text-sm text-white px-6 py-3 rounded-xl transition-all"
             style={{ background: "linear-gradient(135deg,#a855f7,#7c3aed)", boxShadow: "0 4px 16px rgba(168,85,247,0.2)" }}>
-            {connecting ? <><Loader2 className="w-4 h-4 animate-spin" />Connexion…</> : <><CheckCircle className="w-4 h-4" />Connecter et importer les produits</>}
+            <CheckCircle className="w-4 h-4" />Connecter via Shopify
           </button>
         </form>
       </div>

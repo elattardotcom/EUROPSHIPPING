@@ -3,7 +3,7 @@ import crypto from "crypto"
 const API_VERSION  = "2025-01"
 const SCOPES       = "read_products,write_products,read_orders,write_orders,read_customers"
 const APP_URL      = process.env.NEXT_PUBLIC_APP_URL ?? "https://europs-shipping.vercel.app"
-const API_KEY      = process.env.SHOPIFY_API_KEY     ?? "efa9607c69905225282115b29466aead"
+const API_KEY      = process.env.SHOPIFY_API_KEY     ?? "88caa8d1ae4239a40202741f700a57ff"
 const API_SECRET   = process.env.SHOPIFY_API_SECRET  ?? ""
 
 /* ── OAuth ──────────────────────────────────────────────────────────────── */

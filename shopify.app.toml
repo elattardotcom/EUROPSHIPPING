@@ -1,0 +1,31 @@
+name = "CODSHIPEUROPE"
+client_id = "88caa8d1ae4239a40202741f700a57ff"
+application_url = "https://www.codshipeurope.com"
+embedded = true
+
+[access_scopes]
+scopes = "read_products,write_products,read_orders,write_orders,read_customers"
+
+[auth]
+redirect_urls = [
+  "https://www.codshipeurope.com/api/shopify/callback",
+  "https://europs-shipping.vercel.app/api/shopify/callback"
+]
+
+[webhooks]
+api_version = "2026-04"
+
+  [[webhooks.subscriptions]]
+  topics = ["customers/data_request"]
+  uri = "/api/webhooks/shopify/customers/data_request"
+
+  [[webhooks.subscriptions]]
+  topics = ["customers/redact"]
+  uri = "/api/webhooks/shopify/customers/redact"
+
+  [[webhooks.subscriptions]]
+  topics = ["shop/redact"]
+  uri = "/api/webhooks/shopify/shop/redact"
+
+[pos]
+embedded = false
