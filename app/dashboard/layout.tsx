@@ -114,16 +114,48 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [expandedMenus,  setExpandedMenus]  = useState<string[]>(["leads", "orders", "affiliates", "cod-drop", "wallet", "stores"])
   const [showNotifs,     setShowNotifs]     = useState(false)
   const [notifs,         setNotifs]         = useState<Notif[]>([])
+  const [readIds,        setReadIds]        = useState<Set<string>>(() => {
+    if (typeof window === "undefined") return new Set()
+    try { return new Set(JSON.parse(localStorage.getItem("client_notif_read") ?? "[]")) } catch { return new Set() }
+  })
   const [balance,        setBalance]        = useState<string | null>(null)
   const [refreshing,     setRefreshing]     = useState(false)
   const [clientId,       setClientId]       = useState(getClientIdFromCookie)
   const [leadsCount,     setLeadsCount]     = useState(0)
   const [ordersCount,    setOrdersCount]    = useState(0)
 
+  const markRead = useCallback((id: string) => {
+    setReadIds(prev => {
+      const next = new Set(prev)
+      next.add(id)
+      try { localStorage.setItem("client_notif_read", JSON.stringify([...next])) } catch {}
+      return next
+    })
+    setNotifs(prev => prev.map(n => n.id === id ? { ...n, read: true } : n))
+  }, [])
+
+  const markAllRead = useCallback(() => {
+    setNotifs(prev => {
+      const ids = prev.map(n => n.id)
+      setReadIds(existing => {
+        const next = new Set(existing)
+        ids.forEach(id => next.add(id))
+        try { localStorage.setItem("client_notif_read", JSON.stringify([...next])) } catch {}
+        return next
+      })
+      return prev.map(n => ({ ...n, read: true }))
+    })
+  }, [])
+
   const unreadCount = notifs.filter(n => !n.read).length
 
   const pushNotif = useCallback((n: Omit<Notif, "id" | "read">) => {
-    setNotifs(prev => [{ ...n, id: `rt-${Date.now()}`, read: false }, ...prev].slice(0, 20))
+    const id = `rt-${Date.now()}`
+    setReadIds(prev => {
+      const isRead = prev.has(id)
+      setNotifs(existing => [{ ...n, id, read: isRead }, ...existing].slice(0, 20))
+      return prev
+    })
   }, [])
 
   const navItems = buildNavItems(leadsCount, ordersCount)
@@ -149,44 +181,47 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       fetch("/api/client/leads").then(r => r.json()),
       fetch("/api/client/orders").then(r => r.json()),
     ]).then(([leads, orders]) => {
-      if (Array.isArray(leads)) {
-        setLeadsCount(leads.length)
-        // Build initial notifications from recent confirmed leads
-        const recent: Notif[] = leads
-          .filter((l: { status: string }) => l.status === "CONFIRMED")
-          .slice(0, 4)
-          .map((l: { id: string; name: string; createdAt?: string; createdTime?: string }) => ({
-            id:   `lead-${l.id}`,
-            text: `Lead confirmé — ${l.name}`,
-            time: l.createdAt ? relativeTime(l.createdAt) : "Récemment",
-            dot:  "bg-emerald-500",
-            read: true,
-          }))
+      setReadIds(seen => {
+        const newNotifs: Notif[] = []
+        if (Array.isArray(leads)) {
+          setLeadsCount(leads.length)
+          leads
+            .filter((l: { status: string }) => l.status === "CONFIRMED")
+            .slice(0, 4)
+            .forEach((l: { id: string; name: string; createdAt?: string }) => {
+              const id = `lead-${l.id}`
+              newNotifs.push({
+                id,
+                text: `Lead confirmé — ${l.name}`,
+                time: l.createdAt ? relativeTime(l.createdAt) : "Récemment",
+                dot:  "bg-emerald-500",
+                read: seen.has(id),
+              })
+            })
+        }
+        if (Array.isArray(orders)) {
+          setOrdersCount(orders.filter((o: { status: string }) => o.status === "PENDING" || o.status === "SHIPPED").length)
+          orders
+            .filter((o: { status: string }) => o.status === "DELIVERED")
+            .slice(0, 3)
+            .forEach((o: { id: string; name: string; createdAt?: string }) => {
+              const id = `order-${o.id}`
+              newNotifs.push({
+                id,
+                text: `Commande livrée — ${o.name}`,
+                time: o.createdAt ? relativeTime(o.createdAt) : "Récemment",
+                dot:  "bg-blue-500",
+                read: seen.has(id),
+              })
+            })
+        }
         setNotifs(prev => {
           const existingIds = new Set(prev.map(n => n.id))
-          const fresh = recent.filter(n => !existingIds.has(n.id))
+          const fresh = newNotifs.filter(n => !existingIds.has(n.id))
           return [...prev, ...fresh].slice(0, 20)
         })
-      }
-      if (Array.isArray(orders)) {
-        setOrdersCount(orders.filter((o: { status: string }) => o.status === "PENDING" || o.status === "SHIPPED").length)
-        // Add recent delivered orders as notifications
-        const recent: Notif[] = orders
-          .filter((o: { status: string }) => o.status === "DELIVERED")
-          .slice(0, 3)
-          .map((o: { id: string; name: string; createdAt?: string }) => ({
-            id:   `order-${o.id}`,
-            text: `Commande livrée — ${o.name}`,
-            time: o.createdAt ? relativeTime(o.createdAt) : "Récemment",
-            dot:  "bg-blue-500",
-            read: true,
-          }))
-        setNotifs(prev => {
-          const existingIds = new Set(prev.map(n => n.id))
-          const fresh = recent.filter(n => !existingIds.has(n.id))
-          return [...prev, ...fresh].slice(0, 20)
-        })
-      }
+        return seen
+      })
     }).catch(() => {})
   }, [])
 
@@ -485,7 +520,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     ) : notifs.map(n => (
                       <div
                         key={n.id}
-                        onClick={() => setNotifs(prev => prev.map(x => x.id === n.id ? { ...x, read: true } : x))}
+                        onClick={() => markRead(n.id)}
                         className={`flex items-start gap-3 px-4 py-3 hover:bg-neutral-800 cursor-pointer transition-colors ${!n.read ? "bg-orange-500/5 border-l-2 border-orange-500" : "border-l-2 border-transparent"}`}
                       >
                         <span className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${n.dot}`} />
@@ -499,7 +534,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   </div>
                   <div className="px-4 py-2.5 border-t border-neutral-800">
                     <button
-                      onClick={() => setNotifs(prev => prev.map(n => ({ ...n, read: true })))}
+                      onClick={markAllRead}
                       className="text-xs text-orange-400 hover:text-orange-300 font-medium"
                     >
                       Tout marquer comme lu
