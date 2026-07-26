@@ -72,35 +72,52 @@ export default function LandingPage() {
       <style>{`
         @keyframes marquee { 0% { transform: translateX(0) } 100% { transform: translateX(-50%) } }
         @keyframes feed-scroll { 0% { transform: translateY(0) } 100% { transform: translateY(-50%) } }
-        @keyframes cash-ping { 0%, 100% { transform: scale(1); opacity: 1 } 50% { transform: scale(1.15); opacity: 0.8 } }
-        @keyframes slide-right { from { opacity: 0; transform: translateX(-20px) } to { opacity: 1; transform: translateX(0) } }
-        @keyframes slide-up { from { opacity: 0; transform: translateY(16px) } to { opacity: 1; transform: translateY(0) } }
-        @keyframes glow-pulse { 0%, 100% { box-shadow: 0 0 20px rgba(16,185,129,0.2) } 50% { box-shadow: 0 0 40px rgba(16,185,129,0.5), 0 0 80px rgba(16,185,129,0.15) } }
-        @keyframes dot-blink { 0%, 100% { opacity: 1 } 50% { opacity: 0.2 } }
-        .marquee-track { animation: marquee 30s linear infinite }
+        @keyframes cash-ping { 0%, 100% { transform: scale(1); opacity: 1 } 50% { transform: scale(1.12); opacity: 0.85 } }
+        @keyframes slide-right { from { opacity: 0; transform: translateX(-24px) } to { opacity: 1; transform: translateX(0) } }
+        @keyframes slide-up { from { opacity: 0; transform: translateY(20px) } to { opacity: 1; transform: translateY(0) } }
+        @keyframes glow-pulse { 0%, 100% { box-shadow: 0 0 20px rgba(16,185,129,0.25) } 50% { box-shadow: 0 0 50px rgba(16,185,129,0.55), 0 0 100px rgba(16,185,129,0.18) } }
+        @keyframes dot-blink { 0%, 100% { opacity: 1 } 50% { opacity: 0.15 } }
+        @keyframes float { 0%, 100% { transform: translateY(0px) } 50% { transform: translateY(-10px) } }
+        @keyframes aurora { 0% { transform: rotate(0deg) scale(1) } 33% { transform: rotate(120deg) scale(1.1) } 66% { transform: rotate(240deg) scale(0.95) } 100% { transform: rotate(360deg) scale(1) } }
+        @keyframes shimmer { 0% { background-position: -200% center } 100% { background-position: 200% center } }
+        @keyframes border-glow { 0%, 100% { opacity: 0.5 } 50% { opacity: 1 } }
+        @keyframes grid-fade { from { opacity: 0 } to { opacity: 1 } }
+        @keyframes orb-drift { 0%, 100% { transform: translate(0,0) scale(1) } 25% { transform: translate(30px,-20px) scale(1.05) } 50% { transform: translate(-20px,30px) scale(0.97) } 75% { transform: translate(20px,10px) scale(1.03) } }
+        .marquee-track { animation: marquee 35s linear infinite }
         .marquee-track:hover { animation-play-state: paused }
-        .feed-track { animation: feed-scroll 20s linear infinite }
-        .animate-cash { animation: cash-ping 2s ease-in-out infinite }
-        .animate-slide-r { animation: slide-right 0.6s ease-out forwards }
-        .animate-slide-u { animation: slide-up 0.5s ease-out forwards }
+        .feed-track { animation: feed-scroll 22s linear infinite }
+        .animate-cash { animation: cash-ping 2.2s ease-in-out infinite }
+        .animate-slide-r { animation: slide-right 0.7s cubic-bezier(0.16,1,0.3,1) forwards }
+        .animate-slide-u { animation: slide-up 0.6s cubic-bezier(0.16,1,0.3,1) forwards }
         .animate-glow { animation: glow-pulse 3s ease-in-out infinite }
-        .animate-dot { animation: dot-blink 1.2s ease-in-out infinite }
-        .d1 { animation-delay: 0.1s; opacity: 0 } .d2 { animation-delay: 0.2s; opacity: 0 }
-        .d3 { animation-delay: 0.35s; opacity: 0 } .d4 { animation-delay: 0.5s; opacity: 0 }
-        .d5 { animation-delay: 0.65s; opacity: 0 }
+        .animate-dot { animation: dot-blink 1.4s ease-in-out infinite }
+        .animate-float { animation: float 5s ease-in-out infinite }
+        .animate-aurora { animation: aurora 20s linear infinite }
+        .animate-orb { animation: orb-drift 12s ease-in-out infinite }
+        .shimmer-text { background: linear-gradient(90deg, #fff 0%, #f97316 40%, #fff 60%, #10b981 80%, #fff 100%); background-size: 300% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; animation: shimmer 5s linear infinite }
+        .d1 { animation-delay: 0.05s; opacity: 0 } .d2 { animation-delay: 0.15s; opacity: 0 }
+        .d3 { animation-delay: 0.28s; opacity: 0 } .d4 { animation-delay: 0.42s; opacity: 0 }
+        .d5 { animation-delay: 0.55s; opacity: 0 }
         .diag-top { clip-path: polygon(0 0, 100% 0, 100% 88%, 0 100%) }
         .diag-bottom { clip-path: polygon(0 5%, 100% 0, 100% 100%, 0 100%) }
         .diag-mid { clip-path: polygon(0 4%, 100% 0, 100% 96%, 0 100%) }
         .cash-border { position: relative }
-        .cash-border::before { content: ''; position: absolute; inset: 0; border-radius: inherit; padding: 1px; background: linear-gradient(135deg, rgba(16,185,129,0.4), rgba(249,115,22,0.4), rgba(16,185,129,0.1)); -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); -webkit-mask-composite: xor; mask-composite: exclude; pointer-events: none }
-        .bento-card { transition: all 0.25s ease }
-        .bento-card:hover { transform: scale(1.015) }
-        .noise { background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E") }
+        .cash-border::before { content: ''; position: absolute; inset: 0; border-radius: inherit; padding: 1px; background: linear-gradient(135deg, rgba(16,185,129,0.5), rgba(249,115,22,0.5), rgba(99,102,241,0.3), rgba(16,185,129,0.2)); -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); -webkit-mask-composite: xor; mask-composite: exclude; pointer-events: none; animation: border-glow 3s ease-in-out infinite }
+        .bento-card { transition: all 0.3s cubic-bezier(0.16,1,0.3,1) }
+        .bento-card:hover { transform: scale(1.018) translateY(-2px) }
+        .glass-card { background: rgba(255,255,255,0.03); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.07) }
+        .glass-card:hover { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.12) }
+        .noise { background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.025'/%3E%3C/svg%3E") }
+        .hero-grid { background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px); background-size: 60px 60px }
+        .btn-primary { background: linear-gradient(135deg,#f97316,#dc2626); box-shadow: 0 8px 32px rgba(249,115,22,0.35), 0 0 0 1px rgba(249,115,22,0.2); transition: all 0.3s cubic-bezier(0.16,1,0.3,1) }
+        .btn-primary:hover { box-shadow: 0 12px 48px rgba(249,115,22,0.5), 0 0 0 1px rgba(249,115,22,0.3); transform: translateY(-1px) scale(1.02) }
+        .section-glow { position: relative }
+        .section-glow::before { content: ''; position: absolute; top: -100px; left: 50%; transform: translateX(-50%); width: 600px; height: 200px; background: radial-gradient(ellipse, rgba(249,115,22,0.06) 0%, transparent 70%); pointer-events: none; filter: blur(20px) }
       `}</style>
 
       {/* ── Navbar ─────────────────────────────────────────────── */}
-      <header className="sticky top-0 z-40 h-14 sm:h-16 flex items-center border-b border-white/[0.05]"
-        style={{ background: "rgba(8,8,8,0.92)", backdropFilter: "blur(20px)" }}>
+      <header className="sticky top-0 z-40 h-14 sm:h-16 flex items-center"
+        style={{ background: "rgba(6,6,6,0.88)", backdropFilter: "blur(24px) saturate(180%)", borderBottom: "1px solid rgba(255,255,255,0.06)", boxShadow: "0 1px 0 rgba(255,255,255,0.04), 0 4px 24px rgba(0,0,0,0.4)" }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full flex items-center justify-between">
           <div className="flex items-center gap-2 sm:gap-3">
             <Logo size={48} showBg={true} />
@@ -126,8 +143,7 @@ export default function LandingPage() {
               {t.sign_in}
             </OpenModalButton>
             <OpenModalButton step="signup"
-              className="text-xs sm:text-sm font-bold text-white px-4 sm:px-5 py-2 rounded-lg flex items-center gap-1.5 transition-all"
-              style={{ background: "linear-gradient(135deg,#f97316,#dc2626)", boxShadow: "0 4px 20px rgba(249,115,22,0.3)" }}>
+              className="text-xs sm:text-sm font-bold text-white px-4 sm:px-5 py-2 rounded-lg flex items-center gap-1.5 btn-primary">
               {t.get_started}
               <ArrowRight className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
             </OpenModalButton>
@@ -139,11 +155,16 @@ export default function LandingPage() {
       <LiveTicker lang={lang} />
 
       {/* ── Hero ───────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden pt-12 sm:pt-20 pb-0 px-4 sm:px-6 diag-top" style={{ background: "linear-gradient(160deg, #0d0d0d 0%, #0a0a0a 60%, #080808 100%)" }}>
-        <div className="absolute top-0 left-0 w-[300px] sm:w-[500px] h-[300px] sm:h-[500px] rounded-full pointer-events-none"
-          style={{ background: "radial-gradient(ellipse, rgba(249,115,22,0.07) 0%, transparent 70%)", filter: "blur(40px)" }} />
-        <div className="absolute top-20 right-0 w-[300px] sm:w-[400px] h-[300px] sm:h-[400px] rounded-full pointer-events-none"
-          style={{ background: "radial-gradient(ellipse, rgba(16,185,129,0.06) 0%, transparent 70%)", filter: "blur(40px)" }} />
+      <section className="relative overflow-hidden pt-12 sm:pt-20 pb-0 px-4 sm:px-6 diag-top" style={{ background: "linear-gradient(160deg, #0a0a0a 0%, #080808 60%, #060606 100%)" }}>
+        {/* Grid background */}
+        <div className="absolute inset-0 hero-grid opacity-100 pointer-events-none" />
+        {/* Aurora orbs */}
+        <div className="absolute top-[-100px] left-[-100px] w-[500px] sm:w-[700px] h-[500px] sm:h-[700px] rounded-full pointer-events-none animate-orb"
+          style={{ background: "radial-gradient(ellipse, rgba(249,115,22,0.09) 0%, transparent 65%)", filter: "blur(60px)" }} />
+        <div className="absolute top-10 right-[-50px] w-[350px] sm:w-[550px] h-[350px] sm:h-[550px] rounded-full pointer-events-none"
+          style={{ background: "radial-gradient(ellipse, rgba(16,185,129,0.08) 0%, transparent 65%)", filter: "blur(60px)", animation: "orb-drift 15s ease-in-out infinite reverse" }} />
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[400px] h-[300px] rounded-full pointer-events-none"
+          style={{ background: "radial-gradient(ellipse, rgba(99,102,241,0.05) 0%, transparent 70%)", filter: "blur(50px)" }} />
 
         <div className="max-w-7xl mx-auto relative pb-16 sm:pb-28">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-12 items-center">
@@ -168,8 +189,7 @@ export default function LandingPage() {
 
               <div className="animate-slide-r d4 flex flex-col sm:flex-row gap-3 mb-10 sm:mb-12">
                 <OpenModalButton step="signup"
-                  className="group flex items-center justify-center gap-2 font-bold text-sm text-white px-8 py-3.5 rounded-xl transition-all w-full sm:w-auto"
-                  style={{ background: "linear-gradient(135deg,#f97316,#dc2626)", boxShadow: "0 8px 32px rgba(249,115,22,0.35)" }}>
+                  className="group flex items-center justify-center gap-2 font-bold text-sm text-white px-8 py-3.5 rounded-xl w-full sm:w-auto btn-primary">
                   {t.get_started}
                   <ArrowRight className="w-4 h-4" />
                 </OpenModalButton>
