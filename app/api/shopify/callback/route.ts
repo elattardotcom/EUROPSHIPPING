@@ -1,11 +1,28 @@
 import { NextResponse }        from "next/server"
 import { cookies }              from "next/headers"
+import crypto                   from "crypto"
 import {
-  exchangeCodeForToken, verifyOAuthCallback,
+  exchangeCodeForToken,
   fetchShopifyProducts, fetchShopifyOrders, extractPricing,
 } from "@/lib/shopify"
 import { getSupabaseAdmin }     from "@/lib/supabase"
 import { canAddStore }          from "@/lib/plan-limits"
+
+function verifyOAuthHmacRaw(rawQuery: string): boolean {
+  const secret = process.env.SHOPIFY_API_SECRET
+  if (!secret) return false
+  const pairs = rawQuery.split("&").filter(p => !p.startsWith("hmac="))
+  pairs.sort()
+  const msg      = pairs.join("&")
+  const computed = crypto.createHmac("sha256", secret).update(msg).digest("hex")
+  const received = rawQuery.split("&").find(p => p.startsWith("hmac="))?.slice(5) ?? ""
+  try {
+    const a = Buffer.from(computed, "hex")
+    const b = Buffer.from(received, "hex")
+    if (a.length !== b.length) return false
+    return crypto.timingSafeEqual(a, b)
+  } catch { return false }
+}
 
 export const maxDuration = 60
 
@@ -26,8 +43,11 @@ export async function GET(req: Request) {
 
   if (!state || state !== storedState)  return errRedirect("state_invalide")
   if (!shop  || shop  !== storedShop)   return errRedirect("shop_invalide")
-  if (!verifyOAuthCallback(searchParams)) return errRedirect("hmac_invalide")
   if (!code) return errRedirect("code_manquant")
+
+  // Verify HMAC on the raw query string to avoid URLSearchParams decoding issues
+  const rawQuery = new URL(req.url).search.slice(1)
+  if (!verifyOAuthHmacRaw(rawQuery)) return errRedirect("hmac_invalide")
 
   const accessToken = await exchangeCodeForToken(shop, code)
 
