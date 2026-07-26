@@ -458,10 +458,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <div className="relative">
               <Button
                 variant="ghost" size="icon"
-                onClick={() => {
-                  setShowNotifs(v => !v)
-                  setNotifs(prev => prev.map(n => ({ ...n, read: true })))
-                }}
+                onClick={() => setShowNotifs(v => !v)}
                 className="relative text-neutral-400 hover:bg-neutral-800 hover:text-orange-500"
               >
                 <Bell className="w-5 h-5" />
@@ -486,7 +483,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     {notifs.length === 0 ? (
                       <p className="text-center text-neutral-500 text-sm py-6">Aucune notification</p>
                     ) : notifs.map(n => (
-                      <div key={n.id} className={`flex items-start gap-3 px-4 py-3 hover:bg-neutral-800 cursor-pointer transition-colors ${!n.read ? "bg-orange-500/5" : ""}`}>
+                      <div
+                        key={n.id}
+                        onClick={() => setNotifs(prev => prev.map(x => x.id === n.id ? { ...x, read: true } : x))}
+                        className={`flex items-start gap-3 px-4 py-3 hover:bg-neutral-800 cursor-pointer transition-colors ${!n.read ? "bg-orange-500/5 border-l-2 border-orange-500" : "border-l-2 border-transparent"}`}
+                      >
                         <span className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${n.dot}`} />
                         <div className="min-w-0 flex-1">
                           <p className={`text-sm leading-snug ${!n.read ? "text-white font-medium" : "text-neutral-300"}`}>{n.text}</p>
