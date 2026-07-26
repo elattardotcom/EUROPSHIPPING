@@ -24,10 +24,12 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
   const { t, lang, toggle } = useI18n()
   const [collapsed,    setCollapsed]    = useState(false)
   const [drawerOpen,   setDrawerOpen]   = useState(false)
+  const [showNotifs,   setShowNotifs]   = useState(false)
   const [counts,       setCounts]       = useState<Counts>({ clients: 0, orders: 0, leads: 0, withdrawals: 0, requests: 0 })
   const [showWarning,  setShowWarning]  = useState(false)
   const [countdown,    setCountdown]    = useState(300) // seconds remaining when warning shows
   const drawerRef      = useRef<HTMLDivElement>(null)
+  const notifRef       = useRef<HTMLDivElement>(null)
   const idleTimer      = useRef<ReturnType<typeof setTimeout> | null>(null)
   const warningTimer   = useRef<ReturnType<typeof setTimeout> | null>(null)
   const countdownRef   = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -88,6 +90,16 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
 
   // Close drawer on route change
   useEffect(() => { setDrawerOpen(false) }, [pathname])
+
+  // Close notif panel on outside click
+  useEffect(() => {
+    if (!showNotifs) return
+    const handler = (e: MouseEvent) => {
+      if (notifRef.current && !notifRef.current.contains(e.target as Node)) setShowNotifs(false)
+    }
+    document.addEventListener("mousedown", handler)
+    return () => document.removeEventListener("mousedown", handler)
+  }, [showNotifs])
 
   if (pathname === "/admin/login") return <>{children}</>
 
@@ -323,12 +335,72 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
               {lang === "en" ? "FR" : "EN"}
             </button>
 
-            <Button variant="ghost" size="icon" className="relative text-neutral-500 hover:text-white hover:bg-neutral-800 w-9 h-9">
-              <Bell className="w-4 h-4 md:w-5 md:h-5" />
-              {(counts.orders + counts.withdrawals + counts.requests) > 0 && (
-                <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-orange-500 rounded-full" />
+            <div className="relative" ref={notifRef}>
+              <Button variant="ghost" size="icon"
+                onClick={() => setShowNotifs(v => !v)}
+                className="relative text-neutral-500 hover:text-white hover:bg-neutral-800 w-9 h-9">
+                <Bell className="w-4 h-4 md:w-5 md:h-5" />
+                {(counts.orders + counts.withdrawals + counts.requests) > 0 && (
+                  <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-orange-500 rounded-full animate-pulse border border-neutral-900" />
+                )}
+              </Button>
+
+              {showNotifs && (
+                <div className="absolute right-0 top-11 w-80 rounded-2xl shadow-2xl z-50 overflow-hidden"
+                  style={{ background: "#111", border: "1px solid rgba(255,255,255,0.08)", boxShadow: "0 24px 48px rgba(0,0,0,0.8)" }}>
+                  {/* Header */}
+                  <div className="px-4 py-3 flex items-center justify-between" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                    <div className="flex items-center gap-2">
+                      <Bell className="w-3.5 h-3.5 text-orange-400" />
+                      <span className="text-sm font-bold text-white">Notifications</span>
+                    </div>
+                    {(counts.orders + counts.withdrawals + counts.requests) > 0 && (
+                      <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400 border border-orange-500/30">
+                        {counts.orders + counts.withdrawals + counts.requests} nouvelles
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Items */}
+                  <div className="py-1">
+                    {[
+                      { label: "Demandes d'inscription",  count: counts.requests,    href: "/admin/requests",    color: "#8b5cf6", dot: "rgba(139,92,246,0.2)",  desc: "En attente d'approbation" },
+                      { label: "Retraits en attente",      count: counts.withdrawals, href: "/admin/withdrawals", color: "#f59e0b", dot: "rgba(245,158,11,0.2)",  desc: "À traiter" },
+                      { label: "Nouvelles commandes",      count: counts.orders,      href: "/admin/orders",      color: "#f97316", dot: "rgba(249,115,22,0.2)",  desc: "Commandes récentes" },
+                      { label: "Leads en attente",         count: counts.leads,       href: "/admin/leads",       color: "#3b82f6", dot: "rgba(59,130,246,0.2)",  desc: "À confirmer" },
+                    ].map(item => (
+                      <Link key={item.href} href={item.href} onClick={() => setShowNotifs(false)}
+                        className="flex items-center gap-3 px-4 py-3 hover:bg-white/[0.03] transition-colors group">
+                        <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+                          style={{ background: item.dot }}>
+                          <span className="text-sm font-black" style={{ color: item.color }}>
+                            {item.count > 0 ? item.count : "—"}
+                          </span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm text-white font-medium group-hover:text-orange-400 transition-colors">{item.label}</p>
+                          <p className="text-[10px] text-neutral-600">{item.desc}</p>
+                        </div>
+                        {item.count > 0 && (
+                          <span className="w-2 h-2 rounded-full flex-shrink-0 animate-pulse" style={{ background: item.color }} />
+                        )}
+                      </Link>
+                    ))}
+                  </div>
+
+                  {/* Footer */}
+                  <div className="px-4 py-2.5" style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
+                    {(counts.orders + counts.withdrawals + counts.requests + counts.leads) === 0
+                      ? <p className="text-xs text-neutral-600 text-center py-1">Tout est à jour ✓</p>
+                      : <Link href="/admin/requests" onClick={() => setShowNotifs(false)}
+                          className="block w-full text-center text-xs font-bold text-orange-400 hover:text-orange-300 py-1 transition-colors">
+                          Voir toutes les demandes →
+                        </Link>
+                    }
+                  </div>
+                </div>
               )}
-            </Button>
+            </div>
 
             <div className="flex items-center gap-2 pl-2 border-l border-neutral-800">
               <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-red-600 rounded-full flex items-center justify-center text-white font-bold text-xs flex-shrink-0">A</div>
