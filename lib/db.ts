@@ -227,7 +227,7 @@ const mapWithdrawal = (r: any): Withdrawal => ({
 
 /* ── Clients ────────────────────────────────────────────────────────────── */
 
-const PLAN_PRICE: Record<string, number> = { starter: 29, pro: 59, enterprise: 89 }
+const PLAN_PRICE: Record<string, number> = { starter: 31.99, pro: 31.99, enterprise: 31.99 }
 const AVATAR_COLORS = [
   "from-orange-500 to-red-600", "from-teal-500 to-emerald-600",
   "from-blue-500 to-cyan-600",  "from-purple-500 to-violet-600",
@@ -259,8 +259,8 @@ export async function getClients(): Promise<Client[]> {
       plan:           r.plan        ?? "starter",
       status:         r.status      ?? "active",
       joinedAt:       r.created_at  ?? r.joined_at ?? "",
-      monthlyRevenue: PLAN_PRICE[r.plan ?? "starter"] ?? 29,
-      totalRevenue:   PLAN_PRICE[r.plan ?? "starter"] ?? 29,
+      monthlyRevenue: PLAN_PRICE[r.plan ?? "starter"] ?? 31.99,
+      totalRevenue:   PLAN_PRICE[r.plan ?? "starter"] ?? 31.99,
       storesCount:    stores.filter(s => s.client_id === r.id).length,
       ordersCount:    orders.filter(o => o.client_id === r.id).length,
       leadsCount:     leads.filter(l  => l.client_id === r.id).length,
