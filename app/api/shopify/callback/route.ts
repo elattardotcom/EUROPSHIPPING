@@ -1,68 +1,79 @@
 import { NextResponse }    from "next/server"
 import { cookies }          from "next/headers"
-import { exchangeCodeForToken } from "@/lib/shopify"
 import { getSupabaseAdmin } from "@/lib/supabase"
-import { canAddStore }      from "@/lib/plan-limits"
+
+const API_KEY    = process.env.SHOPIFY_API_KEY    ?? "88caa8d1ae4239a40202741f700a57ff"
+const API_SECRET = process.env.SHOPIFY_API_SECRET ?? ""
+const APP_URL    = process.env.NEXT_PUBLIC_APP_URL ?? "https://www.codshipeurope.com"
 
 export async function GET(req: Request) {
-  const { searchParams } = new URL(req.url)
-  const cookieStore      = await cookies()
-  const clientId         = cookieStore.get("client_id")?.value ?? "c1"
-
-  const storedState = cookieStore.get("shopify_oauth_state")?.value
-  const storedShop  = cookieStore.get("shopify_oauth_shop")?.value
-  const code        = searchParams.get("code")
-  const state       = searchParams.get("state")
-  const shop        = searchParams.get("shop")
-
-  const appUrl      = process.env.NEXT_PUBLIC_APP_URL ?? "https://www.codshipeurope.com"
-  const errRedirect = (msg: string) =>
-    NextResponse.redirect(`${appUrl}/dashboard/stores?error=${encodeURIComponent(msg)}`)
-
-  if (!state || state !== storedState) return errRedirect("state_invalide")
-  if (!shop  || shop  !== storedShop)  return errRedirect("shop_invalide")
-  if (!code) return errRedirect("code_manquant")
-
-  let accessToken: string
   try {
-    accessToken = await exchangeCodeForToken(shop, code)
-  } catch {
-    return errRedirect("token_exchange_failed")
+    const { searchParams } = new URL(req.url)
+    const code  = searchParams.get("code")
+    const state = searchParams.get("state")
+    const shop  = searchParams.get("shop")
+
+    const errRedirect = (msg: string) =>
+      NextResponse.redirect(`${APP_URL}/dashboard/stores?error=${encodeURIComponent(msg)}`)
+
+    if (!code || !state || !shop) return errRedirect("params_manquants")
+
+    // Read cookies
+    let storedState: string | undefined
+    let clientId = "c1"
+    try {
+      const cookieStore = await cookies()
+      storedState = cookieStore.get("shopify_oauth_state")?.value
+      clientId    = cookieStore.get("client_id")?.value ?? "c1"
+    } catch { /* cookies might not be available */ }
+
+    if (!storedState || state !== storedState) return errRedirect("state_invalide")
+
+    // Exchange code for token
+    let accessToken = ""
+    try {
+      const res = await fetch(`https://${shop}/admin/oauth/access_token`, {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ client_id: API_KEY, client_secret: API_SECRET, code }),
+      })
+      if (!res.ok) return errRedirect(`token_${res.status}`)
+      const data = await res.json()
+      accessToken = data.access_token as string
+    } catch (e) {
+      return errRedirect(`token_error_${String(e).slice(0, 30)}`)
+    }
+
+    if (!accessToken) return errRedirect("token_vide")
+
+    // Save store
+    const sb = getSupabaseAdmin()
+    if (!sb) return errRedirect("db_non_configuree")
+
+    const storeName = shop.replace(".myshopify.com", "")
+
+    const { error: storeErr } = await sb
+      .from("stores")
+      .upsert({
+        client_id:    clientId,
+        name:         storeName,
+        domain:       shop,
+        status:       "connected",
+        access_token: accessToken,
+        last_sync:    null,
+      }, { onConflict: "domain" })
+
+    if (storeErr) return errRedirect(`db_error`)
+
+    const response = NextResponse.redirect(`${APP_URL}/dashboard/stores?connected=1`)
+    try {
+      response.cookies.delete("shopify_oauth_state")
+      response.cookies.delete("shopify_oauth_shop")
+    } catch { /* ignore */ }
+    return response
+
+  } catch (e) {
+    const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://www.codshipeurope.com"
+    return NextResponse.redirect(`${APP_URL}/dashboard/stores?error=crash_${String(e).slice(0, 40)}`)
   }
-
-  const sb = getSupabaseAdmin()
-  if (!sb) return errRedirect("db_non_configuree")
-
-  const { data: clientRow } = await sb
-    .from("clients").select("plan").eq("id", clientId).single()
-  const plan = clientRow?.plan ?? "starter"
-
-  const { count: existingCount } = await sb
-    .from("stores").select("id", { count: "exact", head: true }).eq("client_id", clientId)
-
-  if (!canAddStore(plan, existingCount ?? 0)) {
-    return NextResponse.redirect(`${appUrl}/dashboard/stores?error=plan_limit`)
-  }
-
-  const storeName = shop.replace(".myshopify.com", "")
-
-  const { data: store, error: storeErr } = await sb
-    .from("stores")
-    .upsert({
-      client_id:    clientId,
-      name:         storeName,
-      domain:       shop,
-      status:       "connected",
-      access_token: accessToken,
-      last_sync:    null,
-    }, { onConflict: "domain" })
-    .select("id")
-    .single()
-
-  if (storeErr || !store) return errRedirect("erreur_sauvegarde")
-
-  const response = NextResponse.redirect(`${appUrl}/dashboard/stores?connected=1`)
-  response.cookies.delete("shopify_oauth_state")
-  response.cookies.delete("shopify_oauth_shop")
-  return response
 }
