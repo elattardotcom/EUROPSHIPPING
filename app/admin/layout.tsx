@@ -7,7 +7,7 @@ import { usePathname, useRouter } from "next/navigation"
 import {
   LayoutDashboard, Users, ShoppingCart, UserCheck,
   BarChart3, LogOut, ChevronRight, Bell, Store,
-  ArrowDownLeft, Settings, Radio, ClipboardList, Menu, X, Search,
+  ArrowDownLeft, Settings, Radio, ClipboardList, Menu, X, Search, Package, Gift,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { AdminI18nProvider, useI18n } from "@/lib/admin-i18n"
@@ -140,8 +140,10 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
     { href: "/admin/stores",      icon: Store,           label: t("nav_stores"),      badge: 0 },
     { href: "/admin/withdrawals", icon: ArrowDownLeft,   label: t("nav_withdrawals"), badge: counts.withdrawals },
     { href: "/admin/requests",    icon: ClipboardList,   label: t("nav_requests"),    badge: counts.requests },
-    { href: "/admin/sourcing",    icon: Search,          label: "Sourcing",            badge: 0 },
-    { href: "/admin/analytics",   icon: BarChart3,       label: t("nav_analytics"),   badge: 0 },
+    { href: "/admin/sourcing",          icon: Search,          label: "Sourcing",       badge: 0 },
+    { href: "/admin/cod-products",      icon: Package,         label: "COD Drop",       badge: 0 },
+    { href: "/admin/affiliate-offers",  icon: Gift,            label: "Affiliés",       badge: 0 },
+    { href: "/admin/analytics",         icon: BarChart3,       label: t("nav_analytics"), badge: 0 },
   ]
 
   // Bottom tabs: 4 main + more

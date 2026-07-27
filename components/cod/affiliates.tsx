@@ -1,356 +1,144 @@
 "use client"
 
-import { useState } from "react"
-import {
-  Gift,
-  Plus,
-  Search,
-  Copy,
-  CheckCircle,
-  Clock,
-  XCircle,
-  MoreHorizontal,
-  TrendingUp,
-  Users,
-  DollarSign,
-  Link2,
-  Eye,
-  Edit,
-  Trash2,
-} from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { useState, useEffect } from "react"
+import { Gift, CheckCircle, Clock, XCircle, TrendingUp, DollarSign } from "lucide-react"
 
-interface Offer {
+interface AffiliateOffer {
   id: string
   name: string
-  product: string
+  product: string | null
   commission: number
-  commissionType: "percent" | "fixed"
+  commission_type: "percent" | "fixed"
+  description: string | null
+  image_url: string | null
   status: "active" | "paused" | "ended"
-  affiliates: number
-  clicks: number
-  conversions: number
-  revenue: number
-  currency: string
-  createdAt: string
+  created_at: string
 }
 
-interface Affiliate {
-  id: string
-  initials: string
-  name: string
-  email: string
-  status: "active" | "pending" | "suspended"
-  earnings: number
-  conversions: number
-  clicks: number
-  joinedAt: string
-  referralCode: string
-}
-
-const mockOffers: Offer[] = [
-  { id: "1", name: "Summer Fitness Offer", product: "Premium Fitness Band Pro", commission: 15, commissionType: "percent", status: "active", affiliates: 12, clicks: 1240, conversions: 87, revenue: 6090, currency: "EUR", createdAt: "Apr 1st, 2025" },
-  { id: "2", name: "Smart Watch Campaign", product: "Smart Watch Elite", commission: 20, commissionType: "fixed", status: "active", affiliates: 8, clicks: 890, conversions: 54, revenue: 1080, currency: "EUR", createdAt: "Mar 15th, 2025" },
-  { id: "3", name: "Earbuds Spring Promo", product: "Wireless Earbuds Max", commission: 10, commissionType: "percent", status: "paused", affiliates: 5, clicks: 340, conversions: 18, revenue: 890, currency: "EUR", createdAt: "Mar 1st, 2025" },
-  { id: "4", name: "Charger Bundle Offer", product: "Portable Charger Ultra", commission: 5, commissionType: "fixed", status: "ended", affiliates: 3, clicks: 210, conversions: 29, revenue: 145, currency: "EUR", createdAt: "Feb 1st, 2025" },
+const GRADIENT_COLORS = [
+  "from-purple-500 to-violet-600",
+  "from-orange-500 to-red-600",
+  "from-blue-500 to-cyan-600",
+  "from-emerald-500 to-teal-600",
+  "from-rose-500 to-pink-600",
+  "from-yellow-500 to-amber-600",
 ]
 
-const mockAffiliates: Affiliate[] = [
-  { id: "1", initials: "ML", name: "Miguel Lima", email: "miguel@example.com", status: "active", earnings: 1240, conversions: 34, clicks: 420, joinedAt: "Mar 5th, 2025", referralCode: "MIGUEL34" },
-  { id: "2", initials: "AS", name: "Ana Silva", email: "ana@example.com", status: "active", earnings: 890, conversions: 28, clicks: 310, joinedAt: "Mar 12th, 2025", referralCode: "ANA28" },
-  { id: "3", initials: "RC", name: "Rui Costa", email: "rui@example.com", status: "active", earnings: 650, conversions: 19, clicks: 240, joinedAt: "Apr 2nd, 2025", referralCode: "RUI19" },
-  { id: "4", initials: "JM", name: "João Martins", email: "joao@example.com", status: "pending", earnings: 0, conversions: 0, clicks: 0, joinedAt: "May 1st, 2025", referralCode: "JOAO01" },
-  { id: "5", initials: "CF", name: "Carla Ferreira", email: "carla@example.com", status: "suspended", earnings: 120, conversions: 4, clicks: 55, joinedAt: "Feb 20th, 2025", referralCode: "CARLA4" },
-]
-
-function OfferStatusBadge({ status }: { status: Offer["status"] }) {
+function StatusBadge({ status }: { status: AffiliateOffer["status"] }) {
   const styles = {
     active: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30",
     paused: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
-    ended: "bg-neutral-500/20 text-neutral-400 border-neutral-500/30",
+    ended:  "bg-neutral-500/20 text-neutral-400 border-neutral-500/30",
   }
-  const icons = {
-    active: CheckCircle,
-    paused: Clock,
-    ended: XCircle,
-  }
-  const labels = { active: "Active", paused: "Paused", ended: "Ended" }
+  const icons  = { active: CheckCircle, paused: Clock, ended: XCircle }
+  const labels = { active: "Actif", paused: "Pausé", ended: "Terminé" }
   const Icon = icons[status]
   return (
     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${styles[status]}`}>
-      <Icon className="w-3 h-3" />
-      {labels[status]}
-    </span>
-  )
-}
-
-function AffiliateStatusBadge({ status }: { status: Affiliate["status"] }) {
-  const styles = {
-    active: "bg-emerald-500/20 text-emerald-400",
-    pending: "bg-yellow-500/20 text-yellow-400",
-    suspended: "bg-red-500/20 text-red-400",
-  }
-  const labels = { active: "Active", pending: "Pending", suspended: "Suspended" }
-  return (
-    <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${styles[status]}`}>
-      {labels[status]}
+      <Icon className="w-3 h-3" />{labels[status]}
     </span>
   )
 }
 
 export default function AffiliatesPage() {
-  const [activeTab, setActiveTab] = useState<"offers" | "affiliates">("offers")
-  const [copiedCode, setCopiedCode] = useState<string | null>(null)
+  const [offers,  setOffers]  = useState<AffiliateOffer[]>([])
+  const [loading, setLoading] = useState(true)
 
-  const copyCode = (code: string) => {
-    navigator.clipboard.writeText(code)
-    setCopiedCode(code)
-    setTimeout(() => setCopiedCode(null), 2000)
-  }
+  useEffect(() => {
+    fetch("/api/client/affiliate-offers")
+      .then(r => r.json())
+      .then(d => setOffers(Array.isArray(d) ? d : []))
+      .catch(() => setOffers([]))
+      .finally(() => setLoading(false))
+  }, [])
 
-  const totalEarningsPaid = mockAffiliates.reduce((acc, a) => acc + a.earnings, 0)
-  const totalConversions = mockAffiliates.reduce((acc, a) => acc + a.conversions, 0)
-  const totalClicks = mockAffiliates.reduce((acc, a) => acc + a.clicks, 0)
+  const activeCount = offers.filter(o => o.status === "active").length
+  const avgCommission = offers.length
+    ? (offers.reduce((a, o) => a + o.commission, 0) / offers.length).toFixed(1)
+    : "0"
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-white">Affiliates</h1>
-          <p className="text-sm text-neutral-500">Manage affiliate offers and track partner performance</p>
+          <h1 className="text-2xl font-semibold text-white">Affiliés</h1>
+          <p className="text-sm text-neutral-500">Offres d'affiliation disponibles pour promouvoir des produits</p>
         </div>
-        <Button className="bg-orange-500 hover:bg-orange-600 text-white gap-2">
-          <Plus className="w-4 h-4" />
-          {activeTab === "offers" ? "New Offer" : "Invite Affiliate"}
-        </Button>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-5">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 bg-orange-500/20 rounded-lg flex items-center justify-center">
-              <Gift className="w-5 h-5 text-orange-500" />
-            </div>
-            <div>
-              <p className="text-sm text-neutral-500">Active Offers</p>
-              <p className="text-2xl font-bold text-white">{mockOffers.filter(o => o.status === "active").length}</p>
-            </div>
-          </div>
-        </div>
-        <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-5">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 bg-teal-500/20 rounded-lg flex items-center justify-center">
-              <Users className="w-5 h-5 text-teal-500" />
-            </div>
-            <div>
-              <p className="text-sm text-neutral-500">Active Affiliates</p>
-              <p className="text-2xl font-bold text-white">{mockAffiliates.filter(a => a.status === "active").length}</p>
-            </div>
-          </div>
-        </div>
-        <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-5">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 bg-purple-500/20 rounded-lg flex items-center justify-center">
-              <TrendingUp className="w-5 h-5 text-purple-500" />
-            </div>
-            <div>
-              <p className="text-sm text-neutral-500">Total Conversions</p>
-              <p className="text-2xl font-bold text-white">{totalConversions}</p>
-            </div>
-          </div>
-        </div>
-        <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-5">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 bg-emerald-500/20 rounded-lg flex items-center justify-center">
-              <DollarSign className="w-5 h-5 text-emerald-500" />
-            </div>
-            <div>
-              <p className="text-sm text-neutral-500">Commissions Paid</p>
-              <p className="text-2xl font-bold text-white">{totalEarningsPaid.toLocaleString()} EUR</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Tabs */}
-      <div className="flex gap-2 border-b border-neutral-800 pb-2">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {[
-          { id: "offers", label: "Offers" },
-          { id: "affiliates", label: "Affiliates" },
-        ].map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id as typeof activeTab)}
-            className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-              activeTab === tab.id
-                ? "bg-orange-500/10 text-orange-500"
-                : "text-neutral-400 hover:text-white hover:bg-neutral-800"
-            }`}
-          >
-            {tab.label}
-          </button>
+          { label: "Offres actives",      val: loading ? "…" : activeCount,                                icon: Gift,       color: "text-purple-400", bg: "bg-purple-500/20" },
+          { label: "Total offres",        val: loading ? "…" : offers.length,                              icon: TrendingUp, color: "text-orange-500", bg: "bg-orange-500/20" },
+          { label: "Commission moyenne",  val: loading ? "…" : `${avgCommission}%`,                        icon: DollarSign, color: "text-emerald-500",bg: "bg-emerald-500/20"},
+        ].map(s => (
+          <div key={s.label} className="bg-neutral-900 border border-neutral-800 rounded-xl p-5">
+            <div className="flex items-center gap-3">
+              <div className={`w-10 h-10 ${s.bg} rounded-lg flex items-center justify-center`}>
+                <s.icon className={`w-5 h-5 ${s.color}`} />
+              </div>
+              <div>
+                <p className="text-sm text-neutral-500">{s.label}</p>
+                <p className="text-2xl font-bold text-white">{s.val}</p>
+              </div>
+            </div>
+          </div>
         ))}
       </div>
 
-      {/* Offers Tab */}
-      {activeTab === "offers" && (
-        <div className="space-y-4">
-          <div className="relative w-64">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
-            <input
-              type="text"
-              placeholder="Search offers..."
-              className="w-full bg-neutral-900 border border-neutral-800 rounded-lg pl-10 pr-4 py-2 text-sm text-white placeholder:text-neutral-500 focus:outline-none focus:border-orange-500"
-            />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {mockOffers.map((offer) => (
-              <div key={offer.id} className="bg-neutral-900 border border-neutral-800 rounded-xl p-5 hover:border-neutral-700 transition-colors">
-                <div className="flex items-start justify-between mb-3">
-                  <div>
-                    <h3 className="text-white font-medium">{offer.name}</h3>
-                    <p className="text-xs text-neutral-500 mt-0.5">{offer.product}</p>
+      {/* Offers */}
+      {loading ? (
+        <div className="py-20 text-center text-neutral-500 text-sm">Chargement…</div>
+      ) : offers.length === 0 ? (
+        <div className="py-20 text-center">
+          <Gift className="w-10 h-10 text-neutral-700 mx-auto mb-3" />
+          <p className="text-neutral-500 text-sm">Aucune offre d'affiliation disponible pour le moment.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {offers.map((offer, i) => {
+            const gradient = GRADIENT_COLORS[i % GRADIENT_COLORS.length]
+            return (
+              <div key={offer.id} className="bg-neutral-900 border border-neutral-800 rounded-xl overflow-hidden hover:border-neutral-700 transition-colors">
+                <div className={`h-32 flex items-center justify-center relative overflow-hidden ${offer.image_url ? "" : `bg-gradient-to-br ${gradient}`}`}>
+                  {offer.image_url ? (
+                    <img src={offer.image_url} alt={offer.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <Gift className="w-14 h-14 text-white/30" />
+                  )}
+                  <div className="absolute top-3 left-3">
+                    <StatusBadge status={offer.status} />
                   </div>
-                  <div className="flex items-center gap-2">
-                    <OfferStatusBadge status={offer.status} />
-                    <Button variant="ghost" size="icon" className="text-neutral-400 hover:text-white h-8 w-8">
-                      <MoreHorizontal className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="bg-neutral-800/50 rounded-lg p-3 mb-4">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Link2 className="w-3.5 h-3.5 text-neutral-400" />
-                    <span className="text-xs text-neutral-500">Affiliate Link</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <code className="text-xs text-orange-400 flex-1 truncate">codshipeurope.com/aff/{offer.id}-{offer.name.toLowerCase().replace(/ /g, "-")}</code>
-                    <Button variant="ghost" size="icon" className="h-6 w-6 text-neutral-500 hover:text-white">
-                      <Copy className="w-3 h-3" />
-                    </Button>
+                  <div className="absolute top-3 right-3 bg-black/40 px-2.5 py-1 rounded-full">
+                    <span className="text-white text-xs font-bold">
+                      {offer.commission}{offer.commission_type === "percent" ? "%" : "€"}
+                    </span>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-4 gap-3 mb-4">
-                  <div className="text-center">
-                    <p className="text-lg font-bold text-white">
-                      {offer.commission}{offer.commissionType === "percent" ? "%" : "€"}
+                <div className="p-4">
+                  <h3 className="text-white font-medium text-sm mb-1">{offer.name}</h3>
+                  {offer.product && (
+                    <p className="text-xs text-neutral-500 mb-2">Produit : {offer.product}</p>
+                  )}
+                  {offer.description && (
+                    <p className="text-xs text-neutral-500 mb-3 line-clamp-2">{offer.description}</p>
+                  )}
+
+                  <div className="bg-orange-500/10 border border-orange-500/20 rounded-xl p-3 text-center">
+                    <p className="text-xs text-neutral-500 mb-0.5">Commission</p>
+                    <p className="text-lg font-bold text-orange-400">
+                      {offer.commission}{offer.commission_type === "percent" ? "%" : "€"}
+                      <span className="text-xs text-neutral-500 ml-1">
+                        {offer.commission_type === "percent" ? "par vente" : "fixe"}
+                      </span>
                     </p>
-                    <p className="text-xs text-neutral-500">Commission</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-lg font-bold text-white">{offer.affiliates}</p>
-                    <p className="text-xs text-neutral-500">Affiliates</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-lg font-bold text-white">{offer.clicks.toLocaleString()}</p>
-                    <p className="text-xs text-neutral-500">Clicks</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-lg font-bold text-emerald-400">{offer.conversions}</p>
-                    <p className="text-xs text-neutral-500">Conversions</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-neutral-500">Revenue: <span className="text-white font-medium">{offer.revenue.toLocaleString()} {offer.currency}</span></span>
-                  <div className="flex items-center gap-1">
-                    <Button variant="ghost" size="icon" className="h-7 w-7 text-neutral-400 hover:text-white">
-                      <Eye className="w-3.5 h-3.5" />
-                    </Button>
-                    <Button variant="ghost" size="icon" className="h-7 w-7 text-neutral-400 hover:text-white">
-                      <Edit className="w-3.5 h-3.5" />
-                    </Button>
-                    <Button variant="ghost" size="icon" className="h-7 w-7 text-neutral-400 hover:text-red-500">
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </Button>
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Affiliates Tab */}
-      {activeTab === "affiliates" && (
-        <div className="space-y-4">
-          <div className="relative w-64">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
-            <input
-              type="text"
-              placeholder="Search affiliates..."
-              className="w-full bg-neutral-900 border border-neutral-800 rounded-lg pl-10 pr-4 py-2 text-sm text-white placeholder:text-neutral-500 focus:outline-none focus:border-orange-500"
-            />
-          </div>
-
-          <div className="bg-neutral-900 border border-neutral-800 rounded-xl overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-neutral-800">
-                    <th className="text-left p-4 text-sm font-medium text-neutral-400">Affiliate</th>
-                    <th className="text-left p-4 text-sm font-medium text-neutral-400">Status</th>
-                    <th className="text-left p-4 text-sm font-medium text-neutral-400">Referral Code</th>
-                    <th className="text-left p-4 text-sm font-medium text-neutral-400">Clicks</th>
-                    <th className="text-left p-4 text-sm font-medium text-neutral-400">Conversions</th>
-                    <th className="text-left p-4 text-sm font-medium text-neutral-400">Earnings</th>
-                    <th className="text-left p-4 text-sm font-medium text-neutral-400">Joined</th>
-                    <th className="text-left p-4 text-sm font-medium text-neutral-400 w-12"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {mockAffiliates.map((affiliate) => (
-                    <tr key={affiliate.id} className="border-b border-neutral-800 hover:bg-neutral-800/50 transition-colors">
-                      <td className="p-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center text-white text-sm font-medium">
-                            {affiliate.initials}
-                          </div>
-                          <div>
-                            <p className="text-sm text-white">{affiliate.name}</p>
-                            <p className="text-xs text-neutral-500">{affiliate.email}</p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="p-4">
-                        <AffiliateStatusBadge status={affiliate.status} />
-                      </td>
-                      <td className="p-4">
-                        <div className="flex items-center gap-2">
-                          <code className="text-xs text-orange-400 bg-orange-500/10 px-2 py-1 rounded">{affiliate.referralCode}</code>
-                          <button
-                            onClick={() => copyCode(affiliate.referralCode)}
-                            className="text-neutral-500 hover:text-white transition-colors"
-                          >
-                            {copiedCode === affiliate.referralCode
-                              ? <CheckCircle className="w-3.5 h-3.5 text-emerald-500" />
-                              : <Copy className="w-3.5 h-3.5" />
-                            }
-                          </button>
-                        </div>
-                      </td>
-                      <td className="p-4 text-sm text-neutral-300">{affiliate.clicks.toLocaleString()}</td>
-                      <td className="p-4 text-sm text-neutral-300">{affiliate.conversions}</td>
-                      <td className="p-4">
-                        <span className="text-sm font-medium text-emerald-400">{affiliate.earnings.toLocaleString()} EUR</span>
-                      </td>
-                      <td className="p-4 text-sm text-neutral-500">{affiliate.joinedAt}</td>
-                      <td className="p-4">
-                        <Button variant="ghost" size="icon" className="text-neutral-400 hover:text-white">
-                          <MoreHorizontal className="w-4 h-4" />
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+            )
+          })}
         </div>
       )}
     </div>
