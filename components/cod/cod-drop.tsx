@@ -122,9 +122,9 @@ export default function CodDropPage() {
             const gradient = GRADIENT_COLORS[i % GRADIENT_COLORS.length]
             return (
               <div key={product.id} className="bg-neutral-900 border border-neutral-800 rounded-xl overflow-hidden hover:border-neutral-700 transition-colors">
-                <div className={`h-48 flex items-center justify-center relative overflow-hidden ${product.image_url ? "bg-neutral-800" : `bg-gradient-to-br ${gradient}`}`}>
+                <div className={`aspect-square flex items-center justify-center relative overflow-hidden ${product.image_url ? "bg-white" : `bg-gradient-to-br ${gradient}`}`}>
                   {product.image_url ? (
-                    <img src={product.image_url} alt={product.name} className="w-full h-full object-cover object-center" />
+                    <img src={product.image_url} alt={product.name} className="w-full h-full object-contain p-4" />
                   ) : (
                     <Package className="w-14 h-14 text-white/30" />
                   )}
