@@ -274,7 +274,13 @@ function WebhookView({
           <div className="divide-y divide-neutral-800">
             {stores.map(s => (
               <div key={s.id} className="flex items-center gap-4 px-5 py-4 hover:bg-neutral-800/30 transition-colors">
-                <div className="text-xl flex-shrink-0">🛍️</div>
+                <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 bg-[#96BF48]/10 border border-[#96BF48]/30">
+                  <svg viewBox="0 0 109.5 124.5" className="w-5 h-5" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M74.7 14.8s-.3-.2-.8-.3c-.5-.1-1.2-.1-2-.1-.8 0-3.3.3-5.2 1.7-1.8 1.3-3.4 3.5-4.5 7.5 0 0-2.1-1.1-4.2-1.1-5.8 0-8.6 4.9-9.5 7.8L28.8 35c-.4.1-.7.5-.7.9l-4.2 76.6c0 .5.3.9.8.9l60.1-10.3c.4-.1.7-.5.7-.9L81.4 15.3c-.1-.3-.4-.5-.7-.5z" fill="#95BF47"/>
+                    <path d="M73.9 14.5c-.5-.1-1.2-.1-2-.1-.8 0-3.3.3-5.2 1.7-1.8 1.3-3.4 3.5-4.5 7.5 0 0-2.1-1.1-4.2-1.1-5.8 0-8.6 4.9-9.5 7.8L28.8 35c-.4.1-.7.5-.7.9l-4.2 76.6c0 .5.3.9.8.9l60.1-10.3c.4-.1.7-.5.7-.9L81.4 15.3c-.1-.4-.8-.7-7.5-.8z" fill="#5E8E3E"/>
+                    <path d="M57.8 50.8l-3.4 10.1s-3-1.6-6.6-1.6c-5.3 0-5.6 3.3-5.6 4.2 0 4.6 12 6.3 12 17 0 8.4-5.3 13.8-12.5 13.8-8.6 0-13-5.4-13-5.4l2.3-7.6s4.5 3.9 8.3 3.9c2.5 0 3.5-2 3.5-3.4 0-5.9-9.8-6.2-9.8-16.1 0-8.3 5.9-16.3 17.9-16.3 4.6 0 6.9 1.4 6.9 1.4z" fill="white"/>
+                  </svg>
+                </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <p className="text-white font-semibold text-sm">{s.name}</p>
@@ -400,7 +406,13 @@ function ConnectForm({ onCancel, onConnected }: { onCancel: () => void; onConnec
     <div className="mt-8 rounded-2xl border border-neutral-800 overflow-hidden bg-neutral-900">
       <div className="px-6 py-5 border-b border-neutral-800 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center text-lg bg-neutral-800">🛍️</div>
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-[#96BF48]/10 border border-[#96BF48]/30">
+              <svg viewBox="0 0 109.5 124.5" className="w-5 h-5" xmlns="http://www.w3.org/2000/svg">
+                <path d="M74.7 14.8s-.3-.2-.8-.3c-.5-.1-1.2-.1-2-.1-.8 0-3.3.3-5.2 1.7-1.8 1.3-3.4 3.5-4.5 7.5 0 0-2.1-1.1-4.2-1.1-5.8 0-8.6 4.9-9.5 7.8L28.8 35c-.4.1-.7.5-.7.9l-4.2 76.6c0 .5.3.9.8.9l60.1-10.3c.4-.1.7-.5.7-.9L81.4 15.3c-.1-.3-.4-.5-.7-.5z" fill="#95BF47"/>
+                <path d="M73.9 14.5c-.5-.1-1.2-.1-2-.1-.8 0-3.3.3-5.2 1.7-1.8 1.3-3.4 3.5-4.5 7.5 0 0-2.1-1.1-4.2-1.1-5.8 0-8.6 4.9-9.5 7.8L28.8 35c-.4.1-.7.5-.7.9l-4.2 76.6c0 .5.3.9.8.9l60.1-10.3c.4-.1.7-.5.7-.9L81.4 15.3c-.1-.4-.8-.7-7.5-.8z" fill="#5E8E3E"/>
+                <path d="M57.8 50.8l-3.4 10.1s-3-1.6-6.6-1.6c-5.3 0-5.6 3.3-5.6 4.2 0 4.6 12 6.3 12 17 0 8.4-5.3 13.8-12.5 13.8-8.6 0-13-5.4-13-5.4l2.3-7.6s4.5 3.9 8.3 3.9c2.5 0 3.5-2 3.5-3.4 0-5.9-9.8-6.2-9.8-16.1 0-8.3 5.9-16.3 17.9-16.3 4.6 0 6.9 1.4 6.9 1.4z" fill="white"/>
+              </svg>
+            </div>
           <div>
             <p className="text-white font-semibold text-sm">Connecter une boutique Shopify</p>
             <p className="text-neutral-600 text-xs">Via application personnalisée — aucune revue Shopify requise</p>
