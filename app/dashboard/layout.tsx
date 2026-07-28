@@ -164,6 +164,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [clientPlan,     setClientPlan]     = useState("")
   const [clientInitials, setClientInitials] = useState("")
   const [clientColor,    setClientColor]    = useState("from-orange-500 to-red-600")
+  const [suspended,      setSuspended]      = useState(false)
 
   const fetchBalance = (id: string) => {
     fetch(`/api/wallet/${id}`)
@@ -230,6 +231,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       .then(r => r.json())
       .then(client => {
         if (!client?.id) return
+        if (client.status === "suspended") { setSuspended(true); return }
         const firstName = client.firstName ?? ""
         const lastName  = client.lastName  ?? ""
         setClientId(client.id)
@@ -431,6 +433,27 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </Link>
       </div>
     </>
+  )
+
+  if (suspended) return (
+    <div className="min-h-screen bg-neutral-950 flex items-center justify-center p-6">
+      <div className="text-center max-w-md">
+        <div className="w-20 h-20 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
+          <svg className="w-10 h-10 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+          </svg>
+        </div>
+        <h1 className="text-2xl font-bold text-white mb-3">Compte suspendu</h1>
+        <p className="text-neutral-400 text-sm leading-relaxed mb-6">
+          Votre compte a été temporairement suspendu. Veuillez contacter le support pour régulariser votre situation et réactiver l'accès.
+        </p>
+        <a href="mailto:support@codshipeurope.com"
+          className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold text-white"
+          style={{ background: "linear-gradient(135deg,#f97316,#dc2626)" }}>
+          Contacter le support
+        </a>
+      </div>
+    </div>
   )
 
   return (

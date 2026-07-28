@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect, useCallback } from "react"
 import Link from "next/link"
-import { Search, ChevronDown, ArrowUpRight, Users, TrendingUp, DollarSign, Shield, ChevronLeft, ChevronRight, RefreshCw } from "lucide-react"
+import { Search, ChevronDown, ArrowUpRight, Users, TrendingUp, DollarSign, Shield, ChevronLeft, ChevronRight, RefreshCw, Ban, CheckCircle, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import type { Client, Plan, UserStatus } from "@/lib/db"
 import { useI18n } from "@/lib/admin-i18n"
@@ -38,7 +38,23 @@ export default function AdminClients() {
   const [search,  setSearch]  = useState("")
   const [planF,   setPlan]    = useState<Plan | "ALL">("ALL")
   const [statF,   setStat]    = useState<UserStatus | "ALL">("ALL")
-  const [page,    setPage]    = useState(1)
+  const [page,      setPage]      = useState(1)
+  const [toggling,  setToggling]  = useState<string | null>(null)
+
+  async function toggleSuspend(c: Client) {
+    const newStatus = c.status === "suspended" ? "active" : "suspended"
+    if (!confirm(newStatus === "suspended"
+      ? `Suspendre le compte de ${c.firstName} ${c.lastName} ?`
+      : `Réactiver le compte de ${c.firstName} ${c.lastName} ?`)) return
+    setToggling(c.id)
+    await fetch(`/api/admin/clients/${c.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: newStatus }),
+    })
+    setClients(prev => prev.map(x => x.id === c.id ? { ...x, status: newStatus } : x))
+    setToggling(null)
+  }
 
   const STATUS_LABELS: Record<UserStatus, string> = {
     active:    t("status_active"),
@@ -182,11 +198,28 @@ export default function AdminClients() {
                       <td className="p-4"><span className="text-sm font-semibold text-emerald-400">€{c.monthlyRevenue}</span></td>
                       <td className="p-4 text-sm text-neutral-500 whitespace-nowrap">{c.joinedAt}</td>
                       <td className="p-4">
-                        <Link href={`/admin/clients/${c.id}`}>
-                          <Button variant="ghost" size="sm" className="text-orange-400 hover:text-orange-300 hover:bg-orange-500/10 gap-1 h-7 text-xs">
-                            View <ArrowUpRight className="w-3 h-3" />
-                          </Button>
-                        </Link>
+                        <div className="flex items-center gap-2">
+                          <Link href={`/admin/clients/${c.id}`}>
+                            <Button variant="ghost" size="sm" className="text-orange-400 hover:text-orange-300 hover:bg-orange-500/10 gap-1 h-7 text-xs">
+                              View <ArrowUpRight className="w-3 h-3" />
+                            </Button>
+                          </Link>
+                          {toggling === c.id ? (
+                            <Loader2 className="w-4 h-4 animate-spin text-neutral-400" />
+                          ) : c.status === "suspended" ? (
+                            <button onClick={() => toggleSuspend(c)}
+                              className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium text-emerald-400 hover:bg-emerald-500/10 transition-colors"
+                              title="Réactiver le compte">
+                              <CheckCircle className="w-3.5 h-3.5" /> Réactiver
+                            </button>
+                          ) : (
+                            <button onClick={() => toggleSuspend(c)}
+                              className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium text-red-400 hover:bg-red-500/10 transition-colors"
+                              title="Suspendre le compte">
+                              <Ban className="w-3.5 h-3.5" /> Suspendre
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))
