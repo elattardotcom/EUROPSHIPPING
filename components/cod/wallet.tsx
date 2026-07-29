@@ -68,6 +68,7 @@ export default function WalletPage() {
   const [activeTab, setActiveTab] = useState<"overview" | "transactions" | "invoices" | "withdraw">("overview")
   const [withdrawAmount, setWithdrawAmount] = useState("")
   const [showWithdrawModal, setShowWithdrawModal] = useState(false)
+  const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null)
 
   const balance = 3847.75
   const pendingBalance = 1000.00
@@ -453,7 +454,7 @@ export default function WalletPage() {
                     <td className="py-4">{getStatusBadge(invoice.status)}</td>
                     <td className="py-4">
                       <div className="flex items-center gap-1">
-                        <Button variant="ghost" size="icon" className="text-neutral-400 hover:text-white h-8 w-8">
+                        <Button variant="ghost" size="icon" className="text-neutral-400 hover:text-white h-8 w-8" onClick={() => setSelectedInvoice(invoice)}>
                           <Eye className="w-4 h-4" />
                         </Button>
                         <Button variant="ghost" size="icon" className="text-neutral-400 hover:text-white h-8 w-8">
@@ -473,5 +474,69 @@ export default function WalletPage() {
         </div>
       )}
     </div>
+
+    {/* Invoice Modal */}
+    {selectedInvoice && (
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setSelectedInvoice(null)}>
+        <div className="bg-neutral-900 border border-neutral-800 rounded-2xl w-full max-w-md" onClick={e => e.stopPropagation()}>
+          {/* Header */}
+          <div className="px-6 py-4 border-b border-neutral-800 flex items-center justify-between">
+            <div>
+              <p className="text-white font-bold text-sm">{selectedInvoice.number}</p>
+              <p className="text-neutral-500 text-xs mt-0.5">{selectedInvoice.description}</p>
+            </div>
+            <button onClick={() => setSelectedInvoice(null)} className="text-neutral-500 hover:text-white transition-colors text-xl leading-none">×</button>
+          </div>
+
+          {/* Body */}
+          <div className="p-6 space-y-4">
+            {/* Logo */}
+            <div className="flex items-center justify-between mb-2">
+              <div>
+                <p className="text-white font-bold text-lg">CODShipEurope</p>
+                <p className="text-neutral-500 text-xs">support@codshipeurope.com</p>
+              </div>
+              {getStatusBadge(selectedInvoice.status)}
+            </div>
+
+            <div className="h-px bg-neutral-800" />
+
+            {/* Details */}
+            <div className="space-y-3">
+              {[
+                { label: "Numéro de facture", value: selectedInvoice.number },
+                { label: "Date d'émission",   value: selectedInvoice.date },
+                { label: "Date d'échéance",   value: selectedInvoice.dueDate },
+                { label: "Description",        value: selectedInvoice.description },
+              ].map(row => (
+                <div key={row.label} className="flex items-start justify-between gap-4">
+                  <span className="text-neutral-500 text-sm whitespace-nowrap">{row.label}</span>
+                  <span className="text-white text-sm text-right">{row.value}</span>
+                </div>
+              ))}
+            </div>
+
+            <div className="h-px bg-neutral-800" />
+
+            {/* Total */}
+            <div className="flex items-center justify-between">
+              <span className="text-neutral-400 font-medium">Total</span>
+              <span className="text-white font-bold text-xl">
+                {selectedInvoice.amount.toLocaleString("fr-FR", { minimumFractionDigits: 2 })} EUR
+              </span>
+            </div>
+
+            {/* Download button */}
+            <button
+              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold text-white transition-all mt-2"
+              style={{ background: "linear-gradient(135deg,#f97316,#dc2626)" }}
+            >
+              <Download className="w-4 h-4" />
+              Télécharger la facture
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
   )
 }
