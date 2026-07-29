@@ -118,6 +118,7 @@ export default function WalletPage() {
   }
 
   return (
+    <>
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -475,7 +476,6 @@ export default function WalletPage() {
       )}
     </div>
 
-    {/* Invoice Modal */}
     {selectedInvoice && (
       <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setSelectedInvoice(null)}>
         <div className="bg-neutral-900 border border-neutral-800 rounded-2xl w-full max-w-md" onClick={e => e.stopPropagation()}>
@@ -538,5 +538,6 @@ export default function WalletPage() {
         </div>
       </div>
     )}
+    </>
   )
 }
