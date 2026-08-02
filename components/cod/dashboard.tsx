@@ -11,7 +11,7 @@ import {
 } from "recharts"
 import type { Order, Lead } from "@/lib/mock-data"
 
-export type Period = "today" | "7d" | "30d" | "all"
+export type Period = "today" | "7d" | "30d" | "all" | "custom"
 
 function parseFrDate(s: string): string {
   const p = s.split("/")
@@ -19,8 +19,20 @@ function parseFrDate(s: string): string {
   return `${p[2]}-${p[1].padStart(2,"0")}-${p[0].padStart(2,"0")}`
 }
 
-function filterByPeriod<T extends { createdAt: string }>(items: T[], period: Period): T[] {
+function filterByPeriod<T extends { createdAt: string }>(
+  items: T[], period: Period, customStart?: string, customEnd?: string
+): T[] {
   if (period === "all") return items
+  if (period === "custom" && customStart && customEnd) {
+    const start = new Date(customStart)
+    const end   = new Date(customEnd); end.setHours(23, 59, 59, 999)
+    return items.filter(item => {
+      const iso = parseFrDate(item.createdAt)
+      if (!iso) return true
+      const d = new Date(iso)
+      return d >= start && d <= end
+    })
+  }
   const now    = new Date()
   const cutoff = new Date()
   if (period === "today") { cutoff.setHours(0, 0, 0, 0) }
@@ -33,20 +45,25 @@ function filterByPeriod<T extends { createdAt: string }>(items: T[], period: Per
   })
 }
 
-function lastNDays(n: number): { key: string; label: string }[] {
+function daysBetween(start: string, end: string): number {
+  const ms = new Date(end).getTime() - new Date(start).getTime()
+  return Math.max(1, Math.round(ms / 86400000) + 1)
+}
+
+function lastNDays(n: number, startISO?: string): { key: string; label: string }[] {
   const MONTHS = ["Jan","Fév","Mar","Avr","Mai","Jun","Jul","Aoû","Sep","Oct","Nov","Déc"]
-  const today  = new Date()
+  const anchor = startISO ? new Date(startISO) : (() => { const d = new Date(); d.setDate(d.getDate() - (n - 1)); return d })()
   return Array.from({ length: n }, (_, i) => {
-    const d = new Date(today)
-    d.setDate(today.getDate() - (n - 1) + i)
+    const d = new Date(anchor)
+    d.setDate(anchor.getDate() + i)
     const key   = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`
     const label = n === 1 ? "Aujourd'hui" : `${d.getDate()} ${MONTHS[d.getMonth()]}`
     return { key, label }
   })
 }
 
-const PERIOD_DAYS:  Record<Period, number> = { today: 1, "7d": 7, "30d": 30, all: 30 }
-const PERIOD_LABEL: Record<Period, string> = {
+const PERIOD_DAYS:  Record<Exclude<Period,"custom">, number> = { today: 1, "7d": 7, "30d": 30, all: 30 }
+const PERIOD_LABEL: Record<Exclude<Period,"custom">, string> = {
   today: "aujourd'hui", "7d": "7 derniers jours", "30d": "30 derniers jours", all: "30 derniers jours",
 }
 
@@ -137,10 +154,14 @@ export default function DashboardPage({
   clientId = "c1",
   refreshKey = 0,
   period = "all",
+  customStart = "",
+  customEnd = "",
 }: {
   clientId?: string
   refreshKey?: number
   period?: Period
+  customStart?: string
+  customEnd?: string
 }) {
   const [orders,  setOrders]  = useState<Order[]>([])
   const [leads,   setLeads]   = useState<Lead[]>([])
@@ -163,8 +184,8 @@ export default function DashboardPage({
     return () => clearInterval(t)
   }, [load, refreshKey])
 
-  const filteredOrders = useMemo(() => filterByPeriod(orders, period), [orders, period])
-  const filteredLeads  = useMemo(() => filterByPeriod(leads,  period), [leads,  period])
+  const filteredOrders = useMemo(() => filterByPeriod(orders, period, customStart, customEnd), [orders, period, customStart, customEnd])
+  const filteredLeads  = useMemo(() => filterByPeriod(leads,  period, customStart, customEnd), [leads,  period, customStart, customEnd])
 
   const totalLeads      = filteredLeads.length
   const confirmedLeads  = filteredLeads.filter(l => l.status === "CONFIRMED").length
@@ -196,7 +217,10 @@ export default function DashboardPage({
   ]
 
   const revenueByDay = useMemo(() => {
-    const days     = lastNDays(PERIOD_DAYS[period])
+    const nDays = period === "custom" && customStart && customEnd
+      ? daysBetween(customStart, customEnd)
+      : PERIOD_DAYS[period as Exclude<Period,"custom">] ?? 30
+    const days = lastNDays(nDays, period === "custom" && customStart ? customStart : undefined)
     const orderMap = new Map<string, { orders: number; revenue: number }>()
     const leadMap  = new Map<string, number>()
 
@@ -258,7 +282,7 @@ export default function DashboardPage({
       </div>
 
       {/* Activity chart */}
-      <ChartCard title={`Activité — ${PERIOD_LABEL[period]}`} subtitle="Leads, commandes et revenus">
+      <ChartCard title={`Activité — ${period === "custom" && customStart && customEnd ? `${new Date(customStart).toLocaleDateString("fr-FR",{day:"numeric",month:"short"})} → ${new Date(customEnd).toLocaleDateString("fr-FR",{day:"numeric",month:"short"})}` : PERIOD_LABEL[period as Exclude<Period,"custom">] ?? "tout"}`} subtitle="Leads, commandes et revenus">
         {!hasActivity ? (
           <div className="h-[220px] flex flex-col items-center justify-center gap-2">
             <TrendingUp className="w-8 h-8 text-neutral-700" />
