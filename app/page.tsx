@@ -150,6 +150,7 @@ export default function LandingPage() {
               <a key={h} href={h} className="hover:text-white transition-colors">{l}</a>
             ))}
             <a href="/fees" className="hover:text-white transition-colors">{lang === "fr" ? "Frais" : "Fees"}</a>
+            <a href="/blog" className="hover:text-white transition-colors">Blog</a>
           </nav>
           <div className="flex items-center gap-2 flex-shrink-0">
             <button
@@ -187,6 +188,7 @@ export default function LandingPage() {
               <a key={h} href={h} onClick={() => setMenuOpen(false)} className="text-xl font-bold text-white">{l}</a>
             ))}
             <a href="/fees" onClick={() => setMenuOpen(false)} className="text-xl font-bold text-orange-400">{lang === "fr" ? "Frais" : "Fees"}</a>
+            <a href="/blog" onClick={() => setMenuOpen(false)} className="text-xl font-bold text-white">Blog</a>
           </div>
           <div className="flex flex-col items-center gap-3 pb-14 px-6">
             <button
