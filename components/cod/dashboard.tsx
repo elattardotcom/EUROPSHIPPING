@@ -2,18 +2,16 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react"
 import {
-  TrendingUp, TrendingDown, Users, ShoppingCart, CheckCircle2,
-  XCircle, Clock, Package, ArrowRight, Zap, Target,
+  DollarSign, Users, ShoppingCart, CheckCircle, Clock,
+  XCircle, Percent, TrendingUp, ArrowUpRight, ArrowDownRight,
 } from "lucide-react"
 import {
-  AreaChart, Area, ResponsiveContainer, Tooltip,
+  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
+  LineChart, Line, Legend, Cell,
 } from "recharts"
-import Link from "next/link"
 import type { Order, Lead } from "@/lib/mock-data"
 
 export type Period = "today" | "7d" | "30d" | "all"
-
-/* ── helpers ────────────────────────────────────────────────── */
 
 function parseFrDate(s: string): string {
   const p = s.split("/")
@@ -23,374 +21,352 @@ function parseFrDate(s: string): string {
 
 function filterByPeriod<T extends { createdAt: string }>(items: T[], period: Period): T[] {
   if (period === "all") return items
+  const now    = new Date()
   const cutoff = new Date()
-  if (period === "today") cutoff.setHours(0, 0, 0, 0)
-  else if (period === "7d")  cutoff.setDate(cutoff.getDate() - 7)
-  else if (period === "30d") cutoff.setDate(cutoff.getDate() - 30)
+  if (period === "today") { cutoff.setHours(0, 0, 0, 0) }
+  else if (period === "7d")  { cutoff.setDate(now.getDate() - 7)  }
+  else if (period === "30d") { cutoff.setDate(now.getDate() - 30) }
   return items.filter(item => {
     const iso = parseFrDate(item.createdAt)
-    return iso ? new Date(iso) >= cutoff : true
+    if (!iso) return true
+    return new Date(iso) >= cutoff
   })
 }
 
-function lastNDays(n: number) {
+function lastNDays(n: number): { key: string; label: string }[] {
   const MONTHS = ["Jan","Fév","Mar","Avr","Mai","Jun","Jul","Aoû","Sep","Oct","Nov","Déc"]
-  const today = new Date()
+  const today  = new Date()
   return Array.from({ length: n }, (_, i) => {
     const d = new Date(today)
     d.setDate(today.getDate() - (n - 1) + i)
-    const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`
-    return { key, label: `${d.getDate()} ${MONTHS[d.getMonth()]}` }
+    const key   = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`
+    const label = n === 1 ? "Aujourd'hui" : `${d.getDate()} ${MONTHS[d.getMonth()]}`
+    return { key, label }
   })
 }
 
-const fmt = (n: number) => n.toLocaleString("fr-FR", { minimumFractionDigits: 0, maximumFractionDigits: 0 })
-
-/* ── mini sparkline ─────────────────────────────────────────── */
-function Sparkline({ data, color = "#f97316" }: { data: number[]; color?: string }) {
-  const pts = data.map((v, i) => ({ v }))
-  return (
-    <ResponsiveContainer width="100%" height={48}>
-      <AreaChart data={pts} margin={{ top: 2, right: 0, left: 0, bottom: 0 }}>
-        <defs>
-          <linearGradient id={`sg-${color.replace("#","")}`} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%"  stopColor={color} stopOpacity={0.3} />
-            <stop offset="95%" stopColor={color} stopOpacity={0} />
-          </linearGradient>
-        </defs>
-        <Area type="monotone" dataKey="v" stroke={color} strokeWidth={1.5}
-          fill={`url(#sg-${color.replace("#","")})`} dot={false} />
-        <Tooltip content={() => null} />
-      </AreaChart>
-    </ResponsiveContainer>
-  )
+const PERIOD_DAYS:  Record<Period, number> = { today: 1, "7d": 7, "30d": 30, all: 30 }
+const PERIOD_LABEL: Record<Period, string> = {
+  today: "aujourd'hui", "7d": "7 derniers jours", "30d": "30 derniers jours", all: "30 derniers jours",
 }
 
-/* ── progress bar ───────────────────────────────────────────── */
-function ProgressBar({ value, color, label, sublabel }: { value: number; color: string; label: string; sublabel: string }) {
-  return (
-    <div>
-      <div className="flex items-center justify-between mb-1.5">
-        <span className="text-sm text-neutral-300 font-medium">{label}</span>
-        <span className="text-sm font-bold text-white">{value}%</span>
-      </div>
-      <div className="h-2 bg-neutral-800 rounded-full overflow-hidden">
-        <div className="h-full rounded-full transition-all duration-700" style={{ width: `${value}%`, background: color }} />
-      </div>
-      <p className="text-xs text-neutral-500 mt-1">{sublabel}</p>
-    </div>
-  )
-}
+/* ── stat cards ─────────────────────────────────────────────── */
 
-/* ── activity item ──────────────────────────────────────────── */
-function ActivityItem({ icon: Icon, color, bg, title, sub, time }: {
-  icon: React.ElementType; color: string; bg: string; title: string; sub: string; time: string
+function StatCard({
+  title, subtitle, value, unit, description, icon: Icon, color, trend,
+}: {
+  title: string; subtitle: string; value: string | number; unit: string
+  description: string; icon: React.ElementType
+  color: "green" | "teal" | "purple" | "orange" | "red" | "yellow"
+  trend?: { value: number; positive: boolean }
 }) {
+  const border = { green:"border-l-emerald-500", teal:"border-l-teal-500", purple:"border-l-purple-500", orange:"border-l-orange-500", red:"border-l-red-500", yellow:"border-l-yellow-500" }[color]
+  const ico    = { green:"text-emerald-500", teal:"text-teal-500", purple:"text-purple-500", orange:"text-orange-500", red:"text-red-500", yellow:"text-yellow-500" }[color]
   return (
-    <div className="flex items-center gap-3 py-2.5">
-      <div className={`w-7 h-7 rounded-lg ${bg} flex items-center justify-center flex-shrink-0`}>
-        <Icon className={`w-3.5 h-3.5 ${color}`} />
+    <div className={`bg-neutral-900 border border-neutral-800 rounded-xl p-5 border-l-4 ${border}`}>
+      <div className="flex items-start justify-between mb-4">
+        <div>
+          <h3 className="text-sm font-medium text-white">{title}</h3>
+          <p className="text-xs text-neutral-500">{subtitle}</p>
+        </div>
+        <div className={`w-10 h-10 rounded-lg bg-neutral-800 flex items-center justify-center ${ico}`}>
+          <Icon className="w-5 h-5" />
+        </div>
       </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-sm text-white font-medium truncate">{title}</p>
-        <p className="text-xs text-neutral-500 truncate">{sub}</p>
+      <div className="flex items-baseline gap-2 mb-2">
+        <span className="text-3xl font-bold text-white">{value}</span>
+        <span className="text-sm text-neutral-500">{unit}</span>
+        {trend && (
+          <span className={`flex items-center gap-1 text-xs ml-auto ${trend.positive ? "text-emerald-500" : "text-red-500"}`}>
+            {trend.positive ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
+            {trend.value}%
+          </span>
+        )}
       </div>
-      <span className="text-xs text-neutral-600 flex-shrink-0">{time}</span>
+      <p className="text-xs text-neutral-500">{description}</p>
     </div>
   )
 }
 
-const STATUS_CFG = {
-  DELIVERED: { icon: CheckCircle2, color: "text-emerald-400", bg: "bg-emerald-500/10", label: "Livré" },
-  SHIPPED:   { icon: Package,      color: "text-blue-400",    bg: "bg-blue-500/10",    label: "Expédié" },
-  PENDING:   { icon: Clock,        color: "text-amber-400",   bg: "bg-amber-500/10",   label: "En attente" },
-  RETURNED:  { icon: XCircle,      color: "text-red-400",     bg: "bg-red-500/10",     label: "Retourné" },
-  ERROR:     { icon: XCircle,      color: "text-red-400",     bg: "bg-red-500/10",     label: "Erreur" },
-} as const
+function SmallStatCard({
+  title, subtitle, value, unit, icon: Icon, color,
+}: {
+  title: string; subtitle: string; value: string | number; unit: string
+  icon: React.ElementType; color: "blue" | "green" | "yellow" | "red" | "orange"
+}) {
+  const border = { blue:"border-l-blue-500", green:"border-l-emerald-500", yellow:"border-l-yellow-500", red:"border-l-red-500", orange:"border-l-orange-500" }[color]
+  const ico    = { blue:"text-blue-500", green:"text-emerald-500", yellow:"text-yellow-500", red:"text-red-500", orange:"text-orange-500" }[color]
+  return (
+    <div className={`bg-neutral-900 border border-neutral-800 rounded-xl p-4 border-l-4 ${border}`}>
+      <div className="flex items-start justify-between mb-3">
+        <div>
+          <h3 className="text-xs font-medium text-white">{title}</h3>
+          <p className="text-xs text-neutral-500">{subtitle}</p>
+        </div>
+        <div className={`w-8 h-8 rounded-lg bg-neutral-800 flex items-center justify-center ${ico}`}>
+          <Icon className="w-4 h-4" />
+        </div>
+      </div>
+      <div className="flex items-baseline gap-1">
+        <span className="text-2xl font-bold text-white">{value}</span>
+        <span className="text-sm text-neutral-500">{unit}</span>
+      </div>
+    </div>
+  )
+}
 
-const LEAD_CFG = {
-  CONFIRMED: { icon: CheckCircle2, color: "text-emerald-400", bg: "bg-emerald-500/10", label: "Lead confirmé" },
-  PENDING:   { icon: Clock,        color: "text-amber-400",   bg: "bg-amber-500/10",   label: "Lead en attente" },
-  UNREACHED: { icon: Clock,        color: "text-blue-400",    bg: "bg-blue-500/10",    label: "Non joignable" },
-  CANCELED:  { icon: XCircle,      color: "text-red-400",     bg: "bg-red-500/10",     label: "Lead annulé" },
-  ERROR:     { icon: XCircle,      color: "text-red-400",     bg: "bg-red-500/10",     label: "Erreur" },
-} as const
+function ChartCard({ title, subtitle, children }: { title: string; subtitle?: string; children: React.ReactNode }) {
+  return (
+    <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-5">
+      <h3 className="text-sm font-semibold text-white mb-0.5">{title}</h3>
+      {subtitle && <p className="text-xs text-neutral-500 mb-4">{subtitle}</p>}
+      {!subtitle && <div className="mb-4" />}
+      {children}
+    </div>
+  )
+}
 
-/* ── main ───────────────────────────────────────────────────── */
+const TICK   = "#737373"
+const TT_BG  = "#1a1a1a"
+const TT_LBL = { color: "#ffffff", fontWeight: 600, marginBottom: 4 }
+const TT_ITM = { color: "#d4d4d4" }
+
+/* ── page ───────────────────────────────────────────────────── */
 
 export default function DashboardPage({
-  clientId = "c1", refreshKey = 0, period = "all",
-}: { clientId?: string; refreshKey?: number; period?: Period }) {
-
+  clientId = "c1",
+  refreshKey = 0,
+  period = "all",
+}: {
+  clientId?: string
+  refreshKey?: number
+  period?: Period
+}) {
   const [orders,  setOrders]  = useState<Order[]>([])
   const [leads,   setLeads]   = useState<Lead[]>([])
-  const [balance, setBalance] = useState<number | null>(null)
   const [loading, setLoading] = useState(true)
 
   const load = useCallback(async () => {
-    const [o, l, w] = await Promise.all([
+    const [o, l] = await Promise.all([
       fetch("/api/client/orders").then(r => r.json()).catch(() => []),
       fetch("/api/client/leads").then(r => r.json()).catch(() => []),
-      fetch(`/api/wallet/${clientId}`).then(r => r.json()).catch(() => null),
     ])
     setOrders(Array.isArray(o) ? o : [])
     setLeads(Array.isArray(l) ? l : [])
-    if (w?.balance !== undefined) setBalance(w.balance)
     setLoading(false)
-  }, [clientId])
+  }, [])
 
-  useEffect(() => { setLoading(true); load(); const t = setInterval(load, 30_000); return () => clearInterval(t) }, [load, refreshKey])
+  useEffect(() => {
+    setLoading(true)
+    load()
+    const t = setInterval(load, 30_000)
+    return () => clearInterval(t)
+  }, [load, refreshKey])
 
   const filteredOrders = useMemo(() => filterByPeriod(orders, period), [orders, period])
   const filteredLeads  = useMemo(() => filterByPeriod(leads,  period), [leads,  period])
 
-  /* stats */
   const totalLeads      = filteredLeads.length
   const confirmedLeads  = filteredLeads.filter(l => l.status === "CONFIRMED").length
   const pendingLeads    = filteredLeads.filter(l => l.status === "PENDING").length
   const canceledLeads   = filteredLeads.filter(l => l.status === "CANCELED").length
+  const unreachedLeads  = filteredLeads.filter(l => l.status === "UNREACHED").length
   const confirmRate     = totalLeads ? Math.round((confirmedLeads / totalLeads) * 100) : 0
 
   const totalOrders     = filteredOrders.length
   const deliveredOrders = filteredOrders.filter(o => o.status === "DELIVERED").length
-  const shippedOrders   = filteredOrders.filter(o => o.status === "SHIPPED").length
   const pendingOrders   = filteredOrders.filter(o => o.status === "PENDING").length
+  const shippedOrders   = filteredOrders.filter(o => o.status === "SHIPPED").length
   const returnedOrders  = filteredOrders.filter(o => o.status === "RETURNED").length
   const deliveryRate    = totalOrders ? Math.round((deliveredOrders / totalOrders) * 100) : 0
-  const returnRate      = totalOrders ? Math.round((returnedOrders  / totalOrders) * 100) : 0
   const totalRevenue    = filteredOrders.filter(o => o.status === "DELIVERED").reduce((s, o) => s + o.orderValue, 0)
 
-  /* sparkline data (revenue per day, last 14 days) */
-  const sparkData = useMemo(() => {
-    const days = lastNDays(14)
-    const map  = new Map<string, number>()
-    filteredOrders.filter(o => o.status === "DELIVERED").forEach(o => {
-      const k = parseFrDate(o.createdAt); if (k) map.set(k, (map.get(k) ?? 0) + o.orderValue)
+  const leadsChartData = [
+    { name: "Confirmés",   value: confirmedLeads,  fill: "#10b981" },
+    { name: "En attente",  value: pendingLeads,    fill: "#f59e0b" },
+    { name: "Pas répondu", value: unreachedLeads,  fill: "#3b82f6" },
+    { name: "Annulés",     value: canceledLeads,   fill: "#ef4444" },
+  ]
+
+  const ordersChartData = [
+    { name: "Livrés",     value: deliveredOrders, fill: "#10b981" },
+    { name: "Expédiés",   value: shippedOrders,   fill: "#3b82f6" },
+    { name: "En attente", value: pendingOrders,   fill: "#f59e0b" },
+    { name: "Retournés",  value: returnedOrders,  fill: "#ef4444" },
+  ]
+
+  const revenueByDay = useMemo(() => {
+    const days     = lastNDays(PERIOD_DAYS[period])
+    const orderMap = new Map<string, { orders: number; revenue: number }>()
+    const leadMap  = new Map<string, number>()
+
+    filteredOrders.forEach(o => {
+      const key = parseFrDate(o.createdAt); if (!key) return
+      const cur = orderMap.get(key) ?? { orders: 0, revenue: 0 }
+      cur.orders++
+      if (o.status === "DELIVERED") cur.revenue += o.orderValue
+      orderMap.set(key, cur)
     })
-    return days.map(d => map.get(d.key) ?? 0)
+
+    filteredLeads.forEach(l => {
+      const key = parseFrDate(l.createdAt); if (!key) return
+      leadMap.set(key, (leadMap.get(key) ?? 0) + 1)
+    })
+
+    return days.map(d => ({
+      day:     d.label,
+      leads:   leadMap.get(d.key) ?? 0,
+      orders:  orderMap.get(d.key)?.orders ?? 0,
+      revenue: orderMap.get(d.key)?.revenue ?? 0,
+    }))
+  }, [filteredOrders, filteredLeads, period])
+
+  const revenueByStore = useMemo(() => {
+    const map = new Map<string, { revenue: number; orders: number }>()
+    filteredOrders.filter(o => o.status === "DELIVERED").forEach(o => {
+      const s = o.store || "Boutique"
+      const cur = map.get(s) ?? { revenue: 0, orders: 0 }
+      cur.revenue += o.orderValue; cur.orders++
+      map.set(s, cur)
+    })
+    return [...map.entries()]
+      .map(([name, v]) => ({ name, ...v }))
+      .sort((a, b) => b.revenue - a.revenue)
+      .slice(0, 3)
   }, [filteredOrders])
 
-  /* recent activity */
-  const recentActivity = useMemo(() => {
-    type Item = { ts: string; kind: "order" | "lead"; status: string; name: string; country: string; value: number; store: string }
-    const items: Item[] = [
-      ...orders.slice(0, 20).map(o => ({
-        ts: parseFrDate(o.createdAt) || o.createdAt, kind: "order" as const,
-        status: o.status, name: o.name, country: o.country,
-        value: o.orderValue, store: o.store,
-      })),
-      ...leads.slice(0, 20).map(l => ({
-        ts: parseFrDate(l.createdAt) || l.createdAt, kind: "lead" as const,
-        status: l.status, name: l.name, country: l.country,
-        value: l.orderValue, store: l.store,
-      })),
-    ]
-    return items.sort((a, b) => b.ts.localeCompare(a.ts)).slice(0, 12)
-  }, [orders, leads])
+  const hasActivity = revenueByDay.some(d => d.leads > 0 || d.orders > 0)
 
   if (loading) return (
-    <div className="flex items-center justify-center h-64 gap-3">
-      <div className="w-6 h-6 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
-      <span className="text-neutral-500 text-sm">Chargement…</span>
+    <div className="flex flex-col items-center justify-center h-64 gap-3">
+      <div className="w-8 h-8 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
+      <p className="text-neutral-500 text-sm">Chargement des données…</p>
     </div>
   )
 
-  const revenueUp = sparkData.length >= 2 && sparkData[sparkData.length - 1] >= (sparkData[sparkData.length - 2] ?? 0)
-
   return (
-    <div className="space-y-5">
+    <div className="space-y-8">
 
-      {/* ── Row 1: Hero revenue + Performance + Balance ── */}
-      <div className="flex flex-col lg:flex-row gap-5">
+      {/* KPIs */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <StatCard title="REVENUS LIVRÉS" subtitle="Commandes livrées" value={totalRevenue.toFixed(0)} unit="EUR"
+          description={`${deliveredOrders} commandes livrées avec succès`} icon={DollarSign} color="green" />
+        <StatCard title="TOTAL LEADS" subtitle="Prospects qualifiés" value={totalLeads} unit="LEADS"
+          description={`${confirmedLeads} confirmés — taux ${confirmRate}%`} icon={Users} color="teal" />
+        <StatCard title="TOTAL COMMANDES" subtitle="Commandes traitées" value={totalOrders} unit="ORDERS"
+          description={`${deliveredOrders} livrées — taux ${deliveryRate}%`} icon={ShoppingCart} color="purple" />
+      </div>
 
-        {/* Revenue hero */}
-        <div className="flex-1 relative overflow-hidden rounded-2xl bg-gradient-to-br from-orange-500/15 via-neutral-900 to-neutral-900 border border-orange-500/20 p-6">
-          <div className="absolute top-0 right-0 w-48 h-48 bg-orange-500/5 rounded-full -translate-y-1/2 translate-x-1/3 pointer-events-none" />
-          <div className="flex items-start justify-between mb-1">
-            <p className="text-xs font-semibold text-orange-400/80 uppercase tracking-widest">Revenus livrés</p>
-            <span className={`flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${revenueUp ? "bg-emerald-500/10 text-emerald-400" : "bg-red-500/10 text-red-400"}`}>
-              {revenueUp ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-              {revenueUp ? "En hausse" : "En baisse"}
-            </span>
+      {/* Activity chart */}
+      <ChartCard title={`Activité — ${PERIOD_LABEL[period]}`} subtitle="Leads, commandes et revenus">
+        {!hasActivity ? (
+          <div className="h-[220px] flex flex-col items-center justify-center gap-2">
+            <TrendingUp className="w-8 h-8 text-neutral-700" />
+            <p className="text-neutral-500 text-sm">
+              {totalOrders === 0 && totalLeads === 0
+                ? "Connectez votre boutique pour voir l'activité"
+                : "Aucune activité sur cette période"}
+            </p>
           </div>
-          <div className="flex items-baseline gap-2 mb-1">
-            <span className="text-5xl font-black text-white tracking-tight">{fmt(totalRevenue)}</span>
-            <span className="text-xl text-neutral-500 font-medium">EUR</span>
-          </div>
-          <p className="text-neutral-500 text-sm mb-4">{deliveredOrders} commande{deliveredOrders > 1 ? "s" : ""} livrée{deliveredOrders > 1 ? "s" : ""}</p>
-          <Sparkline data={sparkData} color="#f97316" />
-          <div className="mt-4 pt-4 border-t border-white/5 flex items-center justify-between">
-            <div className="flex gap-5">
-              <div>
-                <p className="text-xs text-neutral-500">Solde net</p>
-                <p className="text-base font-bold text-white">{balance !== null ? `€${fmt(balance)}` : "…"}</p>
-              </div>
-              <div>
-                <p className="text-xs text-neutral-500">En transit</p>
-                <p className="text-base font-bold text-blue-400">{shippedOrders}</p>
-              </div>
-              <div>
-                <p className="text-xs text-neutral-500">Retours</p>
-                <p className="text-base font-bold text-red-400">{returnedOrders}</p>
-              </div>
-            </div>
-            <Link href="/dashboard/wallet"
-              className="flex items-center gap-1.5 text-xs text-orange-400 hover:text-orange-300 transition-colors font-medium">
-              Portefeuille <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
-          </div>
+        ) : (
+          <ResponsiveContainer width="100%" height={220}>
+            <LineChart data={revenueByDay} margin={{ top: 4, right: 40, left: -10, bottom: 0 }}>
+              <XAxis dataKey="day" tick={{ fill: TICK, fontSize: 11 }} tickLine={false} axisLine={false} />
+              <YAxis yAxisId="revenue" tick={{ fill: TICK, fontSize: 11 }} tickLine={false} axisLine={false} />
+              <YAxis yAxisId="count" orientation="right" tick={{ fill: TICK, fontSize: 11 }} tickLine={false} axisLine={false} allowDecimals={false} />
+              <Tooltip contentStyle={{ background: TT_BG, border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, fontSize: 12 }} labelStyle={TT_LBL} itemStyle={TT_ITM} />
+              <Legend wrapperStyle={{ fontSize: 12, color: TICK }} />
+              <Line yAxisId="revenue" type="monotone" dataKey="revenue" stroke="#f97316" strokeWidth={2} dot={false} name="Revenus (€)" />
+              <Line yAxisId="count"   type="monotone" dataKey="leads"   stroke="#14b8a6" strokeWidth={2} dot={false} name="Leads" />
+              <Line yAxisId="count"   type="monotone" dataKey="orders"  stroke="#8b5cf6" strokeWidth={2} dot={false} name="Commandes" />
+            </LineChart>
+          </ResponsiveContainer>
+        )}
+      </ChartCard>
+
+      {/* Leads */}
+      <div>
+        <div className="mb-4">
+          <h2 className="text-xl font-semibold text-white">Performance Leads</h2>
+          <p className="text-sm text-neutral-500">Génération et conversion des prospects</p>
         </div>
-
-        {/* Performance */}
-        <div className="lg:w-72 bg-neutral-900 border border-neutral-800 rounded-2xl p-6 flex flex-col gap-5">
-          <div className="flex items-center gap-2">
-            <Target className="w-4 h-4 text-neutral-400" />
-            <span className="text-sm font-semibold text-white">Performance</span>
-          </div>
-          <ProgressBar
-            value={confirmRate}
-            color="linear-gradient(90deg,#14b8a6,#10b981)"
-            label="Leads confirmés"
-            sublabel={`${confirmedLeads} confirmés sur ${totalLeads}`}
-          />
-          <ProgressBar
-            value={deliveryRate}
-            color="linear-gradient(90deg,#f97316,#f59e0b)"
-            label="Taux de livraison"
-            sublabel={`${deliveredOrders} livrées sur ${totalOrders}`}
-          />
-          <ProgressBar
-            value={returnRate}
-            color="linear-gradient(90deg,#ef4444,#dc2626)"
-            label="Taux de retour"
-            sublabel={`${returnedOrders} retour${returnedOrders > 1 ? "s" : ""} sur ${totalOrders}`}
-          />
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+          <SmallStatCard title="TOTAL LEADS"   subtitle="Toutes sources"     value={totalLeads}       unit="LEADS" icon={Users}       color="blue" />
+          <SmallStatCard title="CONFIRMÉS"     subtitle="Leads convertis"    value={confirmedLeads}   unit="LEADS" icon={CheckCircle} color="green" />
+          <SmallStatCard title="EN ATTENTE"    subtitle="En cours"           value={pendingLeads}     unit="LEADS" icon={Clock}       color="yellow" />
+          <SmallStatCard title="ANNULÉS"       subtitle="Non convertis"      value={canceledLeads}    unit="LEADS" icon={XCircle}     color="red" />
+          <SmallStatCard title="TAUX CONFIRM." subtitle="Taux de conversion" value={`${confirmRate}`} unit="%"     icon={Percent}    color="orange" />
+        </div>
+        <div className="mt-4">
+          <ChartCard title="Répartition des leads par statut">
+            <ResponsiveContainer width="100%" height={240}>
+              <BarChart data={leadsChartData} margin={{ top: 4, right: 16, left: -10, bottom: 0 }}>
+                <XAxis dataKey="name" tick={{ fill: TICK, fontSize: 11 }} tickLine={false} axisLine={false} />
+                <YAxis tick={{ fill: TICK, fontSize: 11 }} tickLine={false} axisLine={false} allowDecimals={false} />
+                <Tooltip contentStyle={{ background: TT_BG, border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, fontSize: 12 }} labelStyle={TT_LBL} itemStyle={TT_ITM} cursor={{ fill: "rgba(255,255,255,0.04)" }} />
+                <Bar dataKey="value" name="Leads" radius={[4, 4, 0, 0]} maxBarSize={60}>
+                  {leadsChartData.map((entry, i) => <Cell key={i} fill={entry.fill} />)}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </ChartCard>
         </div>
       </div>
 
-      {/* ── Row 2: 4 stat pills ── */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        {[
-          { label: "Total leads",    value: totalLeads,     sub: `${pendingLeads} en attente`,  icon: Users,       color: "text-teal-400",    border: "border-teal-500/30",    bg: "bg-teal-500/8"    },
-          { label: "Leads confirmés",value: confirmedLeads, sub: `${confirmRate}% de conversion`,icon: CheckCircle2,color: "text-emerald-400", border: "border-emerald-500/30", bg: "bg-emerald-500/8" },
-          { label: "Total commandes",value: totalOrders,    sub: `${shippedOrders} en transit`, icon: ShoppingCart,color: "text-blue-400",    border: "border-blue-500/30",    bg: "bg-blue-500/8"    },
-          { label: "Leads annulés",  value: canceledLeads,  sub: `${pendingOrders} en attente`, icon: XCircle,     color: "text-red-400",     border: "border-red-500/30",     bg: "bg-red-500/8"     },
-        ].map(s => (
-          <div key={s.label} className={`${s.bg} border ${s.border} rounded-xl px-4 py-4 flex items-center gap-3`}>
-            <div className={`w-9 h-9 rounded-xl bg-neutral-800/80 flex items-center justify-center flex-shrink-0`}>
-              <s.icon className={`w-4 h-4 ${s.color}`} />
-            </div>
-            <div className="min-w-0">
-              <p className="text-2xl font-black text-white leading-none">{s.value}</p>
-              <p className="text-xs text-neutral-500 mt-0.5 truncate">{s.label}</p>
-              <p className="text-xs text-neutral-600 truncate">{s.sub}</p>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* ── Row 3: Activity feed + Status breakdown ── */}
-      <div className="flex flex-col lg:flex-row gap-5">
-
-        {/* Recent activity */}
-        <div className="flex-1 bg-neutral-900 border border-neutral-800 rounded-2xl overflow-hidden">
-          <div className="px-5 py-4 border-b border-neutral-800 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Zap className="w-4 h-4 text-orange-400" />
-              <span className="text-sm font-semibold text-white">Activité récente</span>
-            </div>
-            <div className="flex gap-2">
-              <Link href="/dashboard/orders" className="text-xs text-neutral-500 hover:text-orange-400 transition-colors">Commandes →</Link>
-              <span className="text-neutral-700">·</span>
-              <Link href="/dashboard/leads"  className="text-xs text-neutral-500 hover:text-orange-400 transition-colors">Leads →</Link>
-            </div>
-          </div>
-          <div className="px-5 divide-y divide-neutral-800/60">
-            {recentActivity.length === 0 ? (
-              <div className="py-10 text-center text-neutral-600 text-sm">
-                Aucune activité récente — connectez votre boutique
-              </div>
-            ) : recentActivity.map((item, i) => {
-              const cfg = item.kind === "order"
-                ? (STATUS_CFG[item.status as keyof typeof STATUS_CFG] ?? STATUS_CFG.PENDING)
-                : (LEAD_CFG[item.status  as keyof typeof LEAD_CFG]   ?? LEAD_CFG.PENDING)
-              const sub = item.kind === "order"
-                ? `${cfg.label} · ${item.country || "—"} · €${item.value.toFixed(0)}`
-                : `${cfg.label} · ${item.country || "—"} · ${item.store || ""}`
-              return (
-                <ActivityItem
-                  key={i}
-                  icon={cfg.icon}
-                  color={cfg.color}
-                  bg={cfg.bg}
-                  title={item.name || "—"}
-                  sub={sub}
-                  time={item.ts.slice(5).replace("-","/")}
-                />
-              )
-            })}
-          </div>
+      {/* Orders */}
+      <div>
+        <div className="mb-4">
+          <h2 className="text-xl font-semibold text-white">Performance Commandes</h2>
+          <p className="text-sm text-neutral-500">Traitement et livraison des commandes</p>
         </div>
-
-        {/* Status breakdown */}
-        <div className="lg:w-64 bg-neutral-900 border border-neutral-800 rounded-2xl p-5 flex flex-col gap-4">
-          <p className="text-sm font-semibold text-white">Statuts commandes</p>
-          {[
-            { label: "Livrées",     value: deliveredOrders, total: totalOrders, color: "#10b981" },
-            { label: "Expédiées",   value: shippedOrders,   total: totalOrders, color: "#3b82f6" },
-            { label: "En attente",  value: pendingOrders,   total: totalOrders, color: "#f59e0b" },
-            { label: "Retournées",  value: returnedOrders,  total: totalOrders, color: "#ef4444" },
-          ].map(s => {
-            const pct = totalOrders ? Math.round((s.value / totalOrders) * 100) : 0
-            return (
-              <div key={s.label}>
-                <div className="flex items-center justify-between mb-1">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: s.color }} />
-                    <span className="text-xs text-neutral-400">{s.label}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-semibold text-white">{s.value}</span>
-                    <span className="text-xs text-neutral-600 w-8 text-right">{pct}%</span>
-                  </div>
-                </div>
-                <div className="h-1.5 bg-neutral-800 rounded-full overflow-hidden">
-                  <div className="h-full rounded-full" style={{ width: `${pct}%`, background: s.color }} />
-                </div>
-              </div>
-            )
-          })}
-
-          <div className="mt-2 pt-4 border-t border-neutral-800">
-            <p className="text-sm font-semibold text-white mb-3">Statuts leads</p>
-            {[
-              { label: "Confirmés",    value: confirmedLeads,                                                    total: totalLeads, color: "#10b981" },
-              { label: "En attente",   value: pendingLeads,                                                      total: totalLeads, color: "#f59e0b" },
-              { label: "Annulés",      value: canceledLeads,                                                     total: totalLeads, color: "#ef4444" },
-              { label: "Non joignables", value: filteredLeads.filter(l => l.status === "UNREACHED").length,       total: totalLeads, color: "#6b7280" },
-            ].map(s => {
-              const pct = totalLeads ? Math.round((s.value / totalLeads) * 100) : 0
-              return (
-                <div key={s.label} className="mb-3 last:mb-0">
-                  <div className="flex items-center justify-between mb-1">
-                    <div className="flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: s.color }} />
-                      <span className="text-xs text-neutral-400">{s.label}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-semibold text-white">{s.value}</span>
-                      <span className="text-xs text-neutral-600 w-8 text-right">{pct}%</span>
-                    </div>
-                  </div>
-                  <div className="h-1.5 bg-neutral-800 rounded-full overflow-hidden">
-                    <div className="h-full rounded-full" style={{ width: `${pct}%`, background: s.color }} />
-                  </div>
-                </div>
-              )
-            })}
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+          <SmallStatCard title="TOTAL ORDERS"   subtitle="Toutes sources"      value={totalOrders}       unit="ORDERS" icon={ShoppingCart} color="blue" />
+          <SmallStatCard title="LIVRÉS"         subtitle="Livraisons réussies" value={deliveredOrders}   unit="ORDERS" icon={CheckCircle}  color="green" />
+          <SmallStatCard title="EN TRANSIT"     subtitle="Expédiés"            value={shippedOrders}     unit="ORDERS" icon={Clock}        color="yellow" />
+          <SmallStatCard title="RETOURNÉS"      subtitle="Échecs livraison"    value={returnedOrders}    unit="ORDERS" icon={XCircle}      color="red" />
+          <SmallStatCard title="TAUX LIVRAISON" subtitle="Taux de succès"      value={`${deliveryRate}`} unit="%"      icon={TrendingUp}   color="orange" />
+        </div>
+        <div className="mt-4">
+          <ChartCard title="Répartition des commandes par statut">
+            <ResponsiveContainer width="100%" height={240}>
+              <BarChart data={ordersChartData} margin={{ top: 4, right: 16, left: -10, bottom: 0 }}>
+                <XAxis dataKey="name" tick={{ fill: TICK, fontSize: 11 }} tickLine={false} axisLine={false} />
+                <YAxis tick={{ fill: TICK, fontSize: 11 }} tickLine={false} axisLine={false} allowDecimals={false} />
+                <Tooltip contentStyle={{ background: TT_BG, border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, fontSize: 12 }} labelStyle={TT_LBL} itemStyle={TT_ITM} cursor={{ fill: "rgba(255,255,255,0.04)" }} />
+                <Bar dataKey="value" name="Commandes" radius={[4, 4, 0, 0]} maxBarSize={60}>
+                  {ordersChartData.map((entry, i) => <Cell key={i} fill={entry.fill} />)}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </ChartCard>
         </div>
       </div>
+
+      {/* Revenue by store */}
+      {revenueByStore.length > 0 && (
+        <div>
+          <div className="mb-4">
+            <h2 className="text-xl font-semibold text-white">Revenus par boutique</h2>
+            <p className="text-sm text-neutral-500">Performance des boutiques connectées</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {revenueByStore.map(store => (
+              <div key={store.name} className="bg-neutral-900 border border-neutral-800 rounded-xl p-5">
+                <h3 className="text-sm font-medium text-white mb-4 truncate">{store.name}</h3>
+                <div className="flex items-baseline gap-2 mb-2">
+                  <span className="text-2xl font-bold text-white">{store.revenue.toFixed(0)}</span>
+                  <span className="text-sm text-neutral-500">EUR</span>
+                </div>
+                <div className="w-full bg-neutral-800 rounded-full h-1.5 mb-2">
+                  <div className="bg-orange-500 h-1.5 rounded-full"
+                    style={{ width: totalRevenue > 0 ? `${(store.revenue / totalRevenue) * 100}%` : "0%" }} />
+                </div>
+                <p className="text-xs text-neutral-500">{store.orders} commandes livrées</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
     </div>
   )
