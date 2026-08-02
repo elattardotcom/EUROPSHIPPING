@@ -18,8 +18,8 @@ const T = {
     // signup
     label_first:       "Prénom *",
     label_last:        "Nom *",
-    ph_first:          "Jean",
-    ph_last:           "Dupont",
+    ph_first:          "Prénom",
+    ph_last:           "Nom",
     label_email:       "Email *",
     ph_email:          "vous@exemple.com",
     label_phone:       "Téléphone *",
@@ -81,8 +81,8 @@ const T = {
     // signup
     label_first:       "First name *",
     label_last:        "Last name *",
-    ph_first:          "John",
-    ph_last:           "Smith",
+    ph_first:          "Name",
+    ph_last:           "Surname",
     label_email:       "Email *",
     ph_email:          "you@example.com",
     label_phone:       "Phone *",
