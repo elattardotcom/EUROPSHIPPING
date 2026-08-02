@@ -15,6 +15,26 @@ import { useTheme } from "next-themes"
 
 const INPUT = "w-full bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-orange-500 disabled:opacity-50"
 
+function WiseLogo({ size = 20 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 20 20" fill="none">
+      <rect width="20" height="20" rx="5" fill="#9FE870"/>
+      <path d="M4 6.5L7.2 13.5L10 8.5L12.8 13.5L16 6.5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  )
+}
+
+function BinanceLogo({ size = 20 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
+      <circle cx="16" cy="16" r="16" fill="#F3BA2F"/>
+      <path fillRule="evenodd" fill="white"
+        d="M16,3 L22,9 L16,15 L10,9 Z M9,10 L15,16 L9,22 L3,16 Z M16,10 L22,16 L16,22 L10,16 Z M23,10 L29,16 L23,22 L17,16 Z M16,17 L22,23 L16,29 L10,23 Z"
+      />
+    </svg>
+  )
+}
+
 function Alert({ type, msg }: { type: "success" | "error"; msg: string }) {
   return (
     <div className={`px-4 py-3 rounded-lg text-sm ${
@@ -455,17 +475,19 @@ export default function SettingsPage() {
                   {/* Type selector */}
                   <div className="grid grid-cols-3 gap-2">
                     {([
-                      { id: "bank",   icon: Building2, label: "Virement bancaire", sub: "IBAN / BIC" },
-                      { id: "wise",   icon: ArrowRight, label: "Wise",             sub: "Email Wise" },
-                      { id: "crypto", icon: Bitcoin,    label: "Crypto",           sub: "BTC / ETH / USDT" },
-                    ] as { id: PaymentMethodType; icon: React.ElementType; label: string; sub: string }[]).map(t => (
+                      { id: "bank",   label: "Virement bancaire", sub: "IBAN / BIC" },
+                      { id: "wise",   label: "Wise",              sub: "Email Wise" },
+                      { id: "crypto", label: "Crypto",            sub: "BTC / ETH / USDT" },
+                    ] as { id: PaymentMethodType; label: string; sub: string }[]).map(t => (
                       <button key={t.id} onClick={() => setPayFormType(t.id)}
                         className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border transition-all ${
                           payFormType === t.id
                             ? "border-orange-500/50 bg-orange-500/10 text-orange-400"
                             : "border-neutral-700 bg-neutral-800 text-neutral-400 hover:border-neutral-600"
                         }`}>
-                        <t.icon className="w-5 h-5" />
+                        {t.id === "wise"   ? <WiseLogo size={22} />
+                          : t.id === "crypto" ? <BinanceLogo size={22} />
+                          : <Building2 className="w-5 h-5" />}
                         <span className="text-xs font-semibold">{t.label}</span>
                         <span className="text-[10px] text-neutral-500">{t.sub}</span>
                       </button>
@@ -577,12 +599,11 @@ export default function SettingsPage() {
                     }`}>
                       <div className="flex items-center gap-3 min-w-0">
                         <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                          m.type === "bank"   ? "bg-blue-500/15"   :
-                          m.type === "wise"   ? "bg-emerald-500/15" : "bg-amber-500/15"
+                          m.type === "bank" ? "bg-blue-500/15" : "bg-transparent"
                         }`}>
                           {m.type === "bank"   && <Building2 className="w-4 h-4 text-blue-400" />}
-                          {m.type === "wise"   && <ArrowRight className="w-4 h-4 text-emerald-400" />}
-                          {m.type === "crypto" && <Bitcoin    className="w-4 h-4 text-amber-400" />}
+                          {m.type === "wise"   && <WiseLogo size={28} />}
+                          {m.type === "crypto" && <BinanceLogo size={28} />}
                         </div>
                         <div className="min-w-0">
                           <div className="flex items-center gap-2">
