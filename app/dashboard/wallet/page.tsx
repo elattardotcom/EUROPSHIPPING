@@ -340,21 +340,16 @@ function WiseLogo({ size = 18 }: { size?: number }) {
 }
 
 function BinanceLogo({ size = 18 }: { size?: number }) {
-  // Official BNB mark: 5 identical diamonds (rotated 45°) in a cross pattern
-  // scaled to 32×32 then mapped to 24×24 viewBox
+  // 5 identical diamonds (half-diag=6) overlapping with evenodd rule
+  // creates the authentic BNB interlocking mark with yellow cutouts
   return (
     <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
-      <circle cx="16" cy="16" r="16" fill="#F0B90B"/>
-      {/* Top */}
-      <polygon points="16,5 20,9 16,13 12,9" fill="white"/>
-      {/* Left */}
-      <polygon points="5,16 9,12 13,16 9,20" fill="white"/>
-      {/* Center */}
-      <polygon points="12,16 16,12 20,16 16,20" fill="white"/>
-      {/* Right */}
-      <polygon points="19,16 23,12 27,16 23,20" fill="white"/>
-      {/* Bottom */}
-      <polygon points="12,23 16,19 20,23 16,27" fill="white"/>
+      <circle cx="16" cy="16" r="16" fill="#F3BA2F"/>
+      <path
+        fillRule="evenodd"
+        fill="white"
+        d="M16,3 L22,9 L16,15 L10,9 Z M9,10 L15,16 L9,22 L3,16 Z M16,10 L22,16 L16,22 L10,16 Z M23,10 L29,16 L23,22 L17,16 Z M16,17 L22,23 L16,29 L10,23 Z"
+      />
     </svg>
   )
 }
