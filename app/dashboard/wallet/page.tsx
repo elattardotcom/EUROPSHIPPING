@@ -340,19 +340,21 @@ function WiseLogo({ size = 18 }: { size?: number }) {
 }
 
 function BinanceLogo({ size = 18 }: { size?: number }) {
+  // Official BNB mark: 5 identical diamonds (rotated 45°) in a cross pattern
+  // scaled to 32×32 then mapped to 24×24 viewBox
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <circle cx="12" cy="12" r="12" fill="#F0B90B"/>
-      {/* Top large diamond */}
-      <path d="M12 3L15.5 6.5L12 10L8.5 6.5Z" fill="white"/>
-      {/* Left small diamond */}
-      <path d="M4 12L6.5 9.5L9 12L6.5 14.5Z" fill="white"/>
-      {/* Center small diamond */}
-      <path d="M9.5 12L12 9.5L14.5 12L12 14.5Z" fill="white"/>
-      {/* Right small diamond */}
-      <path d="M15 12L17.5 9.5L20 12L17.5 14.5Z" fill="white"/>
-      {/* Bottom large diamond */}
-      <path d="M8.5 17.5L12 14L15.5 17.5L12 21Z" fill="white"/>
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
+      <circle cx="16" cy="16" r="16" fill="#F0B90B"/>
+      {/* Top */}
+      <polygon points="16,5 20,9 16,13 12,9" fill="white"/>
+      {/* Left */}
+      <polygon points="5,16 9,12 13,16 9,20" fill="white"/>
+      {/* Center */}
+      <polygon points="12,16 16,12 20,16 16,20" fill="white"/>
+      {/* Right */}
+      <polygon points="19,16 23,12 27,16 23,20" fill="white"/>
+      {/* Bottom */}
+      <polygon points="12,23 16,19 20,23 16,27" fill="white"/>
     </svg>
   )
 }
