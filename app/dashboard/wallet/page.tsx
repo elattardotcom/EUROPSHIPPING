@@ -43,6 +43,13 @@ interface Invoice {
   id: string; number: string; amount: number
   status: "paid" | "pending" | "overdue"
   date: string; dueDate: string; description: string
+  grossAmount?:    number
+  feeDelivery?:    number
+  feeReturn?:      number
+  feeCallCenter?:  number
+  feeTotal?:       number
+  deliveredCount?: number
+  returnedCount?:  number
 }
 
 const MOCK_DEPOSITS: Transaction[] = [
@@ -78,13 +85,20 @@ function withdrawalToTx(w: Withdrawal): Transaction {
 
 function withdrawalToInvoice(w: Withdrawal): Invoice {
   return {
-    id:          w.id,
-    number:      `FAC-${w.id.slice(-6).toUpperCase()}`,
-    amount:      w.amount,
-    status:      "paid",
-    date:        w.processedAt ?? w.requestedAt,
-    dueDate:     w.processedAt ?? w.requestedAt,
-    description: `Retrait approuvé — ${getWithdrawalLabel(w)}`,
+    id:             w.id,
+    number:         `FAC-${w.id.slice(-6).toUpperCase()}`,
+    amount:         w.amount,
+    status:         "paid",
+    date:           w.processedAt ?? w.requestedAt,
+    dueDate:        w.processedAt ?? w.requestedAt,
+    description:    `Retrait approuvé — ${getWithdrawalLabel(w)}`,
+    grossAmount:    w.grossAmount,
+    feeDelivery:    w.feeDelivery,
+    feeReturn:      w.feeReturn,
+    feeCallCenter:  w.feeCallCenter,
+    feeTotal:       w.feeTotal,
+    deliveredCount: w.deliveredCount,
+    returnedCount:  w.returnedCount,
   }
 }
 
@@ -110,19 +124,58 @@ async function downloadInvoice(inv: Invoice, clientWithdrawals: Withdrawal[], in
     ? `${iban.replace(/\s/g, "").slice(0, 4)} •••• •••• ${iban.replace(/\s/g, "").slice(-4)}`
     : iban
 
-  const amtTTC = inv.amount
-  const amtHT  = amtTTC / 1.20
-  const amtTVA = amtTTC - amtHT
-  const f = (n: number) => n.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  const f = (n: number) => (n ?? 0).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
-  const today       = new Date()
-  const dateStr     = today.toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" })
+  const today      = new Date()
+  const dateStr    = today.toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" })
   const periodStart = withdrawal?.requestedAt ?? inv.date
   const periodEnd   = withdrawal?.processedAt  ?? inv.dueDate
 
-  // A4 at 96dpi = 794 × 1123px
-  const W = 794, H = 1123
+  // Fee breakdown — use stored values if available
+  const gross        = inv.grossAmount  ?? inv.amount
+  const feeDelivery  = inv.feeDelivery  ?? 0
+  const feeReturn    = inv.feeReturn    ?? 0
+  const feeCallCenter= inv.feeCallCenter ?? 0
+  const feeTotal     = inv.feeTotal     ?? (feeDelivery + feeReturn + feeCallCenter)
+  const netPayout    = inv.amount
+  const hasFees      = feeTotal > 0
+  const delivCount   = inv.deliveredCount ?? 0
+  const retCount     = inv.returnedCount  ?? 0
 
+  // Fee rows HTML (only shown when fee data exists)
+  const feeRows = hasFees ? `
+    <tr style="background:#fff7ed">
+      <td style="color:#9ca3af;font-size:11px;padding:10px 14px">02</td>
+      <td style="padding:10px 14px">
+        <div style="font-weight:600;color:#ea580c;font-size:13px">— Frais de livraison</div>
+        <div style="font-size:11px;color:#9ca3af;margin-top:2px">${delivCount} commande${delivCount > 1 ? "s" : ""} livrée${delivCount > 1 ? "s" : ""}</div>
+      </td>
+      <td style="text-align:right;padding:10px 14px">${delivCount}</td>
+      <td style="text-align:right;padding:10px 14px;color:#6b7280">— ${f(delivCount ? feeDelivery / delivCount : 0)} €</td>
+      <td style="text-align:right;padding:10px 14px;font-weight:700;color:#dc2626">— ${f(feeDelivery)} €</td>
+    </tr>
+    ${feeReturn > 0 ? `<tr style="background:#fff7ed">
+      <td style="color:#9ca3af;font-size:11px;padding:10px 14px">03</td>
+      <td style="padding:10px 14px">
+        <div style="font-weight:600;color:#ea580c;font-size:13px">— Frais de retour</div>
+        <div style="font-size:11px;color:#9ca3af;margin-top:2px">${retCount} retour${retCount > 1 ? "s" : ""}</div>
+      </td>
+      <td style="text-align:right;padding:10px 14px">${retCount}</td>
+      <td style="text-align:right;padding:10px 14px;color:#6b7280">— ${f(retCount ? feeReturn / retCount : 0)} €</td>
+      <td style="text-align:right;padding:10px 14px;font-weight:700;color:#dc2626">— ${f(feeReturn)} €</td>
+    </tr>` : ""}
+    <tr style="background:#fff7ed">
+      <td style="color:#9ca3af;font-size:11px;padding:10px 14px">${feeReturn > 0 ? "04" : "03"}</td>
+      <td style="padding:10px 14px">
+        <div style="font-weight:600;color:#ea580c;font-size:13px">— Frais call center</div>
+        <div style="font-size:11px;color:#9ca3af;margin-top:2px">Confirmation des commandes</div>
+      </td>
+      <td style="text-align:right;padding:10px 14px">${delivCount}</td>
+      <td style="text-align:right;padding:10px 14px;color:#6b7280">— ${f(delivCount ? feeCallCenter / delivCount : 0)} €</td>
+      <td style="text-align:right;padding:10px 14px;font-weight:700;color:#dc2626">— ${f(feeCallCenter)} €</td>
+    </tr>` : ""
+
+  const W = 794, H = 1123
   const container = document.createElement("div")
   container.style.cssText = `position:fixed;top:-9999px;left:-9999px;width:${W}px;height:${H}px;overflow:hidden;background:#fff;font-family:'Helvetica Neue',Arial,sans-serif;font-size:13px;color:#111827`
   container.innerHTML = `
@@ -136,7 +189,7 @@ async function downloadInvoice(inv: Invoice, clientWithdrawals: Withdrawal[], in
 .hdr-sub{font-size:11px;color:rgba(255,255,255,.65);letter-spacing:.5px;margin-top:3px}
 .hdr-badge{font-size:10px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,.75);text-transform:uppercase;text-align:right;margin-bottom:4px}
 .hdr-num{font-size:20px;font-weight:800;color:#fff;font-family:monospace;text-align:right}
-.body{padding:28px 36px;flex:1;display:flex;flex-direction:column;gap:20px}
+.body{padding:28px 36px;flex:1;display:flex;flex-direction:column;gap:18px}
 .parties{display:grid;grid-template-columns:1fr 1fr;gap:20px}
 .party-box{background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:16px 18px}
 .party-label{font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#9ca3af;margin-bottom:10px}
@@ -145,24 +198,22 @@ async function downloadInvoice(inv: Invoice, clientWithdrawals: Withdrawal[], in
 .date-row{display:flex;gap:32px}
 .lbl{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#9ca3af;margin-bottom:4px}
 .val{font-size:13px;font-weight:600;color:#374151}
-.objet-box{background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:14px 18px}
-.objet-label{font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#ea580c;margin-bottom:5px}
-.objet-text{font-size:14px;color:#7c2d12;font-weight:600}
+.objet-box{background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:12px 18px}
+.objet-label{font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#ea580c;margin-bottom:4px}
+.objet-text{font-size:13px;color:#7c2d12;font-weight:600}
 .tbl{width:100%;border-collapse:collapse}
 .tbl thead tr{background:#f3f4f6}
 .tbl th{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#6b7280;padding:10px 14px;text-align:left;border-bottom:2px solid #e5e7eb}
 .tbl th.r,.tbl td.r{text-align:right}
-.tbl td{padding:12px 14px;color:#374151;font-size:13px;border-bottom:1px solid #f3f4f6}
-.item-desc{font-weight:600;color:#111827;font-size:14px}
-.item-ref{font-size:11px;color:#9ca3af;font-family:monospace;margin-top:3px}
-.totals{margin-left:auto;width:280px;margin-top:14px}
-.tot-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #f3f4f6;font-size:13px}
-.tot-row:last-child{border-bottom:none;padding-top:12px;margin-top:4px}
+.tbl td{color:#374151;font-size:13px;border-bottom:1px solid #f3f4f6}
+.totals{margin-left:auto;width:300px;margin-top:12px}
+.tot-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f3f4f6;font-size:13px}
 .tot-label{color:#6b7280}
 .tot-val{color:#374151;font-weight:600}
-.tot-tva{color:#dc2626}
-.tot-total .tot-label{color:#111827;font-weight:700;font-size:15px}
-.tot-total .tot-val{color:#f97316;font-weight:800;font-size:18px}
+.tot-fee{color:#dc2626}
+.tot-net{border-top:2px solid #e5e7eb;margin-top:6px;padding-top:10px!important;border-bottom:none!important}
+.tot-net .tot-label{color:#111827;font-weight:700;font-size:15px}
+.tot-net .tot-val{color:#f97316;font-weight:800;font-size:18px}
 .pay-box{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:14px 18px;display:flex;align-items:center;gap:18px}
 .pay-status{display:inline-flex;align-items:center;gap:6px;padding:5px 14px;border-radius:999px;background:#dcfce7;border:1px solid #86efac;font-size:12px;font-weight:700;color:#16a34a;letter-spacing:.5px;white-space:nowrap}
 .pay-dot{width:8px;height:8px;border-radius:50%;background:#16a34a;display:inline-block}
@@ -203,31 +254,44 @@ async function downloadInvoice(inv: Invoice, clientWithdrawals: Withdrawal[], in
     </div>
     <div class="date-row">
       <div><div class="lbl">Date d'émission</div><div class="val">${dateStr}</div></div>
-      <div><div class="lbl">Période couverte</div><div class="val">${periodStart} — ${periodEnd}</div></div>
+      <div><div class="lbl">Période</div><div class="val">${periodStart} — ${periodEnd}</div></div>
       <div><div class="lbl">Statut</div><div class="val" style="color:#16a34a;font-weight:700">✓ PAYÉE</div></div>
     </div>
     <div class="objet-box">
       <div class="objet-label">Objet</div>
-      <div class="objet-text">Payout — Revenus de ventes de produits COD traités par CODShipEurope</div>
+      <div class="objet-text">Payout net — Revenus COD après déduction des frais de service CODShipEurope</div>
     </div>
     <div>
       <table class="tbl">
-        <thead><tr><th>#</th><th>Description</th><th class="r">Qté</th><th class="r">Prix HT</th><th class="r">Montant HT</th></tr></thead>
+        <thead><tr>
+          <th style="width:36px">#</th>
+          <th>Description</th>
+          <th class="r" style="width:60px">Qté</th>
+          <th class="r" style="width:110px">Prix unit.</th>
+          <th class="r" style="width:110px">Montant</th>
+        </tr></thead>
         <tbody>
           <tr>
-            <td style="color:#9ca3af;font-size:11px">01</td>
-            <td><div class="item-desc">Payout — Revenus de ventes produits COD</div><div class="item-ref">Ref: ${inv.number} · Virement bancaire approuvé</div></td>
-            <td class="r">1</td>
-            <td class="r">${f(amtHT)} €</td>
-            <td class="r" style="font-weight:700;color:#111827">${f(amtHT)} €</td>
+            <td style="color:#9ca3af;font-size:11px;padding:10px 14px">01</td>
+            <td style="padding:10px 14px">
+              <div style="font-weight:600;color:#111827;font-size:14px">Revenus bruts — commandes COD livrées</div>
+              <div style="font-size:11px;color:#9ca3af;font-family:monospace;margin-top:3px">Ref: ${inv.number} · ${delivCount} livraison${delivCount > 1 ? "s" : ""}${retCount > 0 ? ` · ${retCount} retour${retCount > 1 ? "s" : ""}` : ""}</div>
+            </td>
+            <td style="text-align:right;padding:10px 14px">${delivCount || 1}</td>
+            <td style="text-align:right;padding:10px 14px;color:#6b7280">— €</td>
+            <td style="text-align:right;padding:10px 14px;font-weight:700;color:#111827">${f(gross)} €</td>
           </tr>
+          ${feeRows}
         </tbody>
       </table>
       <div style="display:flex;justify-content:flex-end">
         <div class="totals">
-          <div class="tot-row"><span class="tot-label">Sous-total HT</span><span class="tot-val">${f(amtHT)} €</span></div>
-          <div class="tot-row"><span class="tot-label tot-tva">TVA 20 %</span><span class="tot-val tot-tva">${f(amtTVA)} €</span></div>
-          <div class="tot-row tot-total"><span class="tot-label">Total TTC</span><span class="tot-val">${f(amtTTC)} €</span></div>
+          <div class="tot-row"><span class="tot-label">Revenus bruts</span><span class="tot-val">${f(gross)} €</span></div>
+          ${hasFees ? `<div class="tot-row"><span class="tot-label tot-fee">Frais de livraison</span><span class="tot-val tot-fee">— ${f(feeDelivery)} €</span></div>` : ""}
+          ${hasFees && feeReturn > 0 ? `<div class="tot-row"><span class="tot-label tot-fee">Frais de retour</span><span class="tot-val tot-fee">— ${f(feeReturn)} €</span></div>` : ""}
+          ${hasFees ? `<div class="tot-row"><span class="tot-label tot-fee">Frais call center</span><span class="tot-val tot-fee">— ${f(feeCallCenter)} €</span></div>` : ""}
+          ${hasFees ? `<div class="tot-row"><span class="tot-label tot-fee">Total frais de service</span><span class="tot-val tot-fee">— ${f(feeTotal)} €</span></div>` : ""}
+          <div class="tot-row tot-net"><span class="tot-label">Net à payer</span><span class="tot-val">${f(netPayout)} €</span></div>
         </div>
       </div>
     </div>
@@ -239,7 +303,7 @@ async function downloadInvoice(inv: Invoice, clientWithdrawals: Withdrawal[], in
       </div>
       <div style="text-align:right">
         <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:#9ca3af;margin-bottom:2px">Montant versé</div>
-        <div style="font-size:18px;font-weight:800;color:#f97316">${f(amtTTC)} €</div>
+        <div style="font-size:18px;font-weight:800;color:#f97316">${f(netPayout)} €</div>
       </div>
     </div>
   </div>

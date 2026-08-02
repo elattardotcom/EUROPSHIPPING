@@ -124,7 +124,15 @@ export interface Withdrawal {
   processedAt?:        string
   adminNote?:          string
   paymentMethodType?:  PaymentMethodType
-  paymentDetails?:     string  // JSON: method-specific details
+  paymentDetails?:     string   // JSON: method-specific details
+  // Fee breakdown (stored at withdrawal creation time)
+  grossAmount?:        number
+  feeDelivery?:        number
+  feeReturn?:          number
+  feeCallCenter?:      number
+  feeTotal?:           number
+  deliveredCount?:     number
+  returnedCount?:      number
 }
 
 export interface UnbilledOrder {
@@ -261,6 +269,13 @@ const mapWithdrawal = (r: any): Withdrawal => ({
   adminNote:           r.admin_note ?? undefined,
   paymentMethodType:   r.payment_method_type ?? undefined,
   paymentDetails:      r.payment_details ?? undefined,
+  grossAmount:         r.gross_amount    ?? undefined,
+  feeDelivery:         r.fee_delivery    ?? undefined,
+  feeReturn:           r.fee_return      ?? undefined,
+  feeCallCenter:       r.fee_call_center ?? undefined,
+  feeTotal:            r.fee_total       ?? undefined,
+  deliveredCount:      r.delivered_count ?? undefined,
+  returnedCount:       r.returned_count  ?? undefined,
 })
 
 /* ── Clients ────────────────────────────────────────────────────────────── */
@@ -689,10 +704,20 @@ export async function createWithdrawal(
     iban:         payload.iban,
   }
 
+  const feeData = {
+    gross_amount:    preview.grossAmount,
+    fee_delivery:    preview.deliveryFees,
+    fee_return:      preview.returnFees,
+    fee_call_center: preview.callCenterFees,
+    fee_total:       preview.totalFees,
+    delivered_count: preview.deliveredCount,
+    returned_count:  preview.returnedCount,
+  }
+
   try {
-    // Try with payment method columns (requires migration)
     const { data, error } = await sb.from("withdrawals").insert({
       ...base,
+      ...feeData,
       payment_method_type: payload.paymentMethodType ?? null,
       payment_details:     payload.paymentDetails    ?? null,
     }).select().single()
@@ -702,7 +727,7 @@ export async function createWithdrawal(
       return mapWithdrawal(data)
     }
 
-    // Fallback: insert without new columns (migration not yet run)
+    // Fallback: insert without new columns
     const { data: data2, error: error2 } = await sb.from("withdrawals").insert(base).select().single()
     if (!error2 && data2) {
       await markOrdersInvoiced(preview.orders.map(o => o.id))
