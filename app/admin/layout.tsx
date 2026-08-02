@@ -7,7 +7,7 @@ import { usePathname, useRouter } from "next/navigation"
 import {
   LayoutDashboard, Users, ShoppingCart, UserCheck,
   BarChart3, LogOut, ChevronRight, Bell, Store,
-  ArrowDownLeft, Settings, Radio, ClipboardList, Menu, X, Search, Package, Gift,
+  ArrowDownLeft, Settings, Radio, ClipboardList, Menu, X, Search, Package, Gift, Wallet,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { AdminI18nProvider, useI18n } from "@/lib/admin-i18n"
@@ -138,7 +138,8 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
     { href: "/admin/leads",       icon: UserCheck,       label: t("nav_leads"),       badge: counts.leads },
     { href: "/admin/orders",      icon: ShoppingCart,    label: t("nav_orders"),      badge: counts.orders },
     { href: "/admin/stores",      icon: Store,           label: t("nav_stores"),      badge: 0 },
-    { href: "/admin/withdrawals", icon: ArrowDownLeft,   label: t("nav_withdrawals"), badge: counts.withdrawals },
+    { href: "/admin/withdrawals",      icon: ArrowDownLeft, label: t("nav_withdrawals"),    badge: counts.withdrawals },
+    { href: "/admin/payment-methods",  icon: Wallet,        label: "Méthodes paiement",     badge: 0 },
     { href: "/admin/requests",    icon: ClipboardList,   label: t("nav_requests"),    badge: counts.requests },
     { href: "/admin/sourcing",          icon: Search,          label: "Sourcing",       badge: 0 },
     { href: "/admin/cod-products",      icon: Package,         label: "COD Drop",       badge: 0 },

@@ -387,15 +387,15 @@ export default function ClientDetail({ params }: { params: Promise<{ id: string 
               {paymentMethods.map(m => {
                 const Icon = m.type === "bank" ? Building2 : m.type === "crypto" ? Bitcoin : ArrowRight
                 const line1 = m.type === "bank"
-                  ? (m.iban ? `IBAN: ${m.iban.slice(0,4)}****${m.iban.slice(-4)}` : "")
+                  ? (m.iban ? `IBAN: ${m.iban}` : "")
                   : m.type === "wise"
                   ? (m.wiseEmail ?? "")
                   : `${m.cryptoNetwork ?? ""}`
                 const line2 = m.type === "bank"
-                  ? (m.accountHolder ?? "")
+                  ? [m.accountHolder, m.bic ? `BIC: ${m.bic}` : null].filter(Boolean).join(" · ")
                   : m.type === "wise"
                   ? (m.wiseCurrency ?? "")
-                  : (m.cryptoAddress ? `${m.cryptoAddress.slice(0,6)}…${m.cryptoAddress.slice(-4)}` : "")
+                  : (m.cryptoAddress ?? "")
                 return (
                   <div key={m.id} className="px-5 py-3.5 flex items-center justify-between gap-4">
                     <div className="flex items-center gap-3 min-w-0">
