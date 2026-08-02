@@ -372,11 +372,13 @@ export default function WalletPage() {
     if (data && amount > data.balance) { setError(`Solde insuffisant — disponible : €${fmt(data.balance)}`); return }
     const method = payMethods.find(m => m.id === selectedMethod)
     if (!method) { setError("Veuillez sélectionner une méthode de paiement dans Paramètres"); return }
-    const paymentDetails = method.type === "bank"
-      ? (method.iban ?? "")
-      : method.type === "wise"
-      ? `${method.wiseEmail}|${method.wiseCurrency ?? "EUR"}`
-      : `${method.cryptoNetwork}|${method.cryptoAddress}`
+    const paymentDetails = JSON.stringify(
+      method.type === "bank"
+        ? { iban: method.iban, bic: method.bic ?? null, accountHolder: method.accountHolder ?? null }
+        : method.type === "wise"
+        ? { wiseEmail: method.wiseEmail, wiseCurrency: method.wiseCurrency ?? "EUR" }
+        : { cryptoNetwork: method.cryptoNetwork, cryptoAddress: method.cryptoAddress }
+    )
     setError("")
     setSub(true)
     const res = await fetch("/api/withdrawals", {
@@ -406,11 +408,13 @@ export default function WalletPage() {
     if (data && amount > data.balance) { setQuickError(`Solde insuffisant — disponible : €${fmt(data.balance)}`); return }
     const method = payMethods.find(m => m.id === selectedMethod)
     if (!method) { setQuickError("Ajoutez une méthode de paiement dans Paramètres"); return }
-    const paymentDetails = method.type === "bank"
-      ? (method.iban ?? "")
-      : method.type === "wise"
-      ? `${method.wiseEmail}|${method.wiseCurrency ?? "EUR"}`
-      : `${method.cryptoNetwork}|${method.cryptoAddress}`
+    const paymentDetails = JSON.stringify(
+      method.type === "bank"
+        ? { iban: method.iban, bic: method.bic ?? null, accountHolder: method.accountHolder ?? null }
+        : method.type === "wise"
+        ? { wiseEmail: method.wiseEmail, wiseCurrency: method.wiseCurrency ?? "EUR" }
+        : { cryptoNetwork: method.cryptoNetwork, cryptoAddress: method.cryptoAddress }
+    )
     setQuickError("")
     setQuickSub(true)
     const res = await fetch("/api/withdrawals", {

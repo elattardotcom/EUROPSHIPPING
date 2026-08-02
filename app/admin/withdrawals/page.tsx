@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react"
 import {
   Clock, CheckCircle, XCircle, DollarSign,
   RefreshCw, ChevronDown, Search, AlertCircle, Zap,
-  Building2, Bitcoin, ArrowRight,
+  Building2, Bitcoin, ArrowRight, Copy, Check,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import type { Withdrawal, WithdrawalStatus } from "@/lib/db"
@@ -61,17 +61,28 @@ export default function AdminWithdrawals() {
     load()
   }
 
-  function payMethodLabel(w: Withdrawal) {
-    if (w.paymentMethodType === "wise" && w.paymentDetails) {
-      const [email, currency] = w.paymentDetails.split("|")
-      return { type: "wise", line1: email ?? "", line2: currency ?? "EUR" }
+  function parsePayDetails(w: Withdrawal): Record<string, string> {
+    try { if (w.paymentDetails) return JSON.parse(w.paymentDetails) } catch {}
+    // Legacy pipe-separated format
+    if (w.paymentMethodType === "wise") {
+      const [wiseEmail, wiseCurrency] = (w.paymentDetails ?? "").split("|")
+      return { wiseEmail: wiseEmail ?? "", wiseCurrency: wiseCurrency ?? "EUR" }
     }
-    if (w.paymentMethodType === "crypto" && w.paymentDetails) {
-      const [network, addr] = w.paymentDetails.split("|")
-      return { type: "crypto", line1: network ?? "", line2: addr ? `${addr.slice(0, 8)}…${addr.slice(-4)}` : "" }
+    if (w.paymentMethodType === "crypto") {
+      const [cryptoNetwork, cryptoAddress] = (w.paymentDetails ?? "").split("|")
+      return { cryptoNetwork: cryptoNetwork ?? "", cryptoAddress: cryptoAddress ?? "" }
     }
-    const raw = (w.paymentDetails || w.iban).replace(/\s/g, "")
-    return { type: "bank", line1: w.paymentDetails || w.iban, line2: raw.length > 4 ? `***${raw.slice(-4)}` : raw }
+    return { iban: w.paymentDetails || w.iban }
+  }
+
+  function CopyBtn({ value }: { value: string }) {
+    const [copied, setCopied] = useState(false)
+    return (
+      <button onClick={() => { navigator.clipboard.writeText(value); setCopied(true); setTimeout(() => setCopied(false), 1500) }}
+        className="ml-1 text-neutral-600 hover:text-orange-400 transition-colors flex-shrink-0" title="Copier">
+        {copied ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+      </button>
+    )
   }
 
   const filtered = withdrawals.filter(w => {
@@ -174,21 +185,34 @@ export default function AdminWithdrawals() {
                       <span className="text-white font-bold text-sm">€{fmt(w.amount)}</span>
                       <span className="text-neutral-500 text-xs ml-1">{w.currency}</span>
                     </td>
-                    <td className="p-4">
+                    <td className="p-4 min-w-[220px]">
                       {(() => {
-                        const pm = payMethodLabel(w)
-                        const icon = pm.type === "bank"
-                          ? <Building2 className="w-3.5 h-3.5 text-blue-400" />
-                          : pm.type === "wise"
-                          ? <ArrowRight className="w-3.5 h-3.5 text-green-400" />
-                          : <Bitcoin className="w-3.5 h-3.5 text-purple-400" />
-                        const bg = pm.type === "bank" ? "bg-blue-500/10" : pm.type === "wise" ? "bg-green-500/10" : "bg-purple-500/10"
+                        const p = parsePayDetails(w)
+                        const type = w.paymentMethodType ?? "bank"
+                        const Icon = type === "bank" ? Building2 : type === "wise" ? ArrowRight : Bitcoin
+                        const iconColor = type === "bank" ? "text-blue-400" : type === "wise" ? "text-green-400" : "text-purple-400"
+                        const bg       = type === "bank" ? "bg-blue-500/10" : type === "wise" ? "bg-green-500/10" : "bg-purple-500/10"
+                        const fields: { label: string; value: string; mono?: boolean }[] =
+                          type === "wise"   ? [{ label: "Email", value: p.wiseEmail ?? "—" }, { label: "Devise", value: p.wiseCurrency ?? "EUR" }]
+                          : type === "crypto" ? [{ label: "Réseau", value: p.cryptoNetwork ?? "—" }, { label: "Adresse", value: p.cryptoAddress ?? "—", mono: true }]
+                          : [
+                              { label: "IBAN", value: p.iban ?? w.iban ?? "—", mono: true },
+                              ...(p.bic ? [{ label: "BIC", value: p.bic, mono: true }] : []),
+                              ...(p.accountHolder ? [{ label: "Titulaire", value: p.accountHolder }] : []),
+                            ]
                         return (
                           <div className="flex items-start gap-2">
-                            <div className={`w-6 h-6 rounded flex items-center justify-center flex-shrink-0 mt-0.5 ${bg}`}>{icon}</div>
-                            <div>
-                              <p className="text-xs text-white font-mono leading-snug">{pm.line1}</p>
-                              {pm.line2 && <p className="text-xs text-neutral-500">{pm.line2}</p>}
+                            <div className={`w-6 h-6 rounded flex items-center justify-center flex-shrink-0 mt-0.5 ${bg}`}>
+                              <Icon className={`w-3.5 h-3.5 ${iconColor}`} />
+                            </div>
+                            <div className="space-y-1">
+                              {fields.map(f => (
+                                <div key={f.label} className="flex items-center gap-0.5">
+                                  <span className="text-neutral-600 text-xs w-14 flex-shrink-0">{f.label}</span>
+                                  <span className={`text-xs text-white ${f.mono ? "font-mono" : ""} break-all`}>{f.value}</span>
+                                  {f.value !== "—" && <CopyBtn value={f.value} />}
+                                </div>
+                              ))}
                             </div>
                           </div>
                         )
