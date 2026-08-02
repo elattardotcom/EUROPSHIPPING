@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { verifyAuthDb }  from "@/lib/auth-store"
-import { getClientById } from "@/lib/db"
+import { getClientById, updateLastLogin } from "@/lib/db"
 
 export async function POST(req: NextRequest) {
   try {
@@ -16,6 +16,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Email ou mot de passe incorrect" }, { status: 401 })
     }
 
+    await updateLastLogin(clientId)
     const client = await getClientById(clientId)
     if (!client) {
       return NextResponse.json({ error: "Compte introuvable" }, { status: 404 })

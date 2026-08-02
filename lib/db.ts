@@ -240,18 +240,15 @@ export async function getClients(): Promise<Client[]> {
   const sb = getSupabaseAdmin()
   if (!sb) return []
   try {
-    const [clientsRes, ordersRes, leadsRes, storesRes, authRes] = await Promise.all([
+    const [clientsRes, ordersRes, leadsRes, storesRes] = await Promise.all([
       sb.from("clients").select("*"),
       sb.from("orders").select("client_id"),
       sb.from("leads").select("client_id"),
       sb.from("stores").select("client_id"),
-      sb.auth.admin.listUsers({ perPage: 1000 }),
     ])
-    const orders    = ordersRes.data ?? []
-    const leads     = leadsRes.data  ?? []
-    const stores    = storesRes.data ?? []
-    const authUsers = authRes.data?.users ?? []
-    const loginMap  = new Map(authUsers.map(u => [u.email, u.last_sign_in_at ?? null]))
+    const orders = ordersRes.data ?? []
+    const leads  = leadsRes.data  ?? []
+    const stores = storesRes.data ?? []
     return (clientsRes.data ?? []).map((r, i) => ({
       id:             r.id,
       firstName:      r.first_name  ?? "",
@@ -270,7 +267,7 @@ export async function getClients(): Promise<Client[]> {
       ordersCount:    orders.filter(o => o.client_id === r.id).length,
       leadsCount:     leads.filter(l  => l.client_id === r.id).length,
       lastActive:     r.last_active ?? "",
-      lastLoginAt:    loginMap.get(r.email) ?? null,
+      lastLoginAt:    r.last_login_at ?? null,
       avatarColor:    AVATAR_COLORS[i % AVATAR_COLORS.length],
     }))
   } catch { return [] }
@@ -670,6 +667,16 @@ export async function setDefaultPaymentMethod(id: string, clientId: string): Pro
     const { error } = await sb.from("payment_methods").update({ is_default: true }).eq("id", id).eq("client_id", clientId)
     return !error
   } catch { return false }
+}
+
+/* ── Last login tracking ─────────────────────────────────────────────── */
+
+export async function updateLastLogin(clientId: string): Promise<void> {
+  const sb = getSupabaseAdmin()
+  if (!sb) return
+  try {
+    await sb.from("clients").update({ last_login_at: new Date().toISOString() }).eq("id", clientId)
+  } catch { /* silent */ }
 }
 
 /* ── Admin stats ────────────────────────────────────────────────────────── */
