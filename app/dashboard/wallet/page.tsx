@@ -341,13 +341,18 @@ function WiseLogo({ size = 18 }: { size?: number }) {
 
 function BinanceLogo({ size = 18 }: { size?: number }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 20 20" fill="none">
-      <rect width="20" height="20" rx="5" fill="#F0B90B"/>
-      <path d="M10 7L11.5 8.5L10 10L8.5 8.5z" fill="white"/>
-      <path d="M10 1.5L11.5 3L10 4.5L8.5 3z" fill="white"/>
-      <path d="M10 15.5L11.5 17L10 18.5L8.5 17z" fill="white"/>
-      <path d="M3.5 8.5L5 10L3.5 11.5L2 10z" fill="white"/>
-      <path d="M16.5 8.5L18 10L16.5 11.5L15 10z" fill="white"/>
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="12" fill="#F0B90B"/>
+      {/* Top large diamond */}
+      <path d="M12 3L15.5 6.5L12 10L8.5 6.5Z" fill="white"/>
+      {/* Left small diamond */}
+      <path d="M4 12L6.5 9.5L9 12L6.5 14.5Z" fill="white"/>
+      {/* Center small diamond */}
+      <path d="M9.5 12L12 9.5L14.5 12L12 14.5Z" fill="white"/>
+      {/* Right small diamond */}
+      <path d="M15 12L17.5 9.5L20 12L17.5 14.5Z" fill="white"/>
+      {/* Bottom large diamond */}
+      <path d="M8.5 17.5L12 14L15.5 17.5L12 21Z" fill="white"/>
     </svg>
   )
 }
