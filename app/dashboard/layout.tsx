@@ -357,14 +357,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const SidebarContent = ({ inDrawer = false }: { inDrawer?: boolean }) => (
     <>
       {/* Logo */}
-      <div className="p-4 flex items-center justify-between border-b border-neutral-800 h-16">
+      <div className="px-3 flex items-center justify-between border-b border-neutral-800 h-16 overflow-hidden">
         {(!collapsed || inDrawer) && (
-          <Link href="/dashboard" className="flex items-center gap-2.5">
-            <Logo size={52} showBg={false} />
-            <div>
-              <p className="text-white font-bold text-base leading-none">CODShipEurope</p>
-              <p className="text-neutral-400 text-xs">Pro Platform</p>
-            </div>
+          <Link href="/dashboard" className="flex items-center gap-2.5 min-w-0">
+            <Logo size={40} showBg={false} />
+            <p className="text-white font-bold text-sm leading-none truncate">CODShipEurope</p>
           </Link>
         )}
         {inDrawer ? (
