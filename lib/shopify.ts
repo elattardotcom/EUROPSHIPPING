@@ -49,10 +49,11 @@ export function verifyOAuthCallback(query: URLSearchParams): boolean {
 /* ── API Shopify ────────────────────────────────────────────────────────── */
 
 /** Récupère toutes les commandes d'une boutique (max 250 par page, toutes) */
-export async function fetchShopifyOrders(shop: string, accessToken: string) {
+export async function fetchShopifyOrders(shop: string, accessToken: string, createdAtMin?: string) {
   const allOrders: Record<string, unknown>[] = []
+  const qs = createdAtMin ? `&created_at_min=${encodeURIComponent(createdAtMin)}` : ""
   let url: string | null =
-    `https://${shop}/admin/api/${API_VERSION}/orders.json?limit=250&status=any&fields=id,created_at,customer,billing_address,shipping_address,line_items,total_price,currency`
+    `https://${shop}/admin/api/${API_VERSION}/orders.json?limit=250&status=any&fields=id,created_at,customer,billing_address,shipping_address,line_items,total_price,currency${qs}`
 
   while (url) {
     const res: Response = await fetch(url, { headers: { "X-Shopify-Access-Token": accessToken } })
@@ -149,8 +150,9 @@ export interface ShopifyProduct {
   title:    string
   images:   { src: string }[]
   variants: {
-    price:              string
-    presentment_prices: {
+    price:               string
+    inventory_quantity:  number
+    presentment_prices:  {
       price: { amount: string; currency_code: string }
     }[]
   }[]

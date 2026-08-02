@@ -1,5 +1,26 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getSupabaseAdmin } from "@/lib/supabase"
+import type { SupabaseClient } from "@supabase/supabase-js"
+
+async function adjustStock(sb: SupabaseClient, clientId: string, productTitle: string, delta: number) {
+  try {
+    const { data: stores } = await sb.from("stores").select("id").eq("client_id", clientId)
+    if (!stores?.length) return
+    const storeIds = stores.map(s => s.id)
+
+    const { data: product } = await sb
+      .from("products")
+      .select("id, stock")
+      .in("store_id", storeIds)
+      .ilike("title", productTitle)
+      .single()
+
+    if (!product || product.stock === null) return
+
+    const newStock = Math.max(0, (product.stock as number) + delta)
+    await sb.from("products").update({ stock: newStock }).eq("id", product.id)
+  } catch { /* silent — stock adjustment is best-effort */ }
+}
 
 export async function PATCH(
   req: NextRequest,
@@ -37,7 +58,7 @@ export async function PATCH(
 
   await sb.from("leads").update(updates).eq("id", id)
 
-  // If confirmed → create order
+  // If confirmed → create order + decrement stock
   if (status === "CONFIRMED") {
     const orderId = `order_${id}`
     await sb.from("orders").upsert({
@@ -55,6 +76,9 @@ export async function PATCH(
       store:          lead.store,
       created_at:     new Date().toISOString(),
     }, { onConflict: "id" })
+
+    // Decrement stock on matching product
+    await adjustStock(sb, clientId, lead.product, -1)
   }
 
   return NextResponse.json({ ok: true, status })

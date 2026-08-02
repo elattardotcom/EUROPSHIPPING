@@ -14,20 +14,20 @@ export const T = {
     hero_line2: "delivery,",
     hero_highlight: "cash",
     hero_line3: "in your pocket",
-    hero_p: "CODShipEurope centralizes your Shopify orders, handles call confirmations, tracks every delivery, and transfers your money — in 48h. Zero friction, 100% COD.",
+    hero_p: "CODShipEurope centralizes your Shopify orders, handles call confirmations, tracks every delivery, and pays you every week — automatically. Zero friction, 100% COD.",
     // Hero stats
     stat_merchants: "merchants",
     stat_month: "/ month",
     stat_delivery: "delivery",
     // COD Flow
     flow_badge: "The complete COD cycle",
-    flow_h2: "From order to bank transfer",
-    flow_sub: "CODShipEurope covers the entire Cash on Delivery flow — from lead arrival to bank transfer.",
+    flow_h2: "From order to weekly payout",
+    flow_sub: "CODShipEurope covers the entire Cash on Delivery flow — from lead arrival to your weekly payout.",
     flow_steps: [
       { label: "Shopify connected",    desc: "Lead automatically imported from your Shopify store" },
       { label: "Call confirmation",    desc: "Your team confirms the order and validates the delivery address" },
       { label: "Shipping & Tracking",  desc: "The package ships, the customer receives it and pays cash" },
-      { label: "48h Bank transfer",    desc: "CODShipEurope collects the cash and wires it to your account in 48h" },
+      { label: "Weekly payout",        desc: "CODShipEurope collects the cash and pays you automatically every Monday" },
     ],
     // Features
     feat_badge: "Features",
@@ -39,7 +39,7 @@ export const T = {
     feat_leads_desc: "Centralize, confirm or follow up on your leads from an ultra-fast interface.",
     feat_lead_statuses: ["Confirmed", "Pending", "Refused"],
     feat_wallet_title: "Wallet & Transfers",
-    feat_wallet_desc: "Your real-time balance. Request a transfer and receive it in 48h to your bank account.",
+    feat_wallet_desc: "Your real-time balance. Get paid automatically every Monday to your bank account.",
     feat_wallet_balance: "Available balance",
     feat_analytics_title: "Analytics Dashboard",
     feat_analytics_desc: "Revenue, confirmation rate, deliveries — all at a glance.",
@@ -57,7 +57,7 @@ export const T = {
     pricing_popular: "FULL ACCESS",
     pricing_cta: "Start — 14 days free",
     pricing_plans: [
-      { name: "Pro", price: "€31.99", desc: "Full access to every feature — for serious COD merchants", features: ["Unlimited Shopify stores", "Unlimited leads & orders", "Affiliate program", "Wallet & 48h transfers", "COD Drop catalog", "Advanced analytics", "Priority support 7/7", "99.9% SLA guaranteed"] },
+      { name: "Pro", price: "€31.99", desc: "Full access to every feature — for serious COD merchants", features: ["Unlimited Shopify stores", "Unlimited leads & orders", "Affiliate program", "Wallet & weekly payouts", "COD Drop catalog", "Advanced analytics", "Priority support 7/7", "99.9% SLA guaranteed"] },
     ],
     pricing_period: "/month",
     // Testimonials
@@ -65,16 +65,16 @@ export const T = {
     testi_h2: "They cash out every day",
     testi_with: "with CODShipEurope",
     testimonials: [
-      { name: "Karim B.", country: "🇵🇹 Portugal", role: "3 Shopify stores",       text: "Before CODShipEurope, I managed everything in Excel and constantly lost leads. Now my confirmations are automatic, my deliveries tracked, and my transfers arrive in 48h.", revenue: "+€3,200/month", color: "from-orange-500 to-red-600" },
+      { name: "Karim B.", country: "🇵🇹 Portugal", role: "3 Shopify stores",       text: "Before CODShipEurope, I managed everything in Excel and constantly lost leads. Now my confirmations are automatic, my deliveries tracked, and I get paid every Monday automatically.", revenue: "+€3,200/month", color: "from-orange-500 to-red-600" },
       { name: "Sara M.",  country: "🇮🇹 Italy",   role: "Fashion & Beauty COD",    text: "The affiliate program let me double my sales without ads. The interface is clean, my team of 3 picked it up in one day. Support replies within the hour.",              revenue: "+€5,800/month", color: "from-rose-500 to-pink-600" },
       { name: "Ahmed R.", country: "🇪🇸 Spain",   role: "COD Drop entrepreneur",   text: "I tried 3 other platforms. CODShipEurope is the only one that understands the COD flow from A to Z. Return tracking and the wallet are perfect. I manage 6 stores from one dashboard.", revenue: "+€8,100/month", color: "from-blue-500 to-cyan-600" },
     ],
     // Global stats
     stats: [
       { to: 2500,    prefix: "",  suffix: "+",  label: "Active merchants",  color: "#f97316", sub: "in 10 countries" },
-      { to: 1200000, prefix: "€", suffix: "",   label: "Collected / month", color: "#10b981", sub: "paid out in 48h" },
+      { to: 1200000, prefix: "€", suffix: "",   label: "Collected / month", color: "#10b981", sub: "paid out every week" },
       { to: 94,      prefix: "",  suffix: "%",  label: "Delivery rate",     color: "#6366f1", sub: "platform average" },
-      { to: 48,      prefix: "",  suffix: "h",  label: "Transfer time",     color: "#f59e0b", sub: "guaranteed" },
+      { to: 7,       prefix: "",  suffix: "d",  label: "Weekly payout",     color: "#f59e0b", sub: "every Monday" },
     ],
     // Integrations
     integ_ecom: "E-commerce",
@@ -88,11 +88,11 @@ export const T = {
     cta_sub: "14-day free trial. No credit card. Setup in under 10 minutes.",
     cta_trust: ["No card required", "Cancel anytime", "Secure data", "7/7 support"],
     // Footer
-    footer_desc: "The all-in-one platform to manage your Cash on Delivery business, from order to bank transfer.",
+    footer_desc: "The all-in-one platform to manage your Cash on Delivery business, from order to weekly payout.",
     footer_rights: "© 2025 CODShipEurope. All rights reserved.",
     footer_cols: [
       { title: "Product",   links: [{ label: "Features", href: "/#features" }, { label: "Pricing", href: "/#pricing" }, { label: "How it works", href: "/#how" }, { label: "Testimonials", href: "/#testimonials" }] },
-      { title: "Resources", links: [{ label: "Support", href: "mailto:support@codshipeurope.com" }, { label: "Contact", href: "mailto:contact@codshipeurope.com" }, { label: "Privacy", href: "/confidentialite" }, { label: "GDPR", href: "/rgpd" }] },
+      { title: "Markets",   links: [{ label: "COD Spain", href: "/dropshipping-cod-espagne" }, { label: "COD Portugal", href: "/dropshipping-cod-portugal" }, { label: "COD Italy", href: "/dropshipping-cod-italie" }, { label: "Blog", href: "/blog" }] },
       { title: "Legal",     links: [{ label: "Terms of Service", href: "/conditions" }, { label: "Privacy Policy", href: "/confidentialite" }, { label: "GDPR", href: "/rgpd" }, { label: "Legal Notice", href: "/mentions-legales" }] },
     ],
     // Live order feed
@@ -104,7 +104,7 @@ export const T = {
     ticker_collected: (n: string) => `💰 €${n} collected this month`,
     ticker_transit:   (n: number) => `🚚 ${n} packages in transit`,
     ticker_rate:      (n: number) => `✅ Delivery rate ${n}%`,
-    ticker_transfer:  () => `💰 Transfer received in 48h`,
+    ticker_transfer:  () => `💰 Weekly payout sent — every Monday`,
     ticker_route:     (ref: string, city: string) => `🚚 ${ref} IN TRANSIT · ${city}`,
     ticker_delivered: (ref: string, amt: number) => `📦 ${ref} DELIVERED · +€${amt}`,
   },
@@ -124,20 +124,20 @@ export const T = {
     hero_line2: "livraison,",
     hero_highlight: "du cash",
     hero_line3: "dans votre poche",
-    hero_p: "CODShipEurope centralise vos commandes Shopify, gère vos confirmations d'appel, suit chaque livraison et vire votre argent — en 48h. Zéro friction, 100% COD.",
+    hero_p: "CODShipEurope centralise vos commandes Shopify, gère vos confirmations d'appel, suit chaque livraison et vous paie chaque semaine — automatiquement. Zéro friction, 100% COD.",
     // Hero stats
     stat_merchants: "marchands",
     stat_month: "/ mois",
     stat_delivery: "livraison",
     // COD Flow
     flow_badge: "Le cycle COD complet",
-    flow_h2: "De la commande au virement",
-    flow_sub: "CODShipEurope couvre l'intégralité du flux Cash on Delivery — de l'arrivée du lead jusqu'au virement bancaire.",
+    flow_h2: "De la commande au paiement hebdo",
+    flow_sub: "CODShipEurope couvre l'intégralité du flux Cash on Delivery — de l'arrivée du lead jusqu'à votre paiement hebdomadaire.",
     flow_steps: [
       { label: "Shopify connecté",      desc: "Lead entrant automatiquement depuis votre boutique Shopify" },
       { label: "Confirmation d'appel",  desc: "Votre équipe confirme la commande et valide l'adresse" },
       { label: "Expédition & Suivi",    desc: "Le colis part, le client reçoit et paie en cash" },
-      { label: "Virement 48h",          desc: "CODShipEurope collecte le cash et vous vire en 48h" },
+      { label: "Paiement hebdomadaire", desc: "CODShipEurope collecte le cash et vous vire automatiquement chaque lundi" },
     ],
     // Features
     feat_badge: "Fonctionnalités",
@@ -149,7 +149,7 @@ export const T = {
     feat_leads_desc: "Centralisez, confirmez ou recontactez vos leads depuis une interface ultra-rapide.",
     feat_lead_statuses: ["Confirmé", "En attente", "Refusé"],
     feat_wallet_title: "Wallet & Virements",
-    feat_wallet_desc: "Votre solde en temps réel. Demandez un virement et recevez en 48h sur votre compte bancaire.",
+    feat_wallet_desc: "Votre solde en temps réel. Recevez votre paiement automatiquement chaque lundi sur votre compte.",
     feat_wallet_balance: "Solde disponible",
     feat_analytics_title: "Dashboard Analytics",
     feat_analytics_desc: "Revenus, taux de confirmation, livraisons — tout en un coup d'œil.",
@@ -167,7 +167,7 @@ export const T = {
     pricing_popular: "ACCÈS COMPLET",
     pricing_cta: "Commencer — 14j gratuits",
     pricing_plans: [
-      { name: "Pro", price: "€31.99", desc: "Accès complet à toutes les fonctionnalités — pour les marchands COD sérieux", features: ["Boutiques Shopify illimitées", "Leads & commandes illimités", "Programme affiliés", "Wallet & virements 48h", "COD Drop catalog", "Analytics avancées", "Support prioritaire 7j/7", "SLA 99.9% garanti"] },
+      { name: "Pro", price: "€31.99", desc: "Accès complet à toutes les fonctionnalités — pour les marchands COD sérieux", features: ["Boutiques Shopify illimitées", "Leads & commandes illimités", "Programme affiliés", "Wallet & paiements hebdo", "COD Drop catalog", "Analytics avancées", "Support prioritaire 7j/7", "SLA 99.9% garanti"] },
     ],
     pricing_period: "/mois",
     // Testimonials
@@ -175,16 +175,16 @@ export const T = {
     testi_h2: "Ils encaissent tous les jours",
     testi_with: "avec CODShipEurope",
     testimonials: [
-      { name: "Karim B.", country: "🇵🇹 Portugal", role: "3 boutiques Shopify",    text: "Avant CODShipEurope, je gérais tout sur Excel et je perdais des leads en permanence. Maintenant mes confirmations sont automatiques, mes livraisons suivies et mes virements arrivent en 48h.", revenue: "+€3,200/mois", color: "from-orange-500 to-red-600" },
+      { name: "Karim B.", country: "🇵🇹 Portugal", role: "3 boutiques Shopify",    text: "Avant CODShipEurope, je gérais tout sur Excel et je perdais des leads en permanence. Maintenant mes confirmations sont automatiques, mes livraisons suivies et je suis payé chaque lundi automatiquement.", revenue: "+€3,200/mois", color: "from-orange-500 to-red-600" },
       { name: "Sara M.",  country: "🇮🇹 Italie",   role: "Mode & Beauté COD",      text: "Le programme affilié m'a permis de doubler mes ventes sans pub. L'interface est claire, mon équipe de 3 personnes l'a pris en main en une journée. Le support répond dans l'heure.",   revenue: "+€5,800/mois", color: "from-rose-500 to-pink-600" },
       { name: "Ahmed R.", country: "🇪🇸 Espagne",  role: "COD Drop entrepreneur",  text: "J'ai essayé 3 autres plateformes. CODShipEurope est la seule qui comprend le flux COD de A à Z. Le suivi des retours et le wallet sont parfaits. Je gère 6 boutiques depuis un seul tableau de bord.", revenue: "+€8,100/mois", color: "from-blue-500 to-cyan-600" },
     ],
     // Global stats
     stats: [
       { to: 2500,    prefix: "",  suffix: "+",  label: "Marchands actifs",  color: "#f97316", sub: "dans 10 pays" },
-      { to: 1200000, prefix: "€", suffix: "",   label: "Encaissés / mois",  color: "#10b981", sub: "reversés en 48h" },
+      { to: 1200000, prefix: "€", suffix: "",   label: "Encaissés / mois",  color: "#10b981", sub: "reversés chaque semaine" },
       { to: 94,      prefix: "",  suffix: "%",  label: "Taux de livraison", color: "#6366f1", sub: "moyenne plateforme" },
-      { to: 48,      prefix: "",  suffix: "h",  label: "Délai virement",    color: "#f59e0b", sub: "garanti" },
+      { to: 7,       prefix: "",  suffix: "j",  label: "Paiement hebdo",    color: "#f59e0b", sub: "chaque lundi" },
     ],
     // Integrations
     integ_ecom: "E-commerce",
@@ -198,11 +198,11 @@ export const T = {
     cta_sub: "14 jours d'essai gratuit. Aucune carte bancaire. Configuration en moins de 10 minutes.",
     cta_trust: ["Aucune carte requise", "Annulation à tout moment", "Données sécurisées", "Support 7j/7"],
     // Footer
-    footer_desc: "La plateforme tout-en-un pour gérer votre activité Cash on Delivery, de la commande au virement.",
+    footer_desc: "La plateforme tout-en-un pour gérer votre activité Cash on Delivery, de la commande au paiement hebdomadaire.",
     footer_rights: "© 2025 CODShipEurope. Tous droits réservés.",
     footer_cols: [
       { title: "Produit",     links: [{ label: "Fonctionnalités", href: "/#features" }, { label: "Tarifs", href: "/#pricing" }, { label: "Comment ça marche", href: "/#how" }, { label: "Témoignages", href: "/#testimonials" }] },
-      { title: "Ressources",  links: [{ label: "Support", href: "mailto:support@codshipeurope.com" }, { label: "Contact", href: "mailto:contact@codshipeurope.com" }, { label: "Confidentialité", href: "/confidentialite" }, { label: "RGPD", href: "/rgpd" }] },
+      { title: "Marchés",     links: [{ label: "COD Espagne", href: "/dropshipping-cod-espagne" }, { label: "COD Portugal", href: "/dropshipping-cod-portugal" }, { label: "COD Italie", href: "/dropshipping-cod-italie" }, { label: "Blog", href: "/blog" }] },
       { title: "Légal",       links: [{ label: "Conditions d'utilisation", href: "/conditions" }, { label: "Politique de confidentialité", href: "/confidentialite" }, { label: "RGPD", href: "/rgpd" }, { label: "Mentions légales", href: "/mentions-legales" }] },
     ],
     // Live order feed
@@ -214,7 +214,7 @@ export const T = {
     ticker_collected: (n: string) => `💰 €${n} encaissés ce mois`,
     ticker_transit:   (n: number) => `🚚 ${n} colis en route maintenant`,
     ticker_rate:      (n: number) => `✅ Taux de livraison ${n}%`,
-    ticker_transfer:  () => `💰 Virement reçu en 48h`,
+    ticker_transfer:  () => `💰 Paiement hebdo reçu — chaque lundi`,
     ticker_route:     (ref: string, city: string) => `🚚 ${ref} EN ROUTE · ${city}`,
     ticker_delivered: (ref: string, amt: number) => `📦 ${ref} LIVRÉ · +€${amt}`,
   },

@@ -41,9 +41,10 @@ export async function POST(req: NextRequest) {
     const shopifyProducts = await fetchShopifyProducts(store.domain, store.access_token)
     const rows = shopifyProducts.filter(p => p.title).map(p => {
       const { price, currency } = extractPricing(p)
+      const stock = p.variants?.reduce((sum, v) => sum + (v.inventory_quantity ?? 0), 0) ?? null
       return {
         store_id: store.id, shopify_id: String(p.id), title: p.title,
-        image_url: p.images?.[0]?.src ?? null, price, currency,
+        image_url: p.images?.[0]?.src ?? null, price, currency, stock,
         updated_at: new Date().toISOString(),
       }
     })
@@ -60,7 +61,8 @@ export async function POST(req: NextRequest) {
   // ── Sync historique commandes ─────────────────────────────────────────────
   let ordersSynced = 0
   try {
-    const orders    = await fetchShopifyOrders(store.domain, store.access_token)
+    const since     = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+    const orders    = await fetchShopifyOrders(store.domain, store.access_token, since)
     const storeName = store.domain.replace(".myshopify.com", "")
     const leadRows  = orders.map(order => {
       const customer  = order.customer  as Record<string, string> | undefined

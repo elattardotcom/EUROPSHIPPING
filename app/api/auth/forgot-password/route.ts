@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify({
         from,
         to:      [normalized],
-        subject: "Réinitialisation de votre mot de passe CODShipEurope",
+        subject: "Reset your CODShipEurope password",
         html: `
 <!DOCTYPE html>
 <html lang="fr">
@@ -53,24 +53,24 @@ export async function POST(req: NextRequest) {
         </tr>
         <tr>
           <td style="padding:36px">
-            <p style="margin:0 0 8px;color:#fff;font-size:22px;font-weight:700">Réinitialiser votre mot de passe</p>
+            <p style="margin:0 0 8px;color:#fff;font-size:22px;font-weight:700">Reset your password</p>
             <p style="margin:0 0 24px;color:#888;font-size:14px;line-height:1.6">
-              Vous avez demandé la réinitialisation de votre mot de passe CODShipEurope.<br>
-              Cliquez sur le bouton ci-dessous pour choisir un nouveau mot de passe.
+              You requested a password reset for your CODShipEurope account.<br>
+              Click the button below to choose a new password.
             </p>
             <table cellpadding="0" cellspacing="0" style="margin:0 0 28px">
               <tr>
                 <td style="background:linear-gradient(135deg,#f97316,#dc2626);border-radius:12px">
                   <a href="${link}" style="display:block;padding:14px 32px;color:#fff;font-size:15px;font-weight:700;text-decoration:none;text-align:center">
-                    Réinitialiser mon mot de passe →
+                    Reset my password →
                   </a>
                 </td>
               </tr>
             </table>
-            <p style="margin:0 0 8px;color:#555;font-size:12px">Ce lien expire dans <strong style="color:#888">1 heure</strong>.</p>
-            <p style="margin:0 0 24px;color:#555;font-size:12px">Si vous n'avez pas fait cette demande, ignorez cet email.</p>
+            <p style="margin:0 0 8px;color:#555;font-size:12px">This link expires in <strong style="color:#888">1 hour</strong>.</p>
+            <p style="margin:0 0 24px;color:#555;font-size:12px">If you did not request this, you can safely ignore this email.</p>
             <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:14px 16px">
-              <p style="margin:0 0 6px;color:#555;font-size:11px;text-transform:uppercase;letter-spacing:0.5px">Lien de réinitialisation</p>
+              <p style="margin:0 0 6px;color:#555;font-size:11px;text-transform:uppercase;letter-spacing:0.5px">Reset link</p>
               <p style="margin:0;color:#f97316;font-size:12px;word-break:break-all;font-family:monospace">${link}</p>
             </div>
           </td>

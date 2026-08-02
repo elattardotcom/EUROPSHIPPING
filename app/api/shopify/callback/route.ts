@@ -1,6 +1,7 @@
 import { NextResponse }    from "next/server"
 import { cookies }          from "next/headers"
 import { getSupabaseAdmin } from "@/lib/supabase"
+import crypto               from "crypto"
 
 const API_KEY    = process.env.SHOPIFY_API_KEY    ?? "88caa8d1ae4239a40202741f700a57ff"
 const API_SECRET = process.env.SHOPIFY_API_SECRET ?? ""
@@ -17,6 +18,16 @@ export async function GET(req: Request) {
       NextResponse.redirect(`${APP_URL}/dashboard/stores?error=${encodeURIComponent(msg)}`)
 
     if (!code || !state || !shop) return errRedirect("params_manquants")
+
+    // Verify HMAC
+    const hmac = searchParams.get("hmac")
+    if (hmac && API_SECRET) {
+      const params: Record<string, string> = {}
+      searchParams.forEach((v, k) => { if (k !== "hmac") params[k] = v })
+      const message      = Object.keys(params).sort().map(k => `${k}=${params[k]}`).join("&")
+      const expectedHmac = crypto.createHmac("sha256", API_SECRET).update(message).digest("hex")
+      if (expectedHmac !== hmac) return errRedirect("hmac_invalide")
+    }
 
     // Read cookies
     let storedState: string | undefined

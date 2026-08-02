@@ -291,6 +291,7 @@ export default function WalletPage() {
   const [success,    setSuccess] = useState(false)
   const [error,      setError]   = useState("")
   const [live,       setLive]    = useState(false)
+  const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null)
   const [form, setForm] = useState({ amount: "", currency: "EUR" })
 
   const [quickAmount,    setQuickAmount]    = useState("")
@@ -453,6 +454,7 @@ export default function WalletPage() {
   }, [withdrawals, isDemo])
 
   return (
+    <>
     <div className="p-4 md:p-6 space-y-4 md:space-y-6">
 
       {/* Header */}
@@ -943,7 +945,7 @@ export default function WalletPage() {
                         <td className="py-4"><StatusPill status={inv.status} /></td>
                         <td className="py-4">
                           <div className="flex items-center gap-1">
-                            <Button variant="ghost" size="icon" className="text-neutral-400 hover:text-white h-8 w-8" title="Aperçu"><Eye className="w-4 h-4" /></Button>
+                            <Button variant="ghost" size="icon" className="text-neutral-400 hover:text-white h-8 w-8" title="Aperçu" onClick={() => setSelectedInvoice(inv)}><Eye className="w-4 h-4" /></Button>
                             <Button variant="ghost" size="icon" className="text-neutral-400 hover:text-orange-400 h-8 w-8" title="Télécharger" onClick={async () => {
                               const w = withdrawals.find(w => w.id === inv.id)
                               await downloadInvoice(inv, w ? [w] : withdrawals, clientName, clientEmail)
@@ -964,5 +966,59 @@ export default function WalletPage() {
       )}
 
     </div>
+
+    {selectedInvoice && (
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setSelectedInvoice(null)}>
+        <div className="bg-neutral-900 border border-neutral-800 rounded-2xl w-full max-w-md" onClick={e => e.stopPropagation()}>
+          <div className="px-6 py-4 border-b border-neutral-800 flex items-center justify-between">
+            <div>
+              <p className="text-white font-bold text-sm">{selectedInvoice.number}</p>
+              <p className="text-neutral-500 text-xs mt-0.5">{selectedInvoice.description}</p>
+            </div>
+            <button onClick={() => setSelectedInvoice(null)} className="text-neutral-500 hover:text-white transition-colors text-xl leading-none">×</button>
+          </div>
+          <div className="p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-white font-bold text-lg">CODShipEurope</p>
+                <p className="text-neutral-500 text-xs">support@codshipeurope.com</p>
+              </div>
+              <StatusPill status={selectedInvoice.status} />
+            </div>
+            <div className="h-px bg-neutral-800" />
+            <div className="space-y-3">
+              {[
+                { label: "Numéro",          value: selectedInvoice.number },
+                { label: "Date d'émission", value: selectedInvoice.date },
+                { label: "Date d'échéance", value: selectedInvoice.dueDate },
+                { label: "Description",     value: selectedInvoice.description },
+              ].map(row => (
+                <div key={row.label} className="flex items-start justify-between gap-4">
+                  <span className="text-neutral-500 text-sm whitespace-nowrap">{row.label}</span>
+                  <span className="text-white text-sm text-right">{row.value}</span>
+                </div>
+              ))}
+            </div>
+            <div className="h-px bg-neutral-800" />
+            <div className="flex items-center justify-between">
+              <span className="text-neutral-400 font-medium">Total</span>
+              <span className="text-white font-bold text-xl">{fmt(selectedInvoice.amount)} EUR</span>
+            </div>
+            <button
+              onClick={async () => {
+                const w = withdrawals.find(w => w.id === selectedInvoice.id)
+                await downloadInvoice(selectedInvoice, w ? [w] : withdrawals, clientName, clientEmail)
+              }}
+              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold text-white"
+              style={{ background: "linear-gradient(135deg,#f97316,#dc2626)" }}
+            >
+              <Download className="w-4 h-4" />
+              Télécharger la facture
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   )
 }

@@ -32,11 +32,16 @@ export async function GET(req: NextRequest) {
         product:     r.product        ?? "",
         orderValue:  r.value          ?? 0,
         status:      r.status,
-        currency:    r.currency        ?? "EUR",
+        currency:    r.currency       ?? "EUR",
         store:       r.store          ?? "",
         attempts:    r.attempts       ?? 0,
         createdAt:   dt ? dt.toLocaleDateString("fr-FR") : "",
         createdTime: dt ? dt.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }) : "",
+        address:     r.address        ?? "",
+        city:        r.city           ?? "",
+        zip:         r.zip            ?? "",
+        quantity:    r.quantity       ?? 1,
+        isDuplicate: r.is_duplicate   ?? false,
       }
     })
 

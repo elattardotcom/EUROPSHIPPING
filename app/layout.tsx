@@ -13,7 +13,7 @@ export const metadata: Metadata = {
     template: "%s | CODShipEurope",
   },
   description:
-    "Gérez vos commandes Cash on Delivery en Europe. Connectez votre boutique Shopify, confirmez par appel, suivez les livraisons et recevez vos virements en 48h. 2 500+ marchands actifs.",
+    "Gérez vos commandes Cash on Delivery en Europe. Connectez votre boutique Shopify, confirmez par appel, suivez les livraisons et recevez votre paiement chaque semaine. 2 500+ marchands actifs.",
   keywords: [
     "COD dropshipping",
     "cash on delivery Europe",
@@ -41,13 +41,13 @@ export const metadata: Metadata = {
     siteName: "CODShipEurope",
     title: "CODShipEurope — Plateforme COD Shopify en Europe",
     description:
-      "Gérez vos commandes Cash on Delivery en Europe. Connectez Shopify, confirmez, livrez, encaissez en 48h.",
+      "Gérez vos commandes Cash on Delivery en Europe. Connectez Shopify, confirmez, livrez, paiement hebdomadaire automatique.",
   },
   twitter: {
     card: "summary_large_image",
     title: "CODShipEurope — Plateforme COD Shopify en Europe",
     description:
-      "Gérez vos commandes Cash on Delivery en Europe. Connectez Shopify, confirmez, livrez, encaissez en 48h.",
+      "Gérez vos commandes Cash on Delivery en Europe. Connectez Shopify, confirmez, livrez, paiement hebdomadaire automatique.",
   },
   alternates: {
     canonical: "https://www.codshipeurope.com",
@@ -68,7 +68,7 @@ const jsonLd = {
   operatingSystem: "Web",
   url: "https://www.codshipeurope.com",
   description:
-    "Plateforme SaaS Cash on Delivery pour dropshippers Shopify en Europe. Gestion des commandes, confirmations d'appel, suivi des livraisons et virements en 48h.",
+    "Plateforme SaaS Cash on Delivery pour dropshippers Shopify en Europe. Gestion des commandes, confirmations d'appel, suivi des livraisons et paiements hebdomadaires.",
   offers: {
     "@type": "AggregateOffer",
     priceCurrency: "EUR",
@@ -105,6 +105,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
+        {/* Google Analytics 4 — remplacer G-XXXXXXXXXX par votre Measurement ID */}
+        {process.env.NEXT_PUBLIC_GA_ID && (
+          <>
+            <script async src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_ID}`} />
+            <script
+              dangerouslySetInnerHTML={{
+                __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','${process.env.NEXT_PUBLIC_GA_ID}');`,
+              }}
+            />
+          </>
+        )}
       </head>
       <body className={`${inter.className} antialiased`}>
         <ThemeProvider>{children}</ThemeProvider>

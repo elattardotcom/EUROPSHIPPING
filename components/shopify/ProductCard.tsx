@@ -1,7 +1,8 @@
 "use client"
 
 import Image from "next/image"
-import { Package, Boxes, Wifi, WifiOff } from "lucide-react"
+import { useState } from "react"
+import { Package, Wifi, WifiOff, Pencil, Check, X } from "lucide-react"
 
 export interface ProductCardData {
   id:        string
@@ -29,7 +30,7 @@ const CURRENCY_INFO: Record<string, { flag: string; label: string }> = {
 function StockIndicator({ stock }: { stock: number | null }) {
   if (stock === null) {
     return (
-      <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-neutral-900/90 backdrop-blur-sm border border-neutral-700/60 text-xs text-neutral-500">
+      <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 text-xs text-neutral-500 dark:text-neutral-400">
         <WifiOff className="w-3 h-3" />
         <span className="font-mono">— stock</span>
       </div>
@@ -37,16 +38,16 @@ function StockIndicator({ stock }: { stock: number | null }) {
   }
 
   const color =
-    stock === 0   ? "text-red-400 border-red-500/40 bg-red-500/10" :
-    stock < 20    ? "text-amber-400 border-amber-500/40 bg-amber-500/10" :
-    stock < 100   ? "text-sky-400 border-sky-500/40 bg-sky-500/10" :
-                    "text-emerald-400 border-emerald-500/40 bg-emerald-500/10"
+    stock === 0   ? "text-red-700 dark:text-red-300 border-red-400 dark:border-red-600 bg-red-100 dark:bg-red-900" :
+    stock < 20    ? "text-amber-700 dark:text-amber-300 border-amber-400 dark:border-amber-600 bg-amber-100 dark:bg-amber-900" :
+    stock < 100   ? "text-sky-700 dark:text-sky-300 border-sky-400 dark:border-sky-600 bg-sky-100 dark:bg-sky-900" :
+                    "text-emerald-700 dark:text-emerald-300 border-emerald-400 dark:border-emerald-600 bg-emerald-100 dark:bg-emerald-900"
 
   const dot =
     stock === 0 ? "bg-red-500" : stock < 20 ? "bg-amber-500" : stock < 100 ? "bg-sky-500" : "bg-emerald-500"
 
   return (
-    <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg backdrop-blur-sm border text-xs font-mono font-medium ${color}`}>
+    <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs font-mono font-medium ${color}`}>
       <span className={`w-1.5 h-1.5 rounded-full animate-pulse ${dot}`} />
       {stock === 0 ? "Rupture" : `${stock} art.`}
     </div>
@@ -55,6 +56,10 @@ function StockIndicator({ stock }: { stock: number | null }) {
 
 export function ProductCard({ product }: { product: ProductCardData }) {
   const info = CURRENCY_INFO[product.currency] ?? { flag: "🌍", label: "" }
+  const [stock, setStock]         = useState<number | null>(product.stock)
+  const [editing, setEditing]     = useState(false)
+  const [inputVal, setInputVal]   = useState("")
+  const [saving, setSaving]       = useState(false)
 
   const formatted = new Intl.NumberFormat("fr-FR", {
     style:    "currency",
@@ -62,9 +67,28 @@ export function ProductCard({ product }: { product: ProductCardData }) {
     minimumFractionDigits: 2,
   }).format(product.price)
 
-  const stockPct = product.stock !== null
-    ? Math.min(100, Math.round((product.stock / 500) * 100))
+  const stockPct = stock !== null
+    ? Math.min(100, Math.round((stock / 500) * 100))
     : null
+
+  async function saveStock() {
+    const val = parseInt(inputVal)
+    if (isNaN(val) || val < 0) return
+    setSaving(true)
+    try {
+      const res = await fetch(`/api/client/products/${product.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ stock: val }),
+      })
+      if (res.ok) {
+        setStock(val)
+        setEditing(false)
+      }
+    } finally {
+      setSaving(false)
+    }
+  }
 
   const barColor =
     stockPct === null  ? "" :
@@ -74,7 +98,7 @@ export function ProductCard({ product }: { product: ProductCardData }) {
                          "bg-emerald-500"
 
   return (
-    <div className="group relative bg-neutral-950 rounded-2xl overflow-hidden border border-neutral-800/80 hover:border-orange-500/50 transition-all duration-300 hover:shadow-[0_0_40px_-8px_rgba(249,115,22,0.25)]">
+    <div className="group relative bg-white dark:bg-neutral-950 rounded-2xl overflow-hidden border border-neutral-200 dark:border-neutral-800 hover:border-orange-400 dark:hover:border-orange-500/50 transition-all duration-300 hover:shadow-[0_0_40px_-8px_rgba(249,115,22,0.2)]">
 
       {/* Corner glow on hover */}
       <div className="absolute -top-10 -right-10 w-32 h-32 bg-orange-500/5 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
@@ -84,7 +108,7 @@ export function ProductCard({ product }: { product: ProductCardData }) {
         style={{ backgroundImage: "linear-gradient(rgba(255,255,255,.5) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.5) 1px,transparent 1px)", backgroundSize: "20px 20px" }} />
 
       {/* Image */}
-      <div className="relative aspect-square bg-neutral-900 overflow-hidden">
+      <div className="relative aspect-square bg-neutral-100 dark:bg-neutral-900 overflow-hidden">
         {product.image_url ? (
           <Image
             src={product.image_url}
@@ -94,33 +118,64 @@ export function ProductCard({ product }: { product: ProductCardData }) {
             className="object-cover group-hover:scale-110 transition-transform duration-700"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-neutral-900 to-neutral-950">
-            <Package className="w-14 h-14 text-neutral-800" />
+          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-neutral-100 to-neutral-200 dark:from-neutral-900 dark:to-neutral-950">
+            <Package className="w-14 h-14 text-neutral-300 dark:text-neutral-800" />
           </div>
         )}
 
         {/* Bottom fade */}
-        <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-neutral-950 via-neutral-950/60 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-white dark:from-neutral-950 via-white/60 dark:via-neutral-950/60 to-transparent" />
 
         {/* Scan line */}
         <div className="absolute inset-0 bg-[repeating-linear-gradient(0deg,transparent,transparent_2px,rgba(0,0,0,0.04)_2px,rgba(0,0,0,0.04)_4px)] pointer-events-none" />
 
         {/* Stock badge */}
         <div className="absolute top-2.5 left-2.5 z-10">
-          <StockIndicator stock={product.stock} />
+          {editing ? (
+            <div className="flex items-center gap-1 bg-white dark:bg-neutral-900 border border-orange-400 rounded-lg px-2 py-1">
+              <input
+                autoFocus
+                type="number"
+                min={0}
+                value={inputVal}
+                onChange={e => setInputVal(e.target.value)}
+                onKeyDown={e => { if (e.key === "Enter") saveStock(); if (e.key === "Escape") setEditing(false) }}
+                className="w-16 text-xs font-mono bg-transparent text-neutral-900 dark:text-white outline-none"
+                placeholder="Qté"
+              />
+              <button onClick={saveStock} disabled={saving} className="text-emerald-500 hover:text-emerald-400">
+                <Check className="w-3.5 h-3.5" />
+              </button>
+              <button onClick={() => setEditing(false)} className="text-neutral-400 hover:text-neutral-300">
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-1">
+              <StockIndicator stock={stock} />
+              <button
+                onClick={() => { setInputVal(stock !== null ? String(stock) : ""); setEditing(true) }}
+                title="Modifier le stock manuellement"
+                className="flex items-center gap-1 px-1.5 py-1 rounded-md bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 text-neutral-400 hover:text-orange-400 hover:border-orange-400 transition-colors"
+              >
+                <Pencil className="w-3 h-3" />
+                <span className="text-[9px] font-medium">Modifier</span>
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Country flag */}
         <div className="absolute top-2.5 right-2.5 z-10">
-          <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-neutral-900/85 backdrop-blur-sm border border-neutral-700/60 text-sm">
+          <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 text-sm">
             <span>{info.flag}</span>
-            <span className="text-[10px] text-neutral-400 font-medium">{info.label}</span>
+            <span className="text-[10px] text-neutral-500 dark:text-neutral-400 font-medium">{info.label}</span>
           </div>
         </div>
 
         {/* Sync status bottom-right of image */}
         <div className="absolute bottom-2.5 right-2.5 z-10">
-          {product.stock !== null
+          {stock !== null
             ? <Wifi className="w-3.5 h-3.5 text-emerald-500/70" />
             : <WifiOff className="w-3.5 h-3.5 text-neutral-600" />
           }
@@ -129,24 +184,24 @@ export function ProductCard({ product }: { product: ProductCardData }) {
 
       {/* Info */}
       <div className="p-4 space-y-3">
-        <h3 className="text-white/90 text-sm font-medium leading-snug line-clamp-2 group-hover:text-white transition-colors">
+        <h3 className="text-neutral-900 dark:text-white/90 text-sm font-medium leading-snug line-clamp-2 group-hover:text-black dark:group-hover:text-white transition-colors">
           {product.title}
         </h3>
 
         {/* Stock bar */}
         <div>
           <div className="flex justify-between items-center mb-1.5">
-            <span className="text-[9px] uppercase tracking-widest text-neutral-600 font-semibold">
-              {product.stock === null ? "Stock — en attente sync" : "Niveau de stock"}
+            <span className="text-[9px] uppercase tracking-widest text-neutral-400 dark:text-neutral-600 font-semibold">
+              {stock === null ? "Stock — cliquez ✏️ pour saisir" : "Niveau de stock"}
             </span>
-            {product.stock !== null && (
-              <span className="text-[9px] text-neutral-500 font-mono">{stockPct}%</span>
+            {stock !== null && (
+              <span className="text-[9px] text-neutral-400 dark:text-neutral-500 font-mono">{stockPct}%</span>
             )}
           </div>
-          <div className="h-[3px] bg-neutral-800 rounded-full overflow-hidden">
+          <div className="h-[3px] bg-neutral-200 dark:bg-neutral-800 rounded-full overflow-hidden">
             {stockPct !== null
               ? <div className={`h-full rounded-full transition-all duration-700 ${barColor}`} style={{ width: `${stockPct}%` }} />
-              : <div className="h-full w-full bg-gradient-to-r from-neutral-700 via-neutral-600 to-neutral-700 animate-pulse rounded-full" />
+              : <div className="h-full w-full bg-gradient-to-r from-neutral-300 via-neutral-200 to-neutral-300 dark:from-neutral-700 dark:via-neutral-600 dark:to-neutral-700 animate-pulse rounded-full" />
             }
           </div>
         </div>
@@ -154,14 +209,14 @@ export function ProductCard({ product }: { product: ProductCardData }) {
         {/* Price row */}
         <div className="flex items-end justify-between pt-1">
           <div>
-            <p className="text-[9px] text-neutral-600 uppercase tracking-widest mb-0.5">Prix COD</p>
+            <p className="text-[9px] text-neutral-400 dark:text-neutral-600 uppercase tracking-widest mb-0.5">Prix COD</p>
             <p className="text-2xl font-bold tabular-nums bg-gradient-to-r from-orange-400 to-orange-300 bg-clip-text text-transparent">
               {formatted}
             </p>
           </div>
           <div className="text-right">
-            <p className="text-[9px] text-neutral-600 uppercase tracking-widest mb-0.5">Boutique</p>
-            <p className="text-neutral-400 text-xs truncate max-w-[90px]">{product.storeName}</p>
+            <p className="text-[9px] text-neutral-400 dark:text-neutral-600 uppercase tracking-widest mb-0.5">Boutique</p>
+            <p className="text-neutral-500 dark:text-neutral-400 text-xs truncate max-w-[90px]">{product.storeName}</p>
           </div>
         </div>
       </div>

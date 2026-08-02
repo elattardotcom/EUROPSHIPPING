@@ -1,11 +1,13 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useLang } from "@/hooks/useLang"
 import {
   CheckCircle, ArrowRight, Users, Truck, BarChart3, Zap, Shield,
   Star, Wallet, Link2, Gift, Phone, Mail, MapPin,
   Instagram, Facebook, Twitter,
   Banknote, PhoneCall, TrendingUp, BadgeCheck, Globe2, Layers,
+  Menu, X,
 } from "lucide-react"
 import Link from "next/link"
 import { Logo }             from "@/components/logo"
@@ -19,6 +21,8 @@ import {
   ShopifyLogo, DpdLogo, GlsLogo, ColissimoLogo, BrtLogo,
   WiseLogo, BinanceLogo, BankLogo,
 } from "@/components/landing/brand-logos"
+import { MapRoute } from "@/components/landing/map-route"
+import { PaymentFlow } from "@/components/fees/PaymentFlow"
 import { T, Lang } from "@/lib/landing-translations"
 
 const LIVE_ORDERS = {
@@ -62,8 +66,9 @@ const FLOATING = {
 }
 
 export default function LandingPage() {
-  const [lang, setLang] = useState<Lang>("en")
+  const [lang, setLang] = useLang()
   const [scrolled, setScrolled] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
   const t      = T[lang]
   const orders = LIVE_ORDERS[lang]
   const fl     = FLOATING[lang]
@@ -72,6 +77,12 @@ export default function LandingPage() {
     const onScroll = () => setScrolled(window.scrollY > 300)
     window.addEventListener("scroll", onScroll, { passive: true })
     return () => window.removeEventListener("scroll", onScroll)
+  }, [])
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.location.search.includes("signup=1")) {
+      window.dispatchEvent(new CustomEvent("open-modal", { detail: { step: "signup" } }))
+    }
   }, [])
 
   return (
@@ -123,23 +134,24 @@ export default function LandingPage() {
       `}</style>
 
       {/* ── Navbar ─────────────────────────────────────────────── */}
-      <header className="sticky top-0 z-40 h-14 sm:h-16 flex items-center"
+      <header className="sticky top-0 z-50 h-14 sm:h-16 flex items-center"
         style={{ background: "rgba(6,6,6,0.88)", backdropFilter: "blur(24px) saturate(180%)", borderBottom: "1px solid rgba(255,255,255,0.06)", boxShadow: "0 1px 0 rgba(255,255,255,0.04), 0 4px 24px rgba(0,0,0,0.4)" }}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full flex items-center justify-between">
-          <div className="flex items-center gap-2 sm:gap-3">
-            <Logo size={48} showBg={true} />
-            <span className="font-black text-lg sm:text-xl tracking-tight">CODShipEurope</span>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <Logo size={36} showBg={true} />
+            <span className="font-bold text-xs sm:text-sm tracking-tight">CODShipEurope</span>
             <div className="hidden sm:flex items-center gap-1.5 text-[10px] font-bold text-emerald-400 border border-emerald-500/25 bg-emerald-500/8 px-2.5 py-1 rounded-full uppercase tracking-widest">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-dot" />
               {t.live}
             </div>
           </div>
           <nav className="hidden md:flex items-center gap-8 text-sm text-neutral-500">
-            {([["#features", t.nav_features], ["#how", t.nav_how], ["#sourcing", lang === "fr" ? "Sourcing" : "Sourcing"], ["#pricing", t.nav_pricing], ["#testimonials", t.nav_testimonials]] as [string, string][]).map(([h, l]) => (
+            {([["#features", t.nav_features], ["#how", t.nav_how], ["#sourcing", "Sourcing"], ["#pricing", t.nav_pricing], ["#testimonials", t.nav_testimonials]] as [string, string][]).map(([h, l]) => (
               <a key={h} href={h} className="hover:text-white transition-colors">{l}</a>
             ))}
+            <a href="/fees" className="hover:text-white transition-colors">{lang === "fr" ? "Frais" : "Fees"}</a>
           </nav>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-shrink-0">
             <button
               onClick={() => setLang(l => l === "en" ? "fr" : "en")}
               className="hidden sm:flex items-center gap-1 text-xs font-bold px-2.5 py-1.5 rounded-lg border border-white/10 text-neutral-400 hover:text-white hover:border-white/20 transition-all">
@@ -150,13 +162,46 @@ export default function LandingPage() {
               {t.sign_in}
             </OpenModalButton>
             <OpenModalButton step="signup"
-              className="text-xs sm:text-sm font-bold text-white px-4 sm:px-5 py-2 rounded-lg flex items-center gap-1.5 btn-primary">
+              className="hidden sm:flex text-xs sm:text-sm font-bold text-white px-4 sm:px-5 py-2 rounded-lg items-center gap-1.5 btn-primary">
               {t.get_started}
               <ArrowRight className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
             </OpenModalButton>
+            {/* Hamburger */}
+            <button
+              onClick={() => setMenuOpen(v => !v)}
+              className="md:hidden flex items-center justify-center w-9 h-9 rounded-lg"
+              style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.10)" }}
+            >
+              {menuOpen ? <X className="w-4 h-4 text-white" /> : <Menu className="w-4 h-4 text-white" />}
+            </button>
           </div>
         </div>
       </header>
+
+      {/* Mobile menu */}
+      {menuOpen && (
+        <div className="fixed inset-0 z-40 flex flex-col md:hidden" style={{ background: "rgba(5,5,5,0.97)", backdropFilter: "blur(24px)" }}>
+          <div className="h-14" onClick={() => setMenuOpen(false)} />
+          <div className="flex-1 flex flex-col items-center justify-center gap-10">
+            {([["#features", t.nav_features], ["#how", t.nav_how], ["#sourcing", "Sourcing"], ["#pricing", t.nav_pricing], ["#testimonials", t.nav_testimonials]] as [string, string][]).map(([h, l]) => (
+              <a key={h} href={h} onClick={() => setMenuOpen(false)} className="text-xl font-bold text-white">{l}</a>
+            ))}
+            <a href="/fees" onClick={() => setMenuOpen(false)} className="text-xl font-bold text-orange-400">{lang === "fr" ? "Frais" : "Fees"}</a>
+          </div>
+          <div className="flex flex-col items-center gap-3 pb-14 px-6">
+            <button
+              onClick={() => setLang(l => l === "en" ? "fr" : "en")}
+              className="w-full flex items-center justify-center gap-2 text-sm font-bold px-4 py-3 rounded-xl border border-white/15 text-neutral-300"
+              style={{ background: "rgba(255,255,255,0.05)" }}
+            >
+              {lang === "en" ? "🇫🇷 Passer en français" : "🇬🇧 Switch to English"}
+            </button>
+            <OpenModalButton step="signup" className="w-full flex items-center justify-center gap-2 text-sm font-bold text-white py-3.5 rounded-xl btn-primary">
+              {t.get_started} <ArrowRight className="w-4 h-4" />
+            </OpenModalButton>
+          </div>
+        </div>
+      )}
 
       {/* ── Ticker ─────────────────────────────────────────────── */}
       <LiveTicker lang={lang} />
@@ -340,64 +385,9 @@ export default function LandingPage() {
             </p>
           </div>
 
-          {/* Photo cards grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            {/* Card 1 — Cargo ship */}
-            <div className="relative h-64 md:h-80 rounded-2xl overflow-hidden group">
-              <img
-                src="https://images.unsplash.com/photo-1494412519320-aa613dfb7738?w=900&q=80"
-                alt="Cargo ship logistics"
-                className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-              />
-              <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.3) 50%, transparent 100%)" }} />
-              <div className="absolute inset-x-0 top-0 h-px" style={{ background: "linear-gradient(90deg,transparent,rgba(249,115,22,0.6),transparent)" }} />
-              <div className="absolute bottom-0 left-0 p-5">
-                <div className="inline-flex items-center gap-1.5 text-[10px] font-bold text-orange-400 border border-orange-500/30 bg-orange-500/10 px-2.5 py-1 rounded-full mb-2 uppercase tracking-widest">
-                  🚢 {lang === "fr" ? "Transport maritime" : "Sea freight"}
-                </div>
-                <h3 className="text-white font-black text-lg leading-tight">
-                  {lang === "fr" ? "Import direct\nChine → Europe" : "Direct import\nChina → Europe"}
-                </h3>
-              </div>
-            </div>
-
-            {/* Card 2 — Delivery van (tall center) */}
-            <div className="relative h-64 md:h-80 rounded-2xl overflow-hidden group md:row-span-1">
-              <img
-                src="https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=900&q=80"
-                alt="Delivery van last mile"
-                className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-              />
-              <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.2) 60%, transparent 100%)" }} />
-              <div className="absolute inset-x-0 top-0 h-px" style={{ background: "linear-gradient(90deg,transparent,rgba(16,185,129,0.6),transparent)" }} />
-              <div className="absolute bottom-0 left-0 p-5">
-                <div className="inline-flex items-center gap-1.5 text-[10px] font-bold text-emerald-400 border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 rounded-full mb-2 uppercase tracking-widest">
-                  🚚 {lang === "fr" ? "Dernier kilomètre" : "Last mile"}
-                </div>
-                <h3 className="text-white font-black text-lg leading-tight">
-                  {lang === "fr" ? "Livraison COD\nen 24-48h" : "COD delivery\nin 24-48h"}
-                </h3>
-              </div>
-            </div>
-
-            {/* Card 3 — Warehouse */}
-            <div className="relative h-64 md:h-80 rounded-2xl overflow-hidden group">
-              <img
-                src="https://images.unsplash.com/photo-1553413077-190dd305871c?w=900&q=80"
-                alt="Warehouse fulfillment"
-                className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-              />
-              <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.2) 60%, transparent 100%)" }} />
-              <div className="absolute inset-x-0 top-0 h-px" style={{ background: "linear-gradient(90deg,transparent,rgba(99,102,241,0.6),transparent)" }} />
-              <div className="absolute bottom-0 left-0 p-5">
-                <div className="inline-flex items-center gap-1.5 text-[10px] font-bold text-indigo-400 border border-indigo-500/30 bg-indigo-500/10 px-2.5 py-1 rounded-full mb-2 uppercase tracking-widest">
-                  🏭 {lang === "fr" ? "Entrepôt" : "Warehouse"}
-                </div>
-                <h3 className="text-white font-black text-lg leading-tight">
-                  {lang === "fr" ? "Stock & préparation\ncommandes" : "Stock & order\nfulfillment"}
-                </h3>
-              </div>
-            </div>
+          {/* Animated map */}
+          <div className="mb-6 rounded-2xl overflow-hidden border border-neutral-800">
+            <MapRoute lang={lang} />
           </div>
 
           {/* Stats strip */}
@@ -552,6 +542,168 @@ export default function LandingPage() {
                 </div>
               </div>
 
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Payment Flow ───────────────────────────────────────── */}
+      <section className="py-16 sm:py-24 px-4 sm:px-6 overflow-hidden" style={{ background: "linear-gradient(180deg,#060606 0%,#060606 100%)" }}>
+        <div className="max-w-5xl mx-auto">
+          {/* Header */}
+          <div className="text-center mb-12 sm:mb-16">
+            <div className="inline-flex items-center gap-2 text-emerald-400 text-xs font-bold border border-emerald-500/20 bg-emerald-500/8 px-3 py-1.5 rounded-full mb-4 uppercase tracking-widest">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              {lang === "fr" ? "Flux de paiement" : "Payment flow"}
+            </div>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-white mb-3">
+              {lang === "fr" ? (
+                <>Du cash client<br /><span className="text-emerald-400">à votre compte.</span></>
+              ) : (
+                <>From customer cash<br /><span className="text-emerald-400">to your account.</span></>
+              )}
+            </h2>
+            <p className="text-neutral-500 text-sm sm:text-base max-w-lg mx-auto">
+              {lang === "fr"
+                ? "Chaque euro collecté à la porte transite par CODShipEurope et arrive sur votre compte bancaire chaque lundi, automatiquement."
+                : "Every euro collected at the door flows through CODShipEurope and lands in your bank account every Monday, automatically."}
+            </p>
+          </div>
+
+          {/* Animated flow */}
+          <PaymentFlow lang={lang} />
+
+          {/* Bottom note */}
+          <div className="mt-10 flex flex-wrap items-center justify-center gap-6 text-xs text-neutral-600">
+            {(lang === "fr"
+              ? ["Collecte COD automatique", "Paiement chaque lundi", "50+ banques supportées", "Tracking temps réel"]
+              : ["Automatic COD collection", "Paid every Monday", "50+ banks supported", "Real-time tracking"]
+            ).map(t => (
+              <div key={t} className="flex items-center gap-1.5">
+                <span className="w-1 h-1 rounded-full bg-emerald-600" />
+                {t}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Weekly Payout ──────────────────────────────────────── */}
+      <section className="py-16 sm:py-28 px-4 sm:px-6" style={{ background: "linear-gradient(180deg,#060606 0%,#0a0a0a 100%)" }}>
+        <div className="max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+
+            {/* Left — wallet mockup */}
+            <div className="relative order-2 lg:order-1">
+              <div className="absolute -inset-4 pointer-events-none" style={{ background: "radial-gradient(ellipse at 40% 50%, rgba(16,185,129,0.07), transparent 70%)" }} />
+              <div className="relative rounded-2xl border border-white/[0.07] overflow-hidden" style={{ background: "rgba(8,8,8,0.97)", boxShadow: "0 40px 80px rgba(0,0,0,0.6)" }}>
+                {/* Wallet header */}
+                <div className="px-5 pt-5 pb-4 border-b border-white/[0.05]">
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="text-[10px] text-neutral-600 uppercase tracking-wider">{lang === "fr" ? "Solde disponible" : "Available balance"}</p>
+                    <div className="flex items-center gap-1 text-[10px] font-bold text-emerald-400 border border-emerald-500/25 bg-emerald-500/8 px-2 py-0.5 rounded-full">
+                      <span className="w-1 h-1 rounded-full bg-emerald-400 animate-dot" />
+                      LIVE
+                    </div>
+                  </div>
+                  <div className="flex items-end gap-3 mb-3">
+                    <p className="text-4xl font-black text-white">€6,284<span className="text-2xl text-neutral-600">.50</span></p>
+                    <span className="mb-1 text-xs font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">↑ +18% {lang === "fr" ? "ce mois" : "this month"}</span>
+                  </div>
+                  <div className="flex gap-2">
+                    {[lang === "fr" ? "🏦 Virement" : "🏦 Bank", "💚 Wise", "₿ Crypto"].map(m => (
+                      <span key={m} className="text-[10px] font-semibold px-2.5 py-1 rounded-lg border border-white/10 text-neutral-500 bg-white/[0.02]">{m}</span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Transactions */}
+                <div className="divide-y divide-white/[0.04]">
+                  {[
+                    { date: lang === "fr" ? "Lun 20 Jan" : "Mon Jan 20", amount: "+€2,140.00", orders: lang === "fr" ? "38 commandes livrées" : "38 orders delivered" },
+                    { date: lang === "fr" ? "Lun 13 Jan" : "Mon Jan 13", amount: "+€1,840.50", orders: lang === "fr" ? "31 commandes livrées" : "31 orders delivered" },
+                    { date: lang === "fr" ? "Lun 06 Jan" : "Mon Jan 06", amount: "+€2,304.00", orders: lang === "fr" ? "43 commandes livrées" : "43 orders delivered" },
+                  ].map((tx, i) => (
+                    <div key={i} className="flex items-center gap-3 px-5 py-3.5 hover:bg-white/[0.02] transition-colors">
+                      <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center flex-shrink-0">
+                        <Banknote className="w-4 h-4 text-emerald-400" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-white text-xs font-semibold">{lang === "fr" ? "Paiement hebdomadaire" : "Weekly payout"}</p>
+                        <p className="text-neutral-600 text-[10px]">{tx.date} · {tx.orders}</p>
+                      </div>
+                      <div className="text-right flex-shrink-0">
+                        <p className="text-emerald-400 text-sm font-black">{tx.amount}</p>
+                        <p className="text-emerald-600 text-[10px] font-bold">{lang === "fr" ? "✓ Viré" : "✓ Sent"}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Next payout banner */}
+                <div className="px-5 py-3 border-t border-white/[0.05]" style={{ background: "rgba(16,185,129,0.04)" }}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-dot" />
+                      <p className="text-emerald-400 text-xs font-bold">{lang === "fr" ? "Prochain virement" : "Next payout"}</p>
+                    </div>
+                    <p className="text-white text-xs font-black">{lang === "fr" ? "Lundi — €1,980 estimé" : "Monday — est. €1,980"}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Floating badge */}
+              <div className="absolute -right-3 sm:-right-6 top-8 flex items-center gap-2 bg-[#0d0d0d] border border-emerald-500/30 rounded-xl px-3 py-2.5 shadow-2xl animate-cash">
+                <div className="w-7 h-7 rounded-lg bg-emerald-500/15 flex items-center justify-center flex-shrink-0">
+                  <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
+                </div>
+                <div>
+                  <div className="text-[10px] text-neutral-600">{lang === "fr" ? "Revenus ce mois" : "Revenue this month"}</div>
+                  <div className="text-xs font-black text-white">€6,284 🔥</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Right — text */}
+            <div className="order-1 lg:order-2">
+              <div className="inline-flex items-center gap-2 text-emerald-400 text-xs font-bold border border-emerald-500/20 bg-emerald-500/8 px-3 py-1.5 rounded-full mb-5 uppercase tracking-widest">
+                <Wallet className="w-3.5 h-3.5" />
+                {lang === "fr" ? "Paiements garantis" : "Guaranteed payouts"}
+              </div>
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-white mb-4 leading-tight">
+                {lang === "fr"
+                  ? <><span className="text-emerald-400">Payé chaque semaine,</span><br />sans attendre</>
+                  : <><span className="text-emerald-400">Paid every week,</span><br />without waiting</>}
+              </h2>
+              <p className="text-neutral-500 text-sm leading-relaxed mb-8 max-w-lg">
+                {lang === "fr"
+                  ? "Dès que vos commandes sont livrées, vos gains sont calculés et virés automatiquement chaque lundi — virement bancaire, Wise ou crypto, vous choisissez."
+                  : "As soon as your orders are delivered, your earnings are calculated and automatically transferred every Monday — bank transfer, Wise or crypto, your choice."}
+              </p>
+              <div className="space-y-4 mb-8">
+                {(lang === "fr" ? [
+                  { icon: "📅", t: "Virement automatique chaque lundi",   d: "Sans demande manuelle, sans délai" },
+                  { icon: "🌍", t: "50+ banques et méthodes acceptées",   d: "SEPA, international, Wise, USDT…" },
+                  { icon: "📊", t: "Suivi en temps réel commande/commande", d: "Vous savez exactement ce que vous gagnez" },
+                ] : [
+                  { icon: "📅", t: "Automatic transfer every Monday",      d: "No manual request, no delay" },
+                  { icon: "🌍", t: "50+ banks and methods supported",      d: "SEPA, international, Wise, USDT…" },
+                  { icon: "📊", t: "Real-time per-order tracking",         d: "You know exactly what you earn" },
+                ]).map(f => (
+                  <div key={f.t} className="flex items-start gap-3">
+                    <span className="text-xl mt-0.5">{f.icon}</span>
+                    <div>
+                      <p className="text-white font-semibold text-sm">{f.t}</p>
+                      <p className="text-neutral-600 text-xs mt-0.5">{f.d}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <OpenModalButton step="signup"
+                className="inline-flex items-center gap-2 font-bold text-sm text-white px-7 py-3.5 rounded-xl btn-primary">
+                {lang === "fr" ? "Voir mon wallet" : "See my wallet"}
+                <ArrowRight className="w-4 h-4" />
+              </OpenModalButton>
             </div>
           </div>
         </div>
@@ -946,6 +1098,85 @@ export default function LandingPage() {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Account Managers ───────────────────────────────────── */}
+      <section className="py-16 sm:py-24 px-4 sm:px-6" style={{ background: "linear-gradient(180deg,#080808 0%,#060606 100%)" }}>
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-10 sm:mb-14">
+            <div className="inline-flex items-center gap-2 text-indigo-400 text-xs font-bold border border-indigo-500/20 bg-indigo-500/8 px-3 py-1.5 rounded-full mb-4 uppercase tracking-widest">
+              <Users className="w-3.5 h-3.5" />
+              {lang === "fr" ? "Équipe dédiée" : "Dedicated team"}
+            </div>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-white mb-3">
+              {lang === "fr"
+                ? <>Un <span className="text-indigo-400">account manager</span> pour chaque marché</>
+                : <>An <span className="text-indigo-400">account manager</span> for every market</>}
+            </h2>
+            <p className="text-neutral-500 text-sm max-w-xl mx-auto">
+              {lang === "fr"
+                ? "Notre équipe parle votre langue et connaît le COD local. Vous n'êtes jamais seul."
+                : "Our team speaks your language and knows local COD. You're never alone."}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
+            {[
+              { name: "Youssef B.", flag: "🇲🇦🇩🇿🇹🇳", markets: lang === "fr" ? "Maghreb & Europe" : "Maghreb & Europe", color: "from-orange-500 to-red-600", response: "< 2h", langs: lang === "fr" ? "Arabe · Français" : "Arabic · French" },
+              { name: "María G.",   flag: "🇪🇸🇵🇹",    markets: lang === "fr" ? "Espagne · Portugal" : "Spain · Portugal", color: "from-rose-500 to-pink-600",   response: "< 1h", langs: lang === "fr" ? "Espagnol · Anglais" : "Spanish · English" },
+              { name: "Andrei I.", flag: "🇷🇴🇧🇬🇬🇷",   markets: lang === "fr" ? "Balkans & Est" : "Balkans & East",       color: "from-violet-500 to-purple-600", response: "< 2h", langs: lang === "fr" ? "Roumain · Anglais" : "Romanian · English" },
+              { name: "Luca M.",   flag: "🇮🇹🇩🇪🇫🇷",   markets: lang === "fr" ? "Italie · Europe Ouest" : "Italy · West EU", color: "from-blue-500 to-indigo-600", response: "< 1h", langs: lang === "fr" ? "Italien · Français" : "Italian · French" },
+            ].map(m => (
+              <div key={m.name} className="bento-card relative rounded-2xl p-5 border border-white/[0.05] hover:border-indigo-500/20 transition-all group overflow-hidden"
+                style={{ background: "rgba(10,10,10,0.9)" }}>
+                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                  style={{ background: "radial-gradient(ellipse at top, rgba(99,102,241,0.05), transparent 70%)" }} />
+                <div className="relative">
+                  <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${m.color} flex items-center justify-center text-white font-black text-lg mb-3 relative`}>
+                    {m.name.charAt(0)}
+                    <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full bg-emerald-400 border-2 border-[#0a0a0a]" />
+                  </div>
+                  <p className="text-white font-black text-sm mb-0.5">{m.name}</p>
+                  <p className="text-lg mb-1.5">{m.flag}</p>
+                  <p className="text-neutral-500 text-[11px] mb-3 leading-snug">{m.markets}</p>
+                  <div className="space-y-1.5">
+                    <div className="flex items-center gap-1.5 text-[10px] text-neutral-600">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 flex-shrink-0" />
+                      {lang === "fr" ? `Répond en ${m.response}` : `Responds ${m.response}`}
+                    </div>
+                    <div className="flex items-center gap-1.5 text-[10px] text-neutral-600">
+                      <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 flex-shrink-0" />
+                      {m.langs}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Bottom CTA strip */}
+          <div className="relative rounded-2xl border border-indigo-500/15 overflow-hidden px-6 py-5 flex flex-col sm:flex-row items-center gap-5"
+            style={{ background: "linear-gradient(135deg,rgba(99,102,241,0.07),rgba(8,8,8,0.98))" }}>
+            <div className="absolute inset-x-0 top-0 h-px" style={{ background: "linear-gradient(90deg,transparent,rgba(99,102,241,0.4),transparent)" }} />
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-indigo-500/15 border border-indigo-500/25 flex items-center justify-center flex-shrink-0">
+                <PhoneCall className="w-5 h-5 text-indigo-400" />
+              </div>
+              <div>
+                <p className="text-white font-bold text-sm">{lang === "fr" ? "Appel hebdomadaire inclus" : "Weekly call included"}</p>
+                <p className="text-neutral-500 text-xs">{lang === "fr" ? "Revue de vos stats, optimisation campagnes, conseils marché local" : "Stats review, campaign optimization, local market advice"}</p>
+              </div>
+            </div>
+            <div className="sm:ml-auto flex-shrink-0">
+              <OpenModalButton step="signup"
+                className="inline-flex items-center gap-2 text-sm font-bold text-white px-5 py-2.5 rounded-xl"
+                style={{ background: "linear-gradient(135deg,#6366f1,#8b5cf6)", boxShadow: "0 8px 24px rgba(99,102,241,0.3)" }}>
+                {lang === "fr" ? "Parler à mon manager" : "Talk to my manager"}
+                <ArrowRight className="w-3.5 h-3.5" />
+              </OpenModalButton>
+            </div>
           </div>
         </div>
       </section>

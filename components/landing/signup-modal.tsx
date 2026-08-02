@@ -117,7 +117,7 @@ export function SignupModal({
               </div>
               <h3 className="text-white font-bold text-xl mb-1">Demande envoyée !</h3>
               <p className="text-neutral-400 text-sm leading-relaxed">
-                Pour activer votre compte, réglez votre pack via PayPal.
+                Votre demande a été envoyée. Notre équipe va l&apos;examiner et vous contacter sous 24-48h.
               </p>
             </div>
 
@@ -135,27 +135,13 @@ export function SignupModal({
               </div>
             </div>
 
-            {/* PayPal button */}
-            <a
-              href={paypalLink}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center justify-center gap-3 w-full py-3.5 rounded-xl font-bold text-sm text-white transition-all hover:opacity-90"
-              style={{ background: "linear-gradient(135deg,#003087,#0070ba)", boxShadow: "0 8px 24px rgba(0,112,186,0.3)" }}
-            >
-              <svg viewBox="0 0 24 24" className="w-5 h-5 fill-white" xmlns="http://www.w3.org/2000/svg">
-                <path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944.901C5.026.382 5.474 0 5.998 0h7.46c2.57 0 4.578.543 5.69 1.81 1.01 1.15 1.304 2.42 1.012 4.287-.023.143-.047.288-.077.437-.983 5.05-4.349 6.797-8.647 6.797h-2.19c-.524 0-.968.382-1.05.9l-1.12 7.106zm14.146-14.42a3.35 3.35 0 0 0-.607-.541c-.013.076-.026.175-.041.254-.59 3.025-2.566 4.643-5.813 4.643h-2.19c-.38 0-.702.277-.76.653l-1.12 7.106-.316 2.001a.48.48 0 0 0 .474.554h3.324c.458 0 .85-.332.922-.784l.038-.196.733-4.646.047-.256a.933.933 0 0 1 .921-.784h.581c3.758 0 6.698-1.527 7.556-5.944.358-1.845.173-3.386-.75-4.47z"/>
-              </svg>
-              Payer €{planAmount} via PayPal
-            </a>
-
-            {/* Instructions */}
+            {/* Next steps */}
             <div className="bg-neutral-900/50 border border-neutral-800 rounded-xl p-4 space-y-2.5">
-              <p className="text-xs font-semibold text-neutral-300">Instructions de paiement :</p>
+              <p className="text-xs font-semibold text-neutral-300">Prochaines étapes :</p>
               {[
-                `Cliquez "Payer via PayPal" ci-dessus`,
-                `Ajoutez votre email (${signup.email}) en note de référence`,
-                "Votre compte sera activé sous 24h après réception du paiement",
+                "Notre équipe examine votre demande sous 24-48h",
+                "Vous recevrez un email de confirmation dès l'approbation",
+                "Connectez-vous et démarrez votre dropshipping COD",
               ].map((s, i) => (
                 <div key={i} className="flex items-start gap-2 text-xs text-neutral-500">
                   <span className="w-4 h-4 rounded-full bg-orange-500/20 text-orange-400 flex items-center justify-center flex-shrink-0 text-[10px] font-bold mt-0.5">{i + 1}</span>

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import DashboardPage from "@/components/cod/dashboard"
 import { getClientIdFromCookie } from "@/lib/client-cookie"
 import type { Period } from "@/components/cod/dashboard"
+import { OnboardingBanner } from "@/components/dashboard/onboarding-banner"
 
 const PERIODS: { label: string; value: Period }[] = [
   { label: "Aujourd'hui", value: "today" },
@@ -43,6 +44,7 @@ export default function DashboardHome() {
 
   return (
     <div className="p-4 md:p-6">
+      <OnboardingBanner />
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
         <div className="flex items-center gap-4">
           <div className={`w-12 h-12 bg-gradient-to-br ${clientColor} rounded-full flex items-center justify-center text-white font-semibold text-lg flex-shrink-0`}>
