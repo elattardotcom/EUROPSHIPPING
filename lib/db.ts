@@ -3,6 +3,7 @@ import { ALL_ORDERS, MOCK_CLIENT, MOCK_ADMIN_ORDERS, MOCK_ADMIN_LEADS, MOCK_STOR
 import { readWithdrawals, writeWithdrawals, readAdjustments, writeAdjustments } from "./store"
 import { readPaymentMethods, writePaymentMethods } from "./payment-methods-store"
 import { readClients, writeClients as _wc } from "./clients-store"
+import { SERVICE_FEES } from "./fee-rates"   // fallback constants only
 
 /* ── Types ─────────────────────────────────────────────────────────────── */
 
@@ -124,6 +125,41 @@ export interface Withdrawal {
   adminNote?:          string
   paymentMethodType?:  PaymentMethodType
   paymentDetails?:     string  // JSON: method-specific details
+}
+
+export interface UnbilledOrder {
+  id:             string
+  customerName:   string
+  value:          number       // 0 for RETURNED
+  status:         "DELIVERED" | "RETURNED"
+  deliveryFee:    number
+  returnFee:      number
+  callCenterFee:  number
+  totalFee:       number
+  createdAt:      string
+}
+
+export interface InvoicePreview {
+  orders:          UnbilledOrder[]
+  deliveredCount:  number
+  returnedCount:   number
+  grossAmount:     number
+  deliveryFees:    number
+  returnFees:      number
+  callCenterFees:  number
+  totalFees:       number
+  netAmount:       number    // grossAmount - totalFees
+  currency:        string
+}
+
+export interface FeeRate {
+  id:             string
+  countryCode:    string
+  countryName:    string
+  deliveryFee:    number
+  returnFee:      number
+  callCenterFee:  number
+  updatedAt:      string
 }
 
 /* ── Mappers ────────────────────────────────────────────────────────────── */
@@ -417,7 +453,8 @@ export interface BalanceSummary {
   adjustments:  number
   approved:     number
   pending:      number
-  available:    number
+  totalFees:    number   // service fees on uninvoiced completed orders
+  available:    number   // grossRevenue - totalFees + adjustments - approved - pending
 }
 
 export async function getClientAdjustments(clientId: string): Promise<BalanceAdjustment[]> {
@@ -468,10 +505,144 @@ export async function createAdjustment(
   return adj
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function buildInvoicePreview(rows: any[], rateMap: Map<string, FeeRate>): InvoicePreview {
+  const fallback = rateMap.get("DEFAULT") ?? {
+    deliveryFee: SERVICE_FEES.delivery, returnFee: SERVICE_FEES.return, callCenterFee: SERVICE_FEES.callCenter,
+  }
+  const orders: UnbilledOrder[] = rows.map(r => {
+    const rates       = rateMap.get(r.country_code ?? "") ?? fallback
+    const isDelivered = r.status === "DELIVERED"
+    const deliveryFee   = isDelivered  ? rates.deliveryFee   : 0
+    const returnFee     = !isDelivered ? rates.returnFee     : 0
+    const callCenterFee = isDelivered  ? rates.callCenterFee : 0
+    return {
+      id:            r.id,
+      customerName:  r.customer_name ?? "",
+      value:         isDelivered ? (r.value ?? 0) : 0,
+      status:        r.status as "DELIVERED" | "RETURNED",
+      deliveryFee,
+      returnFee,
+      callCenterFee,
+      totalFee:      Math.round((deliveryFee + returnFee + callCenterFee) * 100) / 100,
+      createdAt:     r.created_at ?? "",
+    }
+  })
+
+  const rnd = (n: number) => Math.round(n * 100) / 100
+  const grossAmount    = rnd(orders.reduce((s, o) => s + o.value, 0))
+  const deliveryFees   = rnd(orders.reduce((s, o) => s + o.deliveryFee, 0))
+  const returnFees     = rnd(orders.reduce((s, o) => s + o.returnFee, 0))
+  const callCenterFees = rnd(orders.reduce((s, o) => s + o.callCenterFee, 0))
+  const totalFees      = rnd(deliveryFees + returnFees + callCenterFees)
+  return {
+    orders,
+    deliveredCount: orders.filter(o => o.status === "DELIVERED").length,
+    returnedCount:  orders.filter(o => o.status === "RETURNED").length,
+    grossAmount,
+    deliveryFees,
+    returnFees,
+    callCenterFees,
+    totalFees,
+    netAmount: rnd(Math.max(0, grossAmount - totalFees)),
+    currency: rows[0]?.currency ?? "EUR",
+  }
+}
+
+export async function getFeeRates(): Promise<FeeRate[]> {
+  const sb = getSupabaseAdmin()
+  if (!sb) return []
+  try {
+    const { data } = await sb.from("fee_rates").select("*").order("country_code")
+    return (data ?? []).map((r: Record<string, unknown>) => ({
+      id:             r.id as string,
+      countryCode:    r.country_code as string,
+      countryName:    r.country_name as string,
+      deliveryFee:    r.delivery_fee as number,
+      returnFee:      r.return_fee as number,
+      callCenterFee:  r.call_center_fee as number,
+      updatedAt:      r.updated_at as string,
+    }))
+  } catch { return [] }
+}
+
+export async function upsertFeeRate(
+  countryCode: string, countryName: string,
+  deliveryFee: number, returnFee: number, callCenterFee: number,
+): Promise<FeeRate | null> {
+  const sb = getSupabaseAdmin()
+  if (!sb) return null
+  try {
+    const { data, error } = await sb
+      .from("fee_rates")
+      .upsert({ country_code: countryCode, country_name: countryName, delivery_fee: deliveryFee, return_fee: returnFee, call_center_fee: callCenterFee, updated_at: new Date().toISOString() },
+        { onConflict: "country_code" })
+      .select()
+      .single()
+    if (error || !data) return null
+    return { id: data.id, countryCode: data.country_code, countryName: data.country_name, deliveryFee: data.delivery_fee, returnFee: data.return_fee, callCenterFee: data.call_center_fee, updatedAt: data.updated_at }
+  } catch { return null }
+}
+
+export async function deleteFeeRate(countryCode: string): Promise<boolean> {
+  if (countryCode === "DEFAULT") return false  // can't delete the fallback
+  const sb = getSupabaseAdmin()
+  if (!sb) return false
+  try {
+    const { error } = await sb.from("fee_rates").delete().eq("country_code", countryCode)
+    return !error
+  } catch { return false }
+}
+
+export async function getInvoicePreview(clientId: string): Promise<InvoicePreview> {
+  const empty: InvoicePreview = {
+    orders: [], deliveredCount: 0, returnedCount: 0,
+    grossAmount: 0, deliveryFees: 0, returnFees: 0, callCenterFees: 0,
+    totalFees: 0, netAmount: 0, currency: "EUR",
+  }
+  if (clientId === "c1") return empty
+  const sb = getSupabaseAdmin()
+  if (!sb) return empty
+  try {
+    const [feeRates, ordersRes] = await Promise.all([
+      getFeeRates(),
+      sb
+        .from("orders")
+        .select("id, customer_name, value, currency, status, country_code, created_at")
+        .eq("client_id", clientId)
+        .in("status", ["DELIVERED", "RETURNED"])
+        .is("invoiced_at", null)
+        .order("created_at", { ascending: false }),
+    ])
+    const rateMap = new Map(feeRates.map(r => [r.countryCode, r]))
+    if (ordersRes.error) {
+      // invoiced_at column may not exist yet — treat all completed as uninvoiced
+      const { data: all } = await sb
+        .from("orders")
+        .select("id, customer_name, value, currency, status, country_code, created_at")
+        .eq("client_id", clientId)
+        .in("status", ["DELIVERED", "RETURNED"])
+        .order("created_at", { ascending: false })
+      return buildInvoicePreview(all ?? [], rateMap)
+    }
+    return buildInvoicePreview(ordersRes.data ?? [], rateMap)
+  } catch { return empty }
+}
+
+export async function markOrdersInvoiced(orderIds: string[]): Promise<void> {
+  if (!orderIds.length) return
+  const sb = getSupabaseAdmin()
+  if (!sb) return
+  try {
+    await sb.from("orders").update({ invoiced_at: new Date().toISOString() }).in("id", orderIds)
+  } catch { /* invoiced_at column may not exist yet — no-op */ }
+}
+
 export async function getBalanceSummary(clientId: string): Promise<BalanceSummary> {
-  const [grossRevenue, adjList] = await Promise.all([
+  const [grossRevenue, adjList, preview] = await Promise.all([
     getDeliveredRevenue(clientId),
     getClientAdjustments(clientId),
+    getInvoicePreview(clientId),
   ])
   const sb = getSupabaseAdmin()
 
@@ -488,8 +659,9 @@ export async function getBalanceSummary(clientId: string): Promise<BalanceSummar
   const adjustments = Math.round(adjList.reduce((s, a) => s + a.amount, 0) * 100) / 100
   const approved    = Math.round(rows.filter(r => r.status === "approved").reduce((s, r) => s + r.amount, 0) * 100) / 100
   const pending     = Math.round(rows.filter(r => r.status === "pending").reduce((s, r) => s + r.amount, 0) * 100) / 100
-  const available   = Math.round(Math.max(0, grossRevenue + adjustments - approved - pending) * 100) / 100
-  return { grossRevenue, adjustments, approved, pending, available }
+  const totalFees   = preview.totalFees
+  const available   = Math.round(Math.max(0, grossRevenue - totalFees + adjustments - approved - pending) * 100) / 100
+  return { grossRevenue, adjustments, approved, pending, totalFees, available }
 }
 
 export async function getBalance(clientId: string): Promise<number> {
@@ -499,7 +671,10 @@ export async function getBalance(clientId: string): Promise<number> {
 export async function createWithdrawal(
   payload: Omit<Withdrawal, "id" | "status" | "requestedAt" | "processedAt" | "adminNote">
 ): Promise<Withdrawal | null> {
-  const summary = await getBalanceSummary(payload.clientId)
+  const [summary, preview] = await Promise.all([
+    getBalanceSummary(payload.clientId),
+    getInvoicePreview(payload.clientId),
+  ])
   if (payload.amount > summary.available) return null
 
   const sb = getSupabaseAdmin()
@@ -522,11 +697,17 @@ export async function createWithdrawal(
       payment_details:     payload.paymentDetails    ?? null,
     }).select().single()
 
-    if (!error && data) return mapWithdrawal(data)
+    if (!error && data) {
+      await markOrdersInvoiced(preview.orders.map(o => o.id))
+      return mapWithdrawal(data)
+    }
 
     // Fallback: insert without new columns (migration not yet run)
     const { data: data2, error: error2 } = await sb.from("withdrawals").insert(base).select().single()
-    if (!error2 && data2) return mapWithdrawal(data2)
+    if (!error2 && data2) {
+      await markOrdersInvoiced(preview.orders.map(o => o.id))
+      return mapWithdrawal(data2)
+    }
 
     return memCreate(payload)
   } catch { return memCreate(payload) }

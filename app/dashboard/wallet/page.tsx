@@ -7,10 +7,11 @@ import {
   XCircle, Plus, RefreshCw, AlertCircle, ChevronDown, Zap,
   TrendingUp, TrendingDown, Download, Filter, Search,
   Building2, Euro, Calendar, FileText, Eye, Bitcoin, ArrowRight,
+  Receipt, Truck, RotateCcw, Phone, ChevronRight,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import type { Withdrawal, WithdrawalStatus, BalanceAdjustment, PaymentMethod } from "@/lib/db"
+import type { Withdrawal, WithdrawalStatus, BalanceAdjustment, PaymentMethod, InvoicePreview } from "@/lib/db"
 import Link from "next/link"
 import { useRealtime, type RealtimeEvent } from "@/hooks/useSse"
 
@@ -300,6 +301,8 @@ export default function WalletPage() {
   const [quickOk,        setQuickOk]        = useState(false)
   const [payMethods,     setPayMethods]     = useState<PaymentMethod[]>([])
   const [selectedMethod, setSelectedMethod] = useState<string>("")
+  const [preview,        setPreview]        = useState<InvoicePreview | null>(null)
+  const [previewLoading, setPreviewLoading] = useState(false)
 
   // Current client — resolved synchronously from cookie, supplemented async
   const [clientId,     setClientId]     = useState(getClientIdFromCookie)
@@ -364,6 +367,16 @@ export default function WalletPage() {
   }, [load, clientId])
 
   useRealtime(onEvent)
+
+  const openWithdrawalForm = useCallback(async () => {
+    setShowForm(true)
+    setPreviewLoading(true)
+    try {
+      const res = await fetch("/api/client/invoice-preview")
+      if (res.ok) setPreview(await res.json())
+    } catch { /* no-op */ }
+    setPreviewLoading(false)
+  }, [])
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -495,7 +508,7 @@ export default function WalletPage() {
           <p className="text-white/70 text-sm font-medium mb-1">Solde disponible</p>
           <div className="text-4xl font-extrabold text-white">{loading ? "…" : `€${fmt(data?.balance ?? 0)}`}</div>
           <p className="text-white/60 text-xs mt-1">Prêt à retirer</p>
-          <Button onClick={() => setShowForm(true)} disabled={!data || data.balance <= 0}
+          <Button onClick={openWithdrawalForm} disabled={!data || data.balance <= 0}
             className="mt-4 bg-white/20 hover:bg-white/30 text-white border-0 text-sm font-medium w-full disabled:opacity-50">
             <ArrowDownLeft className="w-4 h-4 mr-2" />Demander un retrait
           </Button>
@@ -537,17 +550,70 @@ export default function WalletPage() {
       {showForm && (
         <div className="bg-neutral-900 border border-orange-500/25 rounded-2xl p-6">
           <div className="flex items-center justify-between mb-5">
-            <h2 className="text-white font-semibold flex items-center gap-2"><Plus className="w-4 h-4 text-orange-400" />Nouvelle demande de retrait</h2>
-            <button onClick={() => { setShowForm(false); setError("") }} className="text-neutral-500 hover:text-white text-xl leading-none">×</button>
+            <h2 className="text-white font-semibold flex items-center gap-2"><Receipt className="w-4 h-4 text-orange-400" />Nouvelle demande de retrait</h2>
+            <button onClick={() => { setShowForm(false); setError(""); setPreview(null) }} className="text-neutral-500 hover:text-white text-xl leading-none">×</button>
           </div>
           {error && (
             <div className="bg-red-500/10 border border-red-500/25 rounded-xl p-3 flex items-center gap-2 mb-4">
               <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0" /><p className="text-red-300 text-sm">{error}</p>
             </div>
           )}
+
+          {/* Invoice fee preview */}
+          {previewLoading ? (
+            <div className="bg-neutral-800 rounded-xl p-4 mb-5 flex items-center gap-2">
+              <RefreshCw className="w-3.5 h-3.5 text-neutral-500 animate-spin" />
+              <span className="text-neutral-500 text-sm">Calcul des frais de service…</span>
+            </div>
+          ) : preview && preview.orders.length > 0 ? (
+            <div className="bg-neutral-800/60 border border-neutral-700 rounded-xl p-4 mb-5 space-y-3">
+              <div className="flex items-center gap-2 mb-1">
+                <Receipt className="w-3.5 h-3.5 text-orange-400" />
+                <span className="text-white text-sm font-semibold">Détail des frais de service</span>
+                <span className="ml-auto text-neutral-500 text-xs">{preview.deliveredCount} livrée{preview.deliveredCount > 1 ? "s" : ""}{preview.returnedCount > 0 ? ` · ${preview.returnedCount} retour${preview.returnedCount > 1 ? "s" : ""}` : ""}</span>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="flex items-center gap-2 text-neutral-400"><Truck className="w-3.5 h-3.5" />Frais de livraison</span>
+                  <span className="text-neutral-300 font-medium">- €{fmt(preview.deliveryFees)}</span>
+                </div>
+                {preview.returnFees > 0 && (
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="flex items-center gap-2 text-neutral-400"><RotateCcw className="w-3.5 h-3.5" />Frais de retour</span>
+                    <span className="text-neutral-300 font-medium">- €{fmt(preview.returnFees)}</span>
+                  </div>
+                )}
+                <div className="flex items-center justify-between text-sm">
+                  <span className="flex items-center gap-2 text-neutral-400"><Phone className="w-3.5 h-3.5" />Frais call center</span>
+                  <span className="text-neutral-300 font-medium">- €{fmt(preview.callCenterFees)}</span>
+                </div>
+                <div className="h-px bg-neutral-700" />
+                <div className="flex items-center justify-between">
+                  <span className="text-neutral-300 text-sm font-medium">Revenus bruts</span>
+                  <span className="text-white font-semibold">€{fmt(preview.grossAmount)}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-neutral-400 text-sm">Total frais de service</span>
+                  <span className="text-red-400 font-semibold">- €{fmt(preview.totalFees)}</span>
+                </div>
+                <div className="flex items-center justify-between bg-orange-500/10 border border-orange-500/20 rounded-lg px-3 py-2 mt-1">
+                  <span className="text-orange-300 text-sm font-semibold flex items-center gap-1.5">
+                    <ChevronRight className="w-3.5 h-3.5" />Net disponible
+                  </span>
+                  <span className="text-orange-400 font-bold text-base">€{fmt(data?.balance ?? 0)}</span>
+                </div>
+              </div>
+            </div>
+          ) : preview && preview.orders.length === 0 ? (
+            <div className="bg-neutral-800/40 border border-neutral-700 rounded-xl px-4 py-3 mb-5 flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+              <span className="text-neutral-400 text-sm">Toutes les commandes ont déjà été facturées — aucun frais supplémentaire.</span>
+            </div>
+          ) : null}
+
           {data && (
             <div className="bg-orange-500/5 border border-orange-500/15 rounded-xl px-4 py-3 mb-5 flex items-center justify-between">
-              <span className="text-neutral-400 text-sm">Solde disponible</span>
+              <span className="text-neutral-400 text-sm">Solde net disponible</span>
               <span className="text-orange-400 font-bold text-lg">€{fmt(data.balance)}</span>
             </div>
           )}
@@ -621,7 +687,7 @@ export default function WalletPage() {
               <Button type="submit" disabled={submitting || !selectedMethod} className="bg-orange-500 hover:bg-orange-600 text-white font-semibold disabled:opacity-50">
                 {submitting ? "Envoi…" : "Soumettre la demande"}
               </Button>
-              <Button type="button" variant="ghost" onClick={() => { setShowForm(false); setError("") }}
+              <Button type="button" variant="ghost" onClick={() => { setShowForm(false); setError(""); setPreview(null) }}
                 className="text-neutral-400 hover:text-white hover:bg-white/5">Annuler</Button>
             </div>
           </form>
@@ -795,7 +861,7 @@ export default function WalletPage() {
             <div className="px-5 py-4 border-b border-neutral-800 flex items-center justify-between">
               <h3 className="text-white font-semibold">Historique des retraits</h3>
               {!showForm && (
-                <Button onClick={() => setShowForm(true)} size="sm" className="bg-orange-500 hover:bg-orange-600 text-white text-xs h-8">
+                <Button onClick={openWithdrawalForm} size="sm" className="bg-orange-500 hover:bg-orange-600 text-white text-xs h-8">
                   <Plus className="w-3.5 h-3.5 mr-1" />Nouveau retrait
                 </Button>
               )}
