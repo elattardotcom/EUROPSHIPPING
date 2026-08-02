@@ -336,8 +336,6 @@ export default function LandingPage() {
             <p className="text-neutral-500 text-sm max-w-lg mx-auto">{t.flow_sub}</p>
           </div>
           <div className="relative">
-            <div className="absolute top-10 left-0 right-0 h-px hidden md:block"
-              style={{ background: "linear-gradient(90deg, transparent, rgba(16,185,129,0.3), rgba(249,115,22,0.3), rgba(99,102,241,0.3), transparent)" }} />
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {([
                 { icon: Link2,     step: "01", color: "#6366f1", glow: "rgba(99,102,241,0.2)"  },
