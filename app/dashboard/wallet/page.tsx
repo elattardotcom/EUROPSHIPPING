@@ -329,6 +329,29 @@ async function downloadInvoice(inv: Invoice, clientWithdrawals: Withdrawal[], in
   }
 }
 
+/* ── Brand logos ─────────────────────────────────────────────── */
+function WiseLogo({ size = 18 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 20 20" fill="none">
+      <rect width="20" height="20" rx="5" fill="#9FE870"/>
+      <path d="M4 6.5L7.2 13.5L10 8.5L12.8 13.5L16 6.5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  )
+}
+
+function BinanceLogo({ size = 18 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 20 20" fill="none">
+      <rect width="20" height="20" rx="5" fill="#F0B90B"/>
+      <path d="M10 7L11.5 8.5L10 10L8.5 8.5z" fill="white"/>
+      <path d="M10 1.5L11.5 3L10 4.5L8.5 3z" fill="white"/>
+      <path d="M10 15.5L11.5 17L10 18.5L8.5 17z" fill="white"/>
+      <path d="M3.5 8.5L5 10L3.5 11.5L2 10z" fill="white"/>
+      <path d="M16.5 8.5L18 10L16.5 11.5L15 10z" fill="white"/>
+    </svg>
+  )
+}
+
 const INVOICES: Invoice[] = [
   { id: "1", number: "FAC-2025-0047", amount: 89.00,  status: "paid",    date: "1 Mai 2025",  dueDate: "15 Mai 2025",  description: "Abonnement mensuel — Mai 2025" },
   { id: "2", number: "FAC-2025-0046", amount: 156.50, status: "paid",    date: "1 Avr 2025",  dueDate: "15 Avr 2025",  description: "Abonnement + Pack SMS — Avril 2025" },
@@ -726,11 +749,11 @@ export default function WalletPage() {
                           : "bg-neutral-800 border-neutral-700 hover:border-neutral-600"
                       }`}>
                       <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                        m.type === "bank" ? "bg-blue-500/15" : m.type === "wise" ? "bg-green-500/15" : "bg-purple-500/15"
+                        m.type === "bank" ? "bg-blue-500/15" : "bg-transparent"
                       }`}>
                         {m.type === "bank" ? <Building2 className="w-4 h-4 text-blue-400" />
-                          : m.type === "wise" ? <ArrowRight className="w-4 h-4 text-green-400" />
-                          : <Bitcoin className="w-4 h-4 text-purple-400" />}
+                          : m.type === "wise" ? <WiseLogo size={28} />
+                          : <BinanceLogo size={28} />}
                       </div>
                       <div className="text-left min-w-0 flex-1">
                         <p className="text-white text-sm font-medium">{m.label}</p>
@@ -846,11 +869,11 @@ export default function WalletPage() {
                             : "bg-neutral-800 border-neutral-700 hover:border-neutral-600"
                         }`}>
                         <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                          m.type === "bank" ? "bg-blue-500/15" : m.type === "wise" ? "bg-green-500/15" : "bg-purple-500/15"
+                          m.type === "bank" ? "bg-blue-500/15" : "bg-transparent"
                         }`}>
                           {m.type === "bank" ? <Building2 className="w-3.5 h-3.5 text-blue-400" />
-                            : m.type === "wise" ? <ArrowRight className="w-3.5 h-3.5 text-green-400" />
-                            : <Bitcoin className="w-3.5 h-3.5 text-purple-400" />}
+                            : m.type === "wise" ? <WiseLogo size={26} />
+                            : <BinanceLogo size={26} />}
                         </div>
                         <div className="text-left min-w-0 flex-1">
                           <p className="text-white text-xs font-medium">{m.label}</p>
