@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 import { ArrowRight, Truck, Phone, Banknote, Shield, Zap, BarChart3, Globe2 } from "lucide-react"
+import { ArticleHeader } from "@/components/blog/ArticleHeader"
 
 export const metadata: Metadata = {
   title: "Dropshipping COD Italie — Cash on Delivery Italie | CODShipEurope",
@@ -77,22 +78,7 @@ export default function ItaliePage() {
     <div className="min-h-screen bg-[#080808] text-white">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
-      <header style={{ background: "rgba(6,6,6,0.92)", backdropFilter: "blur(24px)", borderBottom: "1px solid rgba(255,255,255,0.06)" }} className="sticky top-0 z-40 h-16 flex items-center">
-        <div className="max-w-6xl mx-auto px-6 w-full flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: "linear-gradient(135deg,#f97316,#dc2626)" }}>
-              <span className="text-white font-black text-xs">C</span>
-            </div>
-            <span className="font-bold text-white text-sm">CODShipEurope</span>
-          </Link>
-          <div className="flex items-center gap-4">
-            <Link href="/blog" className="text-neutral-400 hover:text-white text-sm transition-colors">Blog</Link>
-            <Link href="/?signup=1" className="px-4 py-2 rounded-lg text-sm font-semibold text-white" style={{ background: "linear-gradient(135deg,#f97316,#dc2626)" }}>
-              Commencer
-            </Link>
-          </div>
-        </div>
-      </header>
+      <ArticleHeader />
 
       <section className="max-w-6xl mx-auto px-6 pt-20 pb-16 text-center">
         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-orange-500/30 bg-orange-500/10 text-orange-400 text-xs font-medium mb-6">

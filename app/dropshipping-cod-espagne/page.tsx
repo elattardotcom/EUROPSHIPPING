@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 import { CheckCircle, ArrowRight, Truck, Phone, Banknote, Shield, Clock, Star, Users, BarChart3, Zap, Globe2 } from "lucide-react"
+import { ArticleHeader } from "@/components/blog/ArticleHeader"
 
 export const metadata: Metadata = {
   title: "Dropshipping COD Espagne — Cash on Delivery Espagne | CODShipEurope",
