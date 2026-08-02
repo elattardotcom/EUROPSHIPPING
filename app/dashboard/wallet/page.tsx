@@ -974,8 +974,25 @@ export default function WalletPage() {
                   return (
                     <div key={w.id} className="px-5 py-4 flex items-center justify-between gap-4 hover:bg-neutral-800/30 transition-colors">
                       <div className="flex items-center gap-4 min-w-0">
-                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${w.status === "approved" ? "bg-emerald-500/15" : w.status === "rejected" ? "bg-red-500/15" : "bg-amber-500/15"}`}>
-                          <cfg.Icon className={`w-5 h-5 ${cfg.color}`} />
+                        {/* Payment method logo */}
+                        <div className="relative flex-shrink-0">
+                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                            w.paymentMethodType === "wise"   ? "" :
+                            w.paymentMethodType === "crypto" ? "" :
+                            w.status === "approved" ? "bg-emerald-500/15" : w.status === "rejected" ? "bg-red-500/15" : "bg-amber-500/15"
+                          }`}>
+                            {w.paymentMethodType === "wise"
+                              ? <WiseLogo size={36} />
+                              : w.paymentMethodType === "crypto"
+                              ? <BinanceLogo size={36} />
+                              : <Building2 className="w-5 h-5 text-blue-400" />}
+                          </div>
+                          {/* Status badge */}
+                          <span className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center border-2 border-neutral-900 ${
+                            w.status === "approved" ? "bg-emerald-500" : w.status === "rejected" ? "bg-red-500" : "bg-amber-500"
+                          }`}>
+                            <cfg.Icon className="w-2 h-2 text-white" />
+                          </span>
                         </div>
                         <div className="min-w-0">
                           <p className="text-white text-sm font-medium">{getWithdrawalLabel(w)}</p>
