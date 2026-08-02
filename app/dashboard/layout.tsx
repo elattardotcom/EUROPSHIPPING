@@ -7,6 +7,7 @@ import {
   ChevronRight, ChevronDown, LayoutDashboard, Settings, Package,
   Users, ShoppingCart, Wallet, HelpCircle, Bell, RefreshCw,
   Link2, ListOrdered, Gift, Boxes, X, Menu, Search,
+  CheckCircle2, UserPlus, Truck, DollarSign, AlertTriangle, Info,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { getClientIdFromCookie } from "@/lib/client-cookie"
@@ -70,12 +71,56 @@ function buildNavItems(leadsCount: number, ordersCount: number): NavItem[] {
   ]
 }
 
+type NotifType = "lead_new" | "lead_confirmed" | "order_new" | "order_delivered" | "wallet_approved" | "wallet_rejected" | "wallet_update" | "wallet_requested" | "system"
+
 interface Notif {
-  id: string
-  text: string
-  time: string
-  dot: string
-  read: boolean
+  id:       string
+  type:     NotifType
+  title:    string
+  sub?:     string
+  time:     string
+  read:     boolean
+  href?:    string
+}
+
+const NOTIF_CFG: Record<NotifType, { Icon: React.ElementType; iconBg: string; iconColor: string; badge: string; badgeBg: string }> = {
+  lead_new:        { Icon: UserPlus,      iconBg: "bg-purple-500/15",  iconColor: "text-purple-400",  badge: "Lead",     badgeBg: "bg-purple-500/15 text-purple-400"  },
+  lead_confirmed:  { Icon: CheckCircle2,  iconBg: "bg-emerald-500/15", iconColor: "text-emerald-400", badge: "Lead",     badgeBg: "bg-emerald-500/15 text-emerald-400" },
+  order_new:       { Icon: ShoppingCart,  iconBg: "bg-blue-500/15",    iconColor: "text-blue-400",    badge: "Commande", badgeBg: "bg-blue-500/15 text-blue-400"       },
+  order_delivered: { Icon: Truck,         iconBg: "bg-emerald-500/15", iconColor: "text-emerald-400", badge: "Commande", badgeBg: "bg-emerald-500/15 text-emerald-400" },
+  wallet_approved: { Icon: CheckCircle2,  iconBg: "bg-emerald-500/15", iconColor: "text-emerald-400", badge: "Wallet",   badgeBg: "bg-emerald-500/15 text-emerald-400" },
+  wallet_rejected: { Icon: AlertTriangle, iconBg: "bg-red-500/15",     iconColor: "text-red-400",     badge: "Wallet",   badgeBg: "bg-red-500/15 text-red-400"         },
+  wallet_requested:{ Icon: DollarSign,    iconBg: "bg-orange-500/15",  iconColor: "text-orange-400",  badge: "Wallet",   badgeBg: "bg-orange-500/15 text-orange-400"   },
+  wallet_update:   { Icon: DollarSign,    iconBg: "bg-teal-500/15",    iconColor: "text-teal-400",    badge: "Wallet",   badgeBg: "bg-teal-500/15 text-teal-400"       },
+  system:          { Icon: Info,          iconBg: "bg-neutral-500/15", iconColor: "text-neutral-400", badge: "Système",  badgeBg: "bg-neutral-500/15 text-neutral-400" },
+}
+
+/* ── Toast for real-time events ─────────────────────────────── */
+interface Toast { id: string; type: NotifType; title: string; sub?: string }
+
+function ToastStack({ toasts, onDismiss }: { toasts: Toast[]; onDismiss: (id: string) => void }) {
+  return (
+    <div className="fixed bottom-20 md:bottom-6 right-4 z-[100] flex flex-col gap-2 items-end pointer-events-none">
+      {toasts.map(t => {
+        const cfg = NOTIF_CFG[t.type]
+        return (
+          <div key={t.id}
+            className="pointer-events-auto flex items-start gap-3 bg-neutral-900 border border-neutral-700 rounded-xl px-4 py-3 shadow-2xl max-w-[300px] animate-in slide-in-from-right-4 fade-in duration-300">
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${cfg.iconBg}`}>
+              <cfg.Icon className={`w-4 h-4 ${cfg.iconColor}`} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-white text-sm font-medium leading-snug">{t.title}</p>
+              {t.sub && <p className="text-neutral-400 text-xs mt-0.5">{t.sub}</p>}
+            </div>
+            <button onClick={() => onDismiss(t.id)} className="text-neutral-600 hover:text-neutral-400 flex-shrink-0 mt-0.5">
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        )
+      })}
+    </div>
+  )
 }
 
 function relativeTime(isoOrFr: string): string {
@@ -114,6 +159,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [expandedMenus,  setExpandedMenus]  = useState<string[]>(["leads", "orders", "affiliates", "cod-drop", "wallet", "stores"])
   const [showNotifs,     setShowNotifs]     = useState(false)
   const [notifs,         setNotifs]         = useState<Notif[]>([])
+  const [toasts,         setToasts]         = useState<Toast[]>([])
   const [readIds,        setReadIds]        = useState<Set<string>>(() => {
     if (typeof window === "undefined") return new Set()
     try { return new Set(JSON.parse(localStorage.getItem("client_notif_read") ?? "[]")) } catch { return new Set() }
@@ -149,14 +195,22 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const unreadCount = notifs.filter(n => !n.read).length
 
+  const dismissToast = useCallback((id: string) => {
+    setToasts(prev => prev.filter(t => t.id !== id))
+  }, [])
+
   const pushNotif = useCallback((n: Omit<Notif, "id" | "read">) => {
     const id = `rt-${Date.now()}`
     setReadIds(prev => {
       const isRead = prev.has(id)
-      setNotifs(existing => [{ ...n, id, read: isRead }, ...existing].slice(0, 20))
+      setNotifs(existing => [{ ...n, id, read: isRead }, ...existing].slice(0, 30))
       return prev
     })
-  }, [])
+    // Also show a toast
+    const toast: Toast = { id, type: n.type, title: n.title, sub: n.sub }
+    setToasts(prev => [...prev.slice(-2), toast]) // max 3 toasts
+    setTimeout(() => dismissToast(id), 4000)
+  }, [dismissToast])
 
   const navItems = buildNavItems(leadsCount, ordersCount)
 
@@ -188,15 +242,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           setLeadsCount(leads.length)
           leads
             .filter((l: { status: string }) => l.status === "CONFIRMED")
-            .slice(0, 4)
-            .forEach((l: { id: string; name: string; createdAt?: string }) => {
+            .slice(0, 5)
+            .forEach((l: { id: string; name: string; product?: string; createdAt?: string }) => {
               const id = `lead-${l.id}`
               newNotifs.push({
-                id,
-                text: `Lead confirmé — ${l.name}`,
-                time: l.createdAt ? relativeTime(l.createdAt) : "Récemment",
-                dot:  "bg-emerald-500",
-                read: seen.has(id),
+                id, type: "lead_confirmed",
+                title: `Lead confirmé`,
+                sub:   l.name + (l.product ? ` · ${l.product}` : ""),
+                time:  l.createdAt ? relativeTime(l.createdAt) : "Récemment",
+                href:  "/dashboard/leads",
+                read:  seen.has(id),
               })
             })
         }
@@ -204,15 +259,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           setOrdersCount(orders.filter((o: { status: string }) => o.status === "PENDING" || o.status === "SHIPPED").length)
           orders
             .filter((o: { status: string }) => o.status === "DELIVERED")
-            .slice(0, 3)
-            .forEach((o: { id: string; name: string; createdAt?: string }) => {
+            .slice(0, 4)
+            .forEach((o: { id: string; customerName?: string; product?: string; createdAt?: string }) => {
               const id = `order-${o.id}`
               newNotifs.push({
-                id,
-                text: `Commande livrée — ${o.name}`,
-                time: o.createdAt ? relativeTime(o.createdAt) : "Récemment",
-                dot:  "bg-blue-500",
-                read: seen.has(id),
+                id, type: "order_delivered",
+                title: `Commande livrée`,
+                sub:   (o.customerName ?? "") + (o.product ? ` · ${o.product}` : ""),
+                time:  o.createdAt ? relativeTime(o.createdAt) : "Récemment",
+                href:  "/dashboard/orders",
+                read:  seen.has(id),
               })
             })
         }
@@ -255,27 +311,30 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   // Realtime notifications
   const onRealtimeEvent = useCallback((e: RealtimeEvent) => {
-    const now = "À l'instant"
+    const fmt = (n: number) => `€${n.toFixed(2)}`
     if (e.type === "withdrawal_inserted") {
-      pushNotif({ text: `Retrait demandé — €${e.row.amount.toFixed(2)}`, time: now, dot: "bg-orange-500" })
+      pushNotif({ type: "wallet_requested", title: "Retrait en cours de traitement", sub: fmt(e.row.amount), time: "À l'instant", href: "/dashboard/wallet" })
     } else if (e.type === "withdrawal_updated") {
       if (e.row.status === "approved") {
-        pushNotif({ text: `Retrait approuvé — €${e.row.amount.toFixed(2)}`, time: now, dot: "bg-emerald-500" })
+        pushNotif({ type: "wallet_approved", title: "Retrait approuvé ✓", sub: `${fmt(e.row.amount)} envoyé sur votre compte`, time: "À l'instant", href: "/dashboard/wallet" })
+        if (e.row.amount) fetchBalance(clientId)
       } else if (e.row.status === "rejected") {
-        pushNotif({ text: `Retrait rejeté — €${e.row.amount.toFixed(2)}`, time: now, dot: "bg-red-500" })
+        pushNotif({ type: "wallet_rejected", title: "Retrait refusé", sub: `${fmt(e.row.amount)} — contactez le support`, time: "À l'instant", href: "/dashboard/wallet" })
       }
     } else if (e.type === "balance_updated") {
-      pushNotif({ text: `Solde mis à jour — €${e.row.amount.toFixed(2)}`, time: now, dot: "bg-teal-500" })
+      pushNotif({ type: "wallet_update", title: "Solde mis à jour", sub: fmt(e.row.amount), time: "À l'instant", href: "/dashboard/wallet" })
+      fetchBalance(clientId)
     } else if (e.type === "lead_inserted") {
-      pushNotif({ text: `Nouveau lead — ${e.row.name}`, time: now, dot: "bg-purple-500" })
+      pushNotif({ type: "lead_new", title: "Nouveau lead reçu", sub: e.row.name, time: "À l'instant", href: "/dashboard/leads" })
+      setLeadsCount(c => c + 1)
     } else if (e.type === "lead_updated" && e.row.status === "CONFIRMED") {
-      pushNotif({ text: `Lead confirmé — ${e.row.name}`, time: now, dot: "bg-emerald-500" })
+      pushNotif({ type: "lead_confirmed", title: "Lead confirmé", sub: e.row.name, time: "À l'instant", href: "/dashboard/leads" })
     } else if (e.type === "order_inserted") {
-      pushNotif({ text: `Nouvelle commande — ${e.row.name}`, time: now, dot: "bg-blue-500" })
+      pushNotif({ type: "order_new", title: "Nouvelle commande", sub: e.row.name, time: "À l'instant", href: "/dashboard/orders" })
     } else if (e.type === "order_updated" && e.row.status === "DELIVERED") {
-      pushNotif({ text: `Commande livrée — ${e.row.name}`, time: now, dot: "bg-emerald-500" })
+      pushNotif({ type: "order_delivered", title: "Commande livrée", sub: e.row.name, time: "À l'instant", href: "/dashboard/orders" })
     }
-  }, [pushNotif])
+  }, [pushNotif, clientId, fetchBalance])
 
   useRealtime(onRealtimeEvent)
 
@@ -530,40 +589,75 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </Button>
 
               {showNotifs && (
-                <div className="absolute right-0 top-12 w-[calc(100vw-2rem)] max-w-[320px] bg-neutral-900 border border-neutral-800 rounded-xl shadow-2xl z-50">
-                  <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-800">
-                    <p className="text-sm font-semibold text-white">Notifications</p>
-                    <button onClick={() => setShowNotifs(false)} className="text-neutral-400 hover:text-orange-500">
-                      <X className="w-4 h-4" />
-                    </button>
-                  </div>
-                  <div className="py-2 max-h-80 overflow-y-auto">
-                    {notifs.length === 0 ? (
-                      <p className="text-center text-neutral-500 text-sm py-6">Aucune notification</p>
-                    ) : notifs.map(n => (
-                      <div
-                        key={n.id}
-                        onClick={() => markRead(n.id)}
-                        className={`flex items-start gap-3 px-4 py-3 hover:bg-neutral-800 cursor-pointer transition-colors ${!n.read ? "bg-orange-500/5 border-l-2 border-orange-500" : "border-l-2 border-transparent"}`}
-                      >
-                        <span className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${n.dot}`} />
-                        <div className="min-w-0 flex-1">
-                          <p className={`text-sm leading-snug ${!n.read ? "text-white font-medium" : "text-neutral-300"}`}>{n.text}</p>
-                          <p className="text-xs text-neutral-500 mt-0.5">{n.time}</p>
-                        </div>
-                        {!n.read && <span className="w-1.5 h-1.5 bg-orange-500 rounded-full flex-shrink-0 mt-1.5" />}
+                <>
+                  {/* Backdrop */}
+                  <div className="fixed inset-0 z-40" onClick={() => setShowNotifs(false)} />
+                  <div className="absolute right-0 top-12 w-[calc(100vw-2rem)] max-w-[360px] bg-neutral-900 border border-neutral-800 rounded-2xl shadow-2xl z-50 overflow-hidden">
+                    {/* Header */}
+                    <div className="flex items-center justify-between px-4 py-3.5 border-b border-neutral-800">
+                      <div className="flex items-center gap-2">
+                        <Bell className="w-4 h-4 text-orange-400" />
+                        <p className="text-sm font-semibold text-white">Notifications</p>
+                        {unreadCount > 0 && (
+                          <span className="text-xs bg-orange-500 text-white font-bold rounded-full px-1.5 py-0.5 leading-none">
+                            {unreadCount}
+                          </span>
+                        )}
                       </div>
-                    ))}
+                      <div className="flex items-center gap-3">
+                        {unreadCount > 0 && (
+                          <button onClick={markAllRead} className="text-xs text-orange-400 hover:text-orange-300 font-medium transition-colors">
+                            Tout lire
+                          </button>
+                        )}
+                        <button onClick={() => setShowNotifs(false)} className="text-neutral-500 hover:text-white transition-colors">
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* List */}
+                    <div className="max-h-[420px] overflow-y-auto">
+                      {notifs.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center py-12 gap-3">
+                          <div className="w-12 h-12 rounded-full bg-neutral-800 flex items-center justify-center">
+                            <Bell className="w-5 h-5 text-neutral-600" />
+                          </div>
+                          <p className="text-neutral-500 text-sm">Aucune notification</p>
+                        </div>
+                      ) : notifs.map(n => {
+                        const cfg = NOTIF_CFG[n.type]
+                        const Inner = (
+                          <div onClick={() => markRead(n.id)}
+                            className={`flex items-start gap-3 px-4 py-3.5 cursor-pointer transition-colors hover:bg-neutral-800/60 ${!n.read ? "bg-orange-500/[0.04]" : ""}`}>
+                            {/* Icon */}
+                            <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${cfg.iconBg}`}>
+                              <cfg.Icon className={`w-4 h-4 ${cfg.iconColor}`} />
+                            </div>
+                            {/* Content */}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-0.5">
+                                <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${cfg.badgeBg}`}>{cfg.badge}</span>
+                                {!n.read && <span className="w-1.5 h-1.5 bg-orange-500 rounded-full flex-shrink-0" />}
+                              </div>
+                              <p className={`text-sm leading-snug ${!n.read ? "text-white font-medium" : "text-neutral-300"}`}>{n.title}</p>
+                              {n.sub && <p className="text-xs text-neutral-500 mt-0.5 truncate">{n.sub}</p>}
+                              <p className="text-[11px] text-neutral-600 mt-1">{n.time}</p>
+                            </div>
+                            {n.href && <ChevronRight className="w-3.5 h-3.5 text-neutral-700 flex-shrink-0 mt-1" />}
+                          </div>
+                        )
+                        return n.href ? (
+                          <Link key={n.id} href={n.href} onClick={() => { markRead(n.id); setShowNotifs(false) }}>
+                            {Inner}
+                          </Link>
+                        ) : (
+                          <div key={n.id}>{Inner}</div>
+                        )
+                      })}
+                    </div>
                   </div>
-                  <div className="px-4 py-2.5 border-t border-neutral-800">
-                    <button
-                      onClick={markAllRead}
-                      className="text-xs text-orange-400 hover:text-orange-300 font-medium"
-                    >
-                      Tout marquer comme lu
-                    </button>
-                  </div>
-                </div>
+                </>
               )}
             </div>
 
@@ -585,6 +679,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           {children}
         </main>
       </div>
+
+      {/* ── Toast notifications ─────────────────────────────── */}
+      <ToastStack toasts={toasts} onDismiss={dismissToast} />
 
       {/* ── Mobile Bottom Tab Bar ───────────────────────────── */}
       <nav className="fixed bottom-0 left-0 right-0 h-16 bg-neutral-900 border-t border-neutral-800 flex md:hidden z-30">
