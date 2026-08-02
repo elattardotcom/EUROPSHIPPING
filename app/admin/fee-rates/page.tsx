@@ -4,6 +4,11 @@ import { useState, useEffect, useRef } from "react"
 import { Truck, RotateCcw, Phone, Plus, Pencil, Trash2, Check, X, RefreshCw, Info } from "lucide-react"
 import type { FeeRate } from "@/lib/db"
 
+function countryFlag(code: string): string {
+  if (code === "DEFAULT") return "🌍"
+  return code.toUpperCase().split("").map(c => String.fromCodePoint(0x1F1E6 - 65 + c.charCodeAt(0))).join("")
+}
+
 const COUNTRY_PRESETS: { code: string; name: string }[] = [
   { code: "DEFAULT", name: "Par défaut (fallback)" },
   { code: "ES", name: "Espagne" },
@@ -187,15 +192,18 @@ export default function FeeRatesPage() {
             {/* Add new row */}
             {showAdd && (
               <div className="px-5 py-4 flex items-center gap-4 bg-orange-500/5 border-b border-orange-500/20">
-                <div className="w-24">
+                <div className="w-24 flex items-center gap-2">
+                  {newRow.countryCode && (
+                    <span className="text-2xl leading-none flex-shrink-0">{countryFlag(newRow.countryCode)}</span>
+                  )}
                   <select
                     value={newRow.countryCode}
                     onChange={e => onPresetSelect(v => setNewRow(v), newRow, e.target.value)}
-                    className="w-full bg-neutral-800 border border-neutral-600 rounded-lg px-2 py-1.5 text-sm text-white focus:outline-none focus:border-orange-500"
+                    className="flex-1 min-w-0 bg-neutral-800 border border-neutral-600 rounded-lg px-2 py-1.5 text-sm text-white focus:outline-none focus:border-orange-500"
                   >
                     <option value="">Code</option>
                     {COUNTRY_PRESETS.filter(p => !rates.find(r => r.countryCode === p.code)).map(p => (
-                      <option key={p.code} value={p.code}>{p.code}</option>
+                      <option key={p.code} value={p.code}>{countryFlag(p.code)} {p.code} — {p.name}</option>
                     ))}
                   </select>
                 </div>
@@ -242,7 +250,8 @@ export default function FeeRatesPage() {
                 const isDefault = rate.countryCode === "DEFAULT"
                 return (
                   <div key={rate.countryCode} className={`px-5 py-3.5 flex items-center gap-4 transition-colors ${isEditing ? "bg-orange-500/5" : "hover:bg-neutral-800/30"}`}>
-                    <div className="w-24">
+                    <div className="w-24 flex items-center gap-2">
+                      <span className="text-2xl leading-none">{countryFlag(rate.countryCode)}</span>
                       <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-mono font-bold ${isDefault ? "bg-blue-500/15 text-blue-400" : "bg-neutral-800 text-neutral-300"}`}>
                         {rate.countryCode}
                       </span>
