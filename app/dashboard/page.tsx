@@ -1,8 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Store, RefreshCw, CalendarDays } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { RefreshCw } from "lucide-react"
 import DashboardPage from "@/components/cod/dashboard"
 import { getClientIdFromCookie } from "@/lib/client-cookie"
 import type { Period } from "@/components/cod/dashboard"
@@ -15,14 +14,20 @@ const PERIODS: { label: string; value: Period }[] = [
   { label: "Tout",        value: "all"   },
 ]
 
+function greeting(name: string) {
+  const h = new Date().getHours()
+  const prefix = h < 12 ? "Bonjour" : h < 18 ? "Bon après-midi" : "Bonsoir"
+  return name ? `${prefix}, ${name}` : prefix
+}
+
 export default function DashboardHome() {
-  const [lastUpdated,    setLastUpdated]    = useState(new Date())
   const [refreshKey,     setRefreshKey]     = useState(0)
   const [period,         setPeriod]         = useState<Period>("all")
   const [clientId,       setClientId]       = useState(getClientIdFromCookie)
   const [clientName,     setClientName]     = useState("")
   const [clientInitials, setClientInitials] = useState("…")
   const [clientColor,    setClientColor]    = useState("from-teal-500 to-emerald-600")
+  const [now,            setNow]            = useState(new Date())
 
   useEffect(() => {
     fetch("/api/auth/me")
@@ -37,62 +42,51 @@ export default function DashboardHome() {
       .catch(() => {})
   }, [])
 
-  const formatTime = (date: Date) =>
-    [date.getHours(), date.getMinutes(), date.getSeconds()]
-      .map(n => n.toString().padStart(2, "0"))
-      .join(":")
+  useEffect(() => {
+    const t = setInterval(() => setNow(new Date()), 60_000)
+    return () => clearInterval(t)
+  }, [])
+
+  const timeStr = now.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })
+  const dateStr = now.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" })
 
   return (
-    <div className="p-4 md:p-6">
+    <div className="p-4 md:p-6 space-y-6">
       <OnboardingBanner />
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <div className={`w-12 h-12 bg-gradient-to-br ${clientColor} rounded-full flex items-center justify-center text-white font-semibold text-lg flex-shrink-0`}>
+          <div className={`w-11 h-11 bg-gradient-to-br ${clientColor} rounded-full flex items-center justify-center text-white font-bold text-base flex-shrink-0 shadow-lg`}>
             {clientInitials}
           </div>
           <div>
-            <h1 className="text-2xl font-semibold text-white">
-              Bienvenue{clientName ? `, ${clientName}` : ""} !
-            </h1>
-            <p className="text-neutral-500 text-sm">Voici votre aperçu des opérations du jour</p>
+            <h1 className="text-xl font-bold text-white leading-tight">{greeting(clientName)}</h1>
+            <p className="text-neutral-500 text-xs capitalize">{dateStr} · {timeStr}</p>
           </div>
         </div>
-        <div className="flex items-center gap-3 flex-wrap">
-          <div className="flex items-center gap-2 bg-neutral-900 border border-neutral-800 px-3 py-1.5 rounded-lg">
-            <Store className="w-4 h-4 text-neutral-400" />
-            <span className="text-sm text-neutral-300">CODShipEurope Enterprise</span>
+
+        <div className="flex items-center gap-3">
+          {/* Period pills */}
+          <div className="flex items-center bg-neutral-900 border border-neutral-800 rounded-xl p-1 gap-1">
+            {PERIODS.map(p => (
+              <button key={p.value} onClick={() => setPeriod(p.value)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                  period === p.value
+                    ? "bg-orange-500 text-white shadow-sm"
+                    : "text-neutral-400 hover:text-white hover:bg-neutral-800"
+                }`}>
+                {p.label}
+              </button>
+            ))}
           </div>
-          <div className="flex items-center gap-2 bg-neutral-900 border border-neutral-800 px-3 py-1.5 rounded-lg">
-            <RefreshCw className="w-4 h-4 text-neutral-400" />
-            <span className="text-sm text-neutral-300">Mis à jour : {formatTime(lastUpdated)}</span>
-          </div>
-          <Button
-            className="bg-orange-500 hover:bg-orange-600 text-white gap-2"
-            onClick={() => { setLastUpdated(new Date()); setRefreshKey(k => k + 1) }}
+          <button
+            onClick={() => setRefreshKey(k => k + 1)}
+            className="p-2 text-neutral-400 hover:text-white hover:bg-neutral-800 rounded-xl border border-neutral-800 transition-colors"
+            title="Actualiser"
           >
             <RefreshCw className="w-4 h-4" />
-            Actualiser
-          </Button>
-        </div>
-      </div>
-
-      {/* Period selector */}
-      <div className="flex items-center gap-2 mb-8">
-        <CalendarDays className="w-4 h-4 text-neutral-500 flex-shrink-0" />
-        <div className="flex items-center bg-neutral-900 border border-neutral-800 rounded-xl p-1 gap-1">
-          {PERIODS.map(p => (
-            <button
-              key={p.value}
-              onClick={() => setPeriod(p.value)}
-              className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                period === p.value
-                  ? "bg-orange-500 text-white shadow-sm"
-                  : "text-neutral-400 hover:text-white hover:bg-neutral-800"
-              }`}
-            >
-              {p.label}
-            </button>
-          ))}
+          </button>
         </div>
       </div>
 
