@@ -96,6 +96,7 @@ export const MOCK_CLIENT = {
   ordersCount: ALL_ORDERS.length,
   leadsCount: ALL_LEADS.length,
   lastActive: "02 mai 2025 à 12:00",
+  lastLoginAt: null,
   avatarColor: "from-teal-500 to-emerald-600",
 }
 

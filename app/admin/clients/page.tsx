@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect, useCallback } from "react"
 import Link from "next/link"
-import { Search, ChevronDown, ArrowUpRight, Users, TrendingUp, DollarSign, Shield, ChevronLeft, ChevronRight, RefreshCw, Ban, CheckCircle, Loader2 } from "lucide-react"
+import { Search, ChevronDown, ArrowUpRight, Users, TrendingUp, DollarSign, Shield, ChevronLeft, ChevronRight, RefreshCw, Ban, CheckCircle, Loader2, Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import type { Client, Plan, UserStatus } from "@/lib/db"
 import { useI18n } from "@/lib/admin-i18n"
@@ -30,6 +30,21 @@ const STATUS_BG: Record<UserStatus, string> = {
 }
 
 const PER_PAGE = 8
+
+function formatLastLogin(iso: string): string {
+  const d = new Date(iso)
+  const now = new Date()
+  const diffMs = now.getTime() - d.getTime()
+  const diffMin = Math.floor(diffMs / 60000)
+  const diffH   = Math.floor(diffMs / 3600000)
+  const diffD   = Math.floor(diffMs / 86400000)
+  if (diffMin < 1)  return "À l'instant"
+  if (diffMin < 60) return `Il y a ${diffMin} min`
+  if (diffH   < 24) return `Il y a ${diffH}h`
+  if (diffD   < 2)  return "Hier"
+  if (diffD   < 7)  return `Il y a ${diffD}j`
+  return d.toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })
+}
 
 export default function AdminClients() {
   const { t } = useI18n()
@@ -152,7 +167,7 @@ export default function AdminClients() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-neutral-800">
-                {[t("clients_th_client"),"",t("clients_th_plan"),t("clients_th_status"),t("clients_th_stores"),t("clients_th_orders"),t("clients_th_leads"),t("clients_th_mrr"),t("clients_th_joined"),""].map((h,i) => (
+                {[t("clients_th_client"),"",t("clients_th_plan"),t("clients_th_status"),t("clients_th_stores"),t("clients_th_orders"),t("clients_th_leads"),t("clients_th_mrr"),t("clients_th_joined"),"Dernière connexion",""].map((h,i) => (
                   <th key={i} className="text-left p-4 text-xs font-semibold text-neutral-500 uppercase tracking-wider whitespace-nowrap">{h}</th>
                 ))}
               </tr>
@@ -197,6 +212,16 @@ export default function AdminClients() {
                       <td className="p-4 text-sm text-neutral-300 text-center">{c.leadsCount}</td>
                       <td className="p-4"><span className="text-sm font-semibold text-emerald-400">€{c.monthlyRevenue}</span></td>
                       <td className="p-4 text-sm text-neutral-500 whitespace-nowrap">{c.joinedAt}</td>
+                      <td className="p-4 whitespace-nowrap">
+                        {c.lastLoginAt ? (
+                          <div className="flex items-center gap-1.5">
+                            <Clock className="w-3.5 h-3.5 text-neutral-600" />
+                            <span className="text-sm text-neutral-300">{formatLastLogin(c.lastLoginAt)}</span>
+                          </div>
+                        ) : (
+                          <span className="text-sm text-neutral-600">—</span>
+                        )}
+                      </td>
                       <td className="p-4">
                         <div className="flex items-center gap-2">
                           <Link href={`/admin/clients/${c.id}`}>

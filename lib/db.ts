@@ -59,6 +59,7 @@ export interface Client {
   ordersCount: number
   leadsCount: number
   lastActive: string
+  lastLoginAt: string | null
   avatarColor: string
 }
 
@@ -146,6 +147,7 @@ const mapClient = (r: any): Client => ({
   ordersCount:    r.orders_count ?? 0,
   leadsCount:     r.leads_count ?? 0,
   lastActive:     r.last_active ?? "",
+  lastLoginAt:    r.last_login_at ?? null,
   avatarColor:    r.avatar_color ?? "from-indigo-500 to-purple-600",
 })
 
@@ -238,15 +240,18 @@ export async function getClients(): Promise<Client[]> {
   const sb = getSupabaseAdmin()
   if (!sb) return []
   try {
-    const [clientsRes, ordersRes, leadsRes, storesRes] = await Promise.all([
+    const [clientsRes, ordersRes, leadsRes, storesRes, authRes] = await Promise.all([
       sb.from("clients").select("*"),
       sb.from("orders").select("client_id"),
       sb.from("leads").select("client_id"),
       sb.from("stores").select("client_id"),
+      sb.auth.admin.listUsers({ perPage: 1000 }),
     ])
-    const orders = ordersRes.data ?? []
-    const leads  = leadsRes.data  ?? []
-    const stores = storesRes.data ?? []
+    const orders    = ordersRes.data ?? []
+    const leads     = leadsRes.data  ?? []
+    const stores    = storesRes.data ?? []
+    const authUsers = authRes.data?.users ?? []
+    const loginMap  = new Map(authUsers.map(u => [u.email, u.last_sign_in_at ?? null]))
     return (clientsRes.data ?? []).map((r, i) => ({
       id:             r.id,
       firstName:      r.first_name  ?? "",
@@ -265,6 +270,7 @@ export async function getClients(): Promise<Client[]> {
       ordersCount:    orders.filter(o => o.client_id === r.id).length,
       leadsCount:     leads.filter(l  => l.client_id === r.id).length,
       lastActive:     r.last_active ?? "",
+      lastLoginAt:    loginMap.get(r.email) ?? null,
       avatarColor:    AVATAR_COLORS[i % AVATAR_COLORS.length],
     }))
   } catch { return [] }
