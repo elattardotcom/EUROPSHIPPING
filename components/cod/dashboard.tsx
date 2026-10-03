@@ -269,6 +269,42 @@ export default function DashboardPage({
       .slice(0, 3)
   }, [filteredOrders])
 
+  const revenueByCountry = useMemo(() => {
+    const map = new Map<string, { revenue: number; orders: number; countryCode: string }>()
+    filteredOrders.filter(o => o.status === "DELIVERED").forEach(o => {
+      const c = o.country || "Autre"
+      const cur = map.get(c) ?? { revenue: 0, orders: 0, countryCode: o.countryCode || "" }
+      cur.revenue += o.orderValue; cur.orders++
+      map.set(c, cur)
+    })
+    return [...map.entries()]
+      .map(([name, v]) => ({ name, ...v }))
+      .sort((a, b) => b.revenue - a.revenue)
+  }, [filteredOrders])
+
+  const topProducts = useMemo(() => {
+    const map = new Map<string, { revenue: number; orders: number }>()
+    filteredOrders.filter(o => o.status === "DELIVERED").forEach(o => {
+      const p = o.product || "Produit"
+      const cur = map.get(p) ?? { revenue: 0, orders: 0 }
+      cur.revenue += o.orderValue; cur.orders++
+      map.set(p, cur)
+    })
+    return [...map.entries()]
+      .map(([name, v]) => ({ name, ...v }))
+      .sort((a, b) => b.revenue - a.revenue)
+      .slice(0, 5)
+  }, [filteredOrders])
+
+  const maxCountryRevenue = revenueByCountry[0]?.revenue ?? 0
+  const maxProductRevenue = topProducts[0]?.revenue ?? 0
+
+  function flagEmoji(code: string): string {
+    if (!code || code.length !== 2) return "🌍"
+    const base = 127397
+    return String.fromCodePoint(...code.toUpperCase().split("").map(c => base + c.charCodeAt(0)))
+  }
+
   const hasActivity = revenueByDay.some(d => d.leads > 0 || d.orders > 0)
 
   if (loading) return (
@@ -407,6 +443,63 @@ export default function DashboardPage({
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Revenue by country + Top products */}
+      {(revenueByCountry.length > 0 || topProducts.length > 0) && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {revenueByCountry.length > 0 && (
+            <div>
+              <div className="mb-4">
+                <h2 className="text-xl font-semibold text-white">Revenus par pays</h2>
+                <p className="text-sm text-neutral-500">Performance par marché</p>
+              </div>
+              <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-5 space-y-3">
+                {revenueByCountry.map(c => (
+                  <div key={c.name}>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-sm text-white flex items-center gap-2">
+                        <span>{flagEmoji(c.countryCode)}</span>{c.name}
+                        <span className="text-xs text-neutral-500">· {c.orders} commandes</span>
+                      </span>
+                      <span className="text-sm font-semibold text-white">{fmtShort(c.revenue)} {currency}</span>
+                    </div>
+                    <div className="w-full bg-neutral-800 rounded-full h-1.5">
+                      <div className="bg-orange-500 h-1.5 rounded-full"
+                        style={{ width: maxCountryRevenue > 0 ? `${(c.revenue / maxCountryRevenue) * 100}%` : "0%" }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {topProducts.length > 0 && (
+            <div>
+              <div className="mb-4">
+                <h2 className="text-xl font-semibold text-white">Top produits</h2>
+                <p className="text-sm text-neutral-500">Meilleures ventes livrées</p>
+              </div>
+              <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-5 space-y-3">
+                {topProducts.map((p, i) => (
+                  <div key={p.name}>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-sm text-white flex items-center gap-2">
+                        <span className="text-xs text-neutral-500 w-4">#{i + 1}</span>{p.name}
+                        <span className="text-xs text-neutral-500">· {p.orders} ventes</span>
+                      </span>
+                      <span className="text-sm font-semibold text-white">{fmtShort(p.revenue)} {currency}</span>
+                    </div>
+                    <div className="w-full bg-neutral-800 rounded-full h-1.5">
+                      <div className="bg-purple-500 h-1.5 rounded-full"
+                        style={{ width: maxProductRevenue > 0 ? `${(p.revenue / maxProductRevenue) * 100}%` : "0%" }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
