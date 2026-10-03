@@ -1311,7 +1311,7 @@ export default function LandingPage() {
             <p className="text-neutral-800 text-xs">{t.footer_rights}</p>
             <div className="flex flex-wrap gap-3 sm:gap-5 text-xs text-neutral-700">
               <span className="flex items-center gap-1.5"><Mail className="w-3.5 h-3.5" /> contact@codshipeurope.com</span>
-              <span className="flex items-center gap-1.5"><Phone className="w-3.5 h-3.5" /> +1 (385) 885-6423</span>
+              <span className="flex items-center gap-1.5"><Phone className="w-3.5 h-3.5" /> +44 745 341 9433</span>
               <span className="hidden sm:flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5" /> Lisbon, Portugal</span>
             </div>
           </div>
@@ -1322,7 +1322,7 @@ export default function LandingPage() {
 
       {/* ── WhatsApp floating button ─────────────────────────── */}
       <a
-        href="https://wa.me/13858856423"
+        href="https://wa.me/447453419433"
         target="_blank"
         rel="noopener noreferrer"
         aria-label="Chat on WhatsApp"

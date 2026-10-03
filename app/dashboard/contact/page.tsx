@@ -88,16 +88,16 @@ export default function ContactPage() {
             <div>
               <p className="text-white font-semibold text-sm">WhatsApp</p>
               <p className="text-neutral-500 text-xs mt-0.5 mb-2">Chat direct avec notre équipe support</p>
-              <a href="https://wa.me/13858856423?text=Bonjour%2C%20j%27ai%20besoin%20d%27aide%20avec%20CODShipEurope."
+              <a href="https://wa.me/447453419433?text=Bonjour%2C%20j%27ai%20besoin%20d%27aide%20avec%20CODShipEurope."
                 target="_blank" rel="noopener noreferrer"
                 className="text-[#25D366] text-sm hover:opacity-80 transition-opacity font-medium">
-                +1 (385) 885-6423 ↗
+                +44 745 341 9433 ↗
               </a>
             </div>
           </div>
 
           {/* Live Chat → WhatsApp direct */}
-          <a href="https://wa.me/13858856423?text=Bonjour%2C%20j%27ai%20besoin%20d%27aide%20avec%20CODShipEurope."
+          <a href="https://wa.me/447453419433?text=Bonjour%2C%20j%27ai%20besoin%20d%27aide%20avec%20CODShipEurope."
             target="_blank" rel="noopener noreferrer"
             className="bg-neutral-900 border border-[#25D366]/20 rounded-2xl p-5 flex items-start gap-4 hover:border-[#25D366]/40 transition-colors group block">
             <div className="w-10 h-10 rounded-xl bg-[#25D366]/10 border border-[#25D366]/20 flex items-center justify-center flex-shrink-0">
