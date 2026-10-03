@@ -5,7 +5,7 @@ import Link from "next/link"
 import {
   Users, ShoppingCart, DollarSign, UserCheck, ArrowUpRight,
   Clock, AlertCircle, RefreshCw, Radio, Store, TrendingUp,
-  Package, Truck, PhoneCall, CheckCircle, Zap,
+  Package, Truck, PhoneCall, CheckCircle, Zap, TrendingDown,
 } from "lucide-react"
 import type { Client, AdminOrder, AdminLead } from "@/lib/db"
 import { useI18n } from "@/lib/admin-i18n"
@@ -34,6 +34,13 @@ function initials(a: string, b: string) {
   return `${(a[0] ?? "").toUpperCase()}${(b[0] ?? "").toUpperCase()}` || "?"
 }
 
+const RATE_PAIRS = [
+  { currency: "EUR", flag: "🇪🇺", label: "Euro (base)",     color: "#f97316", fixed: 1 },
+  { currency: "USD", flag: "🇺🇸", label: "Dollar US",       color: "#10b981", fixed: null },
+  { currency: "GBP", flag: "🇬🇧", label: "Livre sterling",  color: "#6366f1", fixed: null },
+  { currency: "CAD", flag: "🇨🇦", label: "Dollar canadien", color: "#8b5cf6", fixed: null },
+]
+
 export default function AdminDashboard() {
   const { t } = useI18n()
   const [clients,     setClients]     = useState<Client[]>([])
@@ -42,6 +49,20 @@ export default function AdminDashboard() {
   const [stores,      setStores]      = useState<{ id: string }[]>([])
   const [loading,     setLoading]     = useState(true)
   const [lastRefresh, setLastRefresh] = useState(new Date())
+  const [rates,       setRates]       = useState<Record<string, number>>({})
+  const [ratesDate,   setRatesDate]   = useState("")
+  const [ratesLoading,setRatesLoading]= useState(true)
+
+  useEffect(() => {
+    fetch("/api/rates")
+      .then(r => r.json())
+      .then((r: Record<string, number>) => {
+        setRates(r)
+        setRatesDate(new Date().toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric", timeZone: "Africa/Casablanca" }))
+      })
+      .catch(() => {})
+      .finally(() => setRatesLoading(false))
+  }, [])
 
   const load = useCallback(async () => {
     const [c, o, l, s] = await Promise.all([
@@ -188,6 +209,63 @@ export default function AdminDashboard() {
             </div>
           </div>
         ))}
+      </div>
+
+      {/* ── Taux de change EUR */}
+      <div className="rounded-2xl overflow-hidden" style={{ background: "#0e0e12", border: "1px solid rgba(255,255,255,0.07)" }}>
+        <div className="flex items-center justify-between px-5 py-3.5" style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+          <div className="flex items-center gap-2.5">
+            <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ background: "rgba(249,115,22,0.12)" }}>
+              <DollarSign className="w-3.5 h-3.5 text-orange-400" />
+            </div>
+            <div>
+              <span className="text-white text-sm font-bold">Taux de change</span>
+              <span className="text-neutral-600 text-xs ml-2">Base EUR</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            {ratesDate && <span className="text-neutral-600 text-xs hidden sm:block">{ratesDate}</span>}
+            <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full"
+              style={{ background: "rgba(16,185,129,0.1)", color: "#10b981", border: "1px solid rgba(16,185,129,0.2)" }}>
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              ECB · Temps réel
+            </span>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 divide-x divide-y sm:divide-y-0 divide-white/[0.04]">
+          {ratesLoading ? (
+            <div className="col-span-4 flex items-center justify-center py-8 gap-2">
+              <div className="w-4 h-4 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
+              <span className="text-neutral-500 text-sm">Chargement des taux…</span>
+            </div>
+          ) : (
+            RATE_PAIRS.map(({ currency, flag, label, color, fixed }) => {
+              const rate = fixed !== null ? fixed : rates[currency]
+              return (
+                <div key={currency} className="flex flex-col gap-1.5 px-6 py-5 hover:bg-white/[0.02] transition-colors">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-lg leading-none">{flag}</span>
+                      <span className="text-xs font-black tracking-wide" style={{ color }}>{currency}</span>
+                    </div>
+                    {fixed !== null
+                      ? <span className="text-[9px] font-bold px-1.5 py-0.5 rounded" style={{ background: "rgba(249,115,22,0.12)", color: "#f97316" }}>BASE</span>
+                      : <TrendingUp className="w-3 h-3 text-neutral-700" />
+                    }
+                  </div>
+                  <div className="text-2xl font-black text-white leading-none mt-1">
+                    {rate !== undefined ? rate.toFixed(4) : "—"}
+                  </div>
+                  <p className="text-[10px] text-neutral-500 leading-tight mt-0.5">
+                    1 € = {rate !== undefined ? rate.toFixed(4) : "?"} {currency}
+                  </p>
+                  <p className="text-[10px] text-neutral-700 leading-tight">{label}</p>
+                </div>
+              )
+            })
+          )}
+        </div>
       </div>
 
       {/* ── Leads + Clients tables */}

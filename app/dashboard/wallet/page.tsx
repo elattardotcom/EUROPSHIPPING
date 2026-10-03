@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input"
 import type { Withdrawal, WithdrawalStatus, BalanceAdjustment, PaymentMethod, InvoicePreview } from "@/lib/db"
 import Link from "next/link"
 import { useRealtime, type RealtimeEvent } from "@/hooks/useSse"
+import { useCurrency } from "@/hooks/useCurrency"
 
 // CLIENT_ID is resolved dynamically from /api/auth/me
 
@@ -332,9 +333,9 @@ async function downloadInvoice(inv: Invoice, clientWithdrawals: Withdrawal[], in
 /* ── Brand logos ─────────────────────────────────────────────── */
 function WiseLogo({ size = 18 }: { size?: number }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 20 20" fill="none">
-      <rect width="20" height="20" rx="5" fill="#9FE870"/>
-      <path d="M4 6.5L7.2 13.5L10 8.5L12.8 13.5L16 6.5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
+      <rect width="32" height="32" rx="7" fill="#9FE870"/>
+      <path fill="#163300" d="M8,17 L12,9.5 L23,9.5 L27,14 L23,18.5 L18,18.5 L18,25 L13,25 L13,18.5 Z"/>
     </svg>
   )
 }
@@ -392,6 +393,8 @@ export default function WalletPage() {
   const [selectedMethod, setSelectedMethod] = useState<string>("")
   const [preview,        setPreview]        = useState<InvoicePreview | null>(null)
   const [previewLoading, setPreviewLoading] = useState(false)
+
+  const { fmt: fmtMoney, currency: displayCurrency } = useCurrency()
 
   // Current client — resolved synchronously from cookie, supplemented async
   const [clientId,     setClientId]     = useState(getClientIdFromCookie)
@@ -471,7 +474,7 @@ export default function WalletPage() {
     e.preventDefault()
     const amount = parseFloat(form.amount)
     if (!amount || amount <= 0)        { setError("Montant invalide"); return }
-    if (data && amount > data.balance) { setError(`Solde insuffisant — disponible : €${fmt(data.balance)}`); return }
+    if (data && amount > data.balance) { setError(`Solde insuffisant — disponible : ${fmtMoney(data.balance)}`); return }
     const method = payMethods.find(m => m.id === selectedMethod)
     if (!method) { setError("Veuillez sélectionner une méthode de paiement dans Paramètres"); return }
     const paymentDetails = JSON.stringify(
@@ -507,7 +510,7 @@ export default function WalletPage() {
   const submitQuick = async () => {
     const amount = parseFloat(quickAmount)
     if (!amount || amount <= 0)        { setQuickError("Montant invalide"); return }
-    if (data && amount > data.balance) { setQuickError(`Solde insuffisant — disponible : €${fmt(data.balance)}`); return }
+    if (data && amount > data.balance) { setQuickError(`Solde insuffisant — disponible : ${fmtMoney(data.balance)}`); return }
     const method = payMethods.find(m => m.id === selectedMethod)
     if (!method) { setQuickError("Ajoutez une méthode de paiement dans Paramètres"); return }
     const paymentDetails = JSON.stringify(
@@ -595,7 +598,7 @@ export default function WalletPage() {
           <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
           <Wallet className="w-8 h-8 text-white/60 mb-3" />
           <p className="text-white/70 text-sm font-medium mb-1">Solde disponible</p>
-          <div className="text-4xl font-extrabold text-white">{loading ? "…" : `€${fmt(data?.balance ?? 0)}`}</div>
+          <div className="text-4xl font-extrabold text-white">{loading ? "…" : fmtMoney(data?.balance ?? 0)}</div>
           <p className="text-white/60 text-xs mt-1">Prêt à retirer</p>
           <Button onClick={openWithdrawalForm} disabled={!data || data.balance <= 0}
             className="mt-4 bg-white/20 hover:bg-white/30 text-white border-0 text-sm font-medium w-full disabled:opacity-50">
@@ -609,7 +612,7 @@ export default function WalletPage() {
               <div><p className="text-xs font-medium text-white">Revenus livrés</p><p className="text-xs text-neutral-500">Commandes livrées</p></div>
               <div className="w-8 h-8 rounded-lg bg-teal-500/10 flex items-center justify-center"><TrendingUp className="w-4 h-4 text-teal-400" /></div>
             </div>
-            <div className="text-2xl font-bold text-white mb-1">{loading ? "…" : `€${fmt(data?.grossRevenue ?? 0)}`}</div>
+            <div className="text-2xl font-bold text-white mb-1">{loading ? "…" : fmtMoney(data?.grossRevenue ?? 0)}</div>
             <div className="w-full bg-neutral-800 rounded-full h-1.5"><div className="bg-teal-500 h-1.5 rounded-full w-full" /></div>
           </div>
           <div className="bg-neutral-900 border border-neutral-800 border-l-4 border-l-emerald-500 rounded-xl p-5">
@@ -617,7 +620,7 @@ export default function WalletPage() {
               <div><p className="text-xs font-medium text-white">Retiré</p><p className="text-xs text-neutral-500">Retraits approuvés</p></div>
               <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center"><TrendingDown className="w-4 h-4 text-emerald-400" /></div>
             </div>
-            <div className="text-2xl font-bold text-white mb-1">{loading ? "…" : `€${fmt(data?.approved ?? 0)}`}</div>
+            <div className="text-2xl font-bold text-white mb-1">{loading ? "…" : fmtMoney(data?.approved ?? 0)}</div>
             <div className="w-full bg-neutral-800 rounded-full h-1.5">
               <div className="bg-emerald-500 h-1.5 rounded-full" style={{ width: `${data?.grossRevenue ? Math.min(100, (data.approved / data.grossRevenue) * 100) : 0}%` }} />
             </div>
@@ -627,7 +630,7 @@ export default function WalletPage() {
               <div><p className="text-xs font-medium text-white">En traitement</p><p className="text-xs text-neutral-500">Retraits en attente</p></div>
               <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center"><Clock className="w-4 h-4 text-amber-400" /></div>
             </div>
-            <div className="text-2xl font-bold text-white mb-1">{loading ? "…" : `€${fmt(data?.pending ?? 0)}`}</div>
+            <div className="text-2xl font-bold text-white mb-1">{loading ? "…" : fmtMoney(data?.pending ?? 0)}</div>
             <div className="w-full bg-neutral-800 rounded-full h-1.5">
               <div className="bg-amber-500 h-1.5 rounded-full" style={{ width: `${data?.grossRevenue ? Math.min(100, (data.pending / data.grossRevenue) * 100) : 0}%` }} />
             </div>
@@ -689,7 +692,7 @@ export default function WalletPage() {
                   <span className="text-orange-300 text-sm font-semibold flex items-center gap-1.5">
                     <ChevronRight className="w-3.5 h-3.5" />Net disponible
                   </span>
-                  <span className="text-orange-400 font-bold text-base">€{fmt(data?.balance ?? 0)}</span>
+                  <span className="text-orange-400 font-bold text-base">{fmtMoney(data?.balance ?? 0)}</span>
                 </div>
               </div>
             </div>
@@ -703,13 +706,13 @@ export default function WalletPage() {
           {data && (
             <div className="bg-orange-500/5 border border-orange-500/15 rounded-xl px-4 py-3 mb-5 flex items-center justify-between">
               <span className="text-neutral-400 text-sm">Solde net disponible</span>
-              <span className="text-orange-400 font-bold text-lg">€{fmt(data.balance)}</span>
+              <span className="text-orange-400 font-bold text-lg">{fmtMoney(data.balance)}</span>
             </div>
           )}
           <form onSubmit={submit} className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="text-xs text-neutral-400 font-medium mb-1.5 block">Montant (max €{fmt(data?.balance ?? 0)})</label>
+                <label className="text-xs text-neutral-400 font-medium mb-1.5 block">Montant (max {fmtMoney(data?.balance ?? 0)})</label>
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500 text-sm">€</span>
                   <input type="number" min="1" step="0.01" max={data?.balance ?? undefined}
@@ -822,7 +825,7 @@ export default function WalletPage() {
                   </div>
                   <div className="text-right">
                     <p className={`font-semibold text-sm ${tx.type === "deposit" ? "text-emerald-400" : "text-orange-400"}`}>
-                      {tx.type === "deposit" ? "+" : "-"}{fmt(tx.amount)} EUR
+                      {tx.type === "deposit" ? "+" : "-"}{fmtMoney(tx.amount)}
                     </p>
                     <StatusPill status={tx.status} />
                   </div>
@@ -906,7 +909,7 @@ export default function WalletPage() {
                   />
                 </div>
                 <p className="text-neutral-500 text-xs mt-1.5">
-                  Disponible : <span className="text-orange-400 font-medium">{loading ? "…" : `€${fmt(data?.balance ?? 0)}`}</span>
+                  Disponible : <span className="text-orange-400 font-medium">{loading ? "…" : fmtMoney(data?.balance ?? 0)}</span>
                 </p>
               </div>
 

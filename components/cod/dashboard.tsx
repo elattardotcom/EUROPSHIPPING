@@ -10,6 +10,7 @@ import {
   LineChart, Line, Legend, Cell,
 } from "recharts"
 import type { Order, Lead } from "@/lib/mock-data"
+import { useCurrency } from "@/hooks/useCurrency"
 
 export type Period = "today" | "7d" | "30d" | "all" | "custom"
 
@@ -163,9 +164,18 @@ export default function DashboardPage({
   customStart?: string
   customEnd?: string
 }) {
-  const [orders,  setOrders]  = useState<Order[]>([])
-  const [leads,   setLeads]   = useState<Lead[]>([])
-  const [loading, setLoading] = useState(true)
+  const [orders,   setOrders]   = useState<Order[]>([])
+  const [leads,    setLeads]    = useState<Lead[]>([])
+  const [loading,  setLoading]  = useState(true)
+  const [isMobile, setIsMobile] = useState(false)
+  const { fmtShort, currency, convert } = useCurrency()
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768)
+    check()
+    window.addEventListener("resize", check)
+    return () => window.removeEventListener("resize", check)
+  }, [])
 
   const load = useCallback(async () => {
     const [o, l] = await Promise.all([
@@ -273,7 +283,7 @@ export default function DashboardPage({
 
       {/* KPIs */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <StatCard title="REVENUS LIVRÉS" subtitle="Commandes livrées" value={totalRevenue.toFixed(0)} unit="EUR"
+        <StatCard title="REVENUS LIVRÉS" subtitle="Commandes livrées" value={fmtShort(totalRevenue)} unit={currency}
           description={`${deliveredOrders} commandes livrées avec succès`} icon={DollarSign} color="green" />
         <StatCard title="TOTAL LEADS" subtitle="Prospects qualifiés" value={totalLeads} unit="LEADS"
           description={`${confirmedLeads} confirmés — taux ${confirmRate}%`} icon={Users} color="teal" />
@@ -294,13 +304,21 @@ export default function DashboardPage({
           </div>
         ) : (
           <ResponsiveContainer width="100%" height={220}>
-            <LineChart data={revenueByDay} margin={{ top: 4, right: 40, left: -10, bottom: 0 }}>
-              <XAxis dataKey="day" tick={{ fill: TICK, fontSize: 11 }} tickLine={false} axisLine={false} />
-              <YAxis yAxisId="revenue" tick={{ fill: TICK, fontSize: 11 }} tickLine={false} axisLine={false} />
-              <YAxis yAxisId="count" orientation="right" tick={{ fill: TICK, fontSize: 11 }} tickLine={false} axisLine={false} allowDecimals={false} />
-              <Tooltip contentStyle={{ background: TT_BG, border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, fontSize: 12 }} labelStyle={TT_LBL} itemStyle={TT_ITM} />
+            <LineChart data={revenueByDay} margin={{ top: 4, right: 36, left: 0, bottom: 0 }}>
+              <XAxis dataKey="day" tick={{ fill: TICK, fontSize: 11 }} tickLine={false} axisLine={false}
+                interval={isMobile && revenueByDay.length > 7 ? Math.ceil(revenueByDay.length / 5) - 1 : 0} />
+              <YAxis yAxisId="revenue" tick={{ fill: TICK, fontSize: 11 }} tickLine={false} axisLine={false} width={46}
+                tickFormatter={(v: number) => fmtShort(v)} />
+              <YAxis yAxisId="count" orientation="right" tick={{ fill: TICK, fontSize: 11 }} tickLine={false} axisLine={false} allowDecimals={false} width={28} />
+              <Tooltip
+                contentStyle={{ background: TT_BG, border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, fontSize: 12 }}
+                labelStyle={TT_LBL} itemStyle={TT_ITM}
+                formatter={(v: number | string, name: string) =>
+                  (name as string).startsWith("Revenus") ? [fmtShort(convert(Number(v))), name] : [v, name]
+                }
+              />
               <Legend wrapperStyle={{ fontSize: 12, color: TICK }} />
-              <Line yAxisId="revenue" type="monotone" dataKey="revenue" stroke="#f97316" strokeWidth={2} dot={false} name="Revenus (€)" />
+              <Line yAxisId="revenue" type="monotone" dataKey="revenue" stroke="#f97316" strokeWidth={2} dot={false} name={`Revenus (${currency})`} />
               <Line yAxisId="count"   type="monotone" dataKey="leads"   stroke="#14b8a6" strokeWidth={2} dot={false} name="Leads" />
               <Line yAxisId="count"   type="monotone" dataKey="orders"  stroke="#8b5cf6" strokeWidth={2} dot={false} name="Commandes" />
             </LineChart>
@@ -378,8 +396,8 @@ export default function DashboardPage({
               <div key={store.name} className="bg-neutral-900 border border-neutral-800 rounded-xl p-5">
                 <h3 className="text-sm font-medium text-white mb-4 truncate">{store.name}</h3>
                 <div className="flex items-baseline gap-2 mb-2">
-                  <span className="text-2xl font-bold text-white">{store.revenue.toFixed(0)}</span>
-                  <span className="text-sm text-neutral-500">EUR</span>
+                  <span className="text-2xl font-bold text-white">{fmtShort(store.revenue)}</span>
+                  <span className="text-sm text-neutral-500">{currency}</span>
                 </div>
                 <div className="w-full bg-neutral-800 rounded-full h-1.5 mb-2">
                   <div className="bg-orange-500 h-1.5 rounded-full"

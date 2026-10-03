@@ -5,21 +5,21 @@ import { useRouter } from "next/navigation"
 import {
   User, Bell, Shield, CreditCard, Globe, Palette,
   Save, Key, Eye, EyeOff, Check, Download, Monitor, Moon, Sun, Loader2, LogOut,
-  Wallet, Plus, Trash2, Star, Bitcoin, Building2, ArrowRight, CheckCircle2, AlertCircle,
+  Wallet, Plus, Trash2, Star, Building2,
 } from "lucide-react"
 import type { PaymentMethod, PaymentMethodType } from "@/lib/db"
 import { Button } from "@/components/ui/button"
-import { getPlanLimits } from "@/lib/plan-limits"
 import { getClientIdFromCookie } from "@/lib/client-cookie"
 import { useTheme } from "next-themes"
+import { useLang } from "@/hooks/useLang"
 
 const INPUT = "w-full bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-orange-500 disabled:opacity-50"
 
 function WiseLogo({ size = 20 }: { size?: number }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 20 20" fill="none">
-      <rect width="20" height="20" rx="5" fill="#9FE870"/>
-      <path d="M4 6.5L7.2 13.5L10 8.5L12.8 13.5L16 6.5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
+      <rect width="32" height="32" rx="7" fill="#9FE870"/>
+      <path fill="#163300" d="M8,17 L12,9.5 L23,9.5 L27,14 L23,18.5 L18,18.5 L18,25 L13,25 L13,18.5 Z"/>
     </svg>
   )
 }
@@ -77,17 +77,55 @@ export default function SettingsPage() {
 
   // ── Billing / plan state ───────────────────────────────
   const [plan,          setPlan]          = useState("starter")
-  const [showPlans,     setShowPlans]     = useState(false)
-  const [selectedPlan,  setSelectedPlan]  = useState("starter")
-  const [savingPlan,    setSavingPlan]    = useState(false)
   const [planMsg,       setPlanMsg]       = useState<{ type: "success" | "error"; text: string } | null>(null)
   const [storesUsed,    setStoresUsed]    = useState(0)
   const [ordersUsed,    setOrdersUsed]    = useState(0)
   const [loggingOut,    setLoggingOut]    = useState(false)
 
   // ── Appearance state ───────────────────────────────────
-  const { theme: currentTheme, setTheme, resolvedTheme } = useTheme()
+  const { theme: currentTheme, setTheme } = useTheme()
   const theme = (currentTheme ?? "dark") as "dark" | "light" | "system"
+
+  // ── Localization state ─────────────────────────────────
+  const [lang, setLang] = useLang()
+  const [timezone,   setTimezone]   = useState(() => (typeof window !== "undefined" ? localStorage.getItem("site-timezone")    ?? "paris"  : "paris"))
+  const [dateFormat, setDateFormat] = useState(() => (typeof window !== "undefined" ? localStorage.getItem("site-date-format") ?? "dmy"    : "dmy"))
+  const [currency,   setCurrency]   = useState(() => (typeof window !== "undefined" ? localStorage.getItem("site-currency")    ?? "eur"    : "eur"))
+  const [localeMsg,  setLocaleMsg]  = useState<{ type: "success" | "error"; text: string } | null>(null)
+
+  // ── Notification toggles (persisted to localStorage) ──
+  const [notifToggles, setNotifToggles] = useState<boolean[]>(() => {
+    if (typeof window === "undefined") return [true, true, true, true, false, false]
+    const saved = localStorage.getItem("site-notif-toggles")
+    return saved ? JSON.parse(saved) : [true, true, true, true, false, false]
+  })
+  const setNotif = (i: number, v: boolean) => setNotifToggles(prev => {
+    const next = [...prev]; next[i] = v
+    localStorage.setItem("site-notif-toggles", JSON.stringify(next))
+    return next
+  })
+
+  // ── Display preference toggles (persisted to localStorage) ─
+  const [dispToggles, setDispToggles] = useState<boolean[]>(() => {
+    if (typeof window === "undefined") return [false, true, true]
+    const saved = localStorage.getItem("site-disp-toggles")
+    return saved ? JSON.parse(saved) : [false, true, true]
+  })
+  const setDisp = (i: number, v: boolean) => setDispToggles(prev => {
+    const next = [...prev]; next[i] = v
+    localStorage.setItem("site-disp-toggles", JSON.stringify(next))
+    return next
+  })
+
+  function saveLocalization() {
+    localStorage.setItem("site-timezone",    timezone)
+    localStorage.setItem("site-date-format", dateFormat)
+    localStorage.setItem("site-currency",    currency)
+    // Notify other components on same tab
+    window.dispatchEvent(new StorageEvent("storage", { key: "site-currency", newValue: currency }))
+    setLocaleMsg({ type: "success", text: "Préférences de localisation sauvegardées." })
+    setTimeout(() => setLocaleMsg(null), 3000)
+  }
 
   // ── Payment methods state ──────────────────────────────
   const [payMethods,    setPayMethods]    = useState<PaymentMethod[]>([])
@@ -124,7 +162,6 @@ export default function SettingsPage() {
         setInitials(((c.firstName?.[0] ?? "") + (c.lastName?.[0] ?? "")).toUpperCase() || "?")
         const p = c.plan ?? "starter"
         setPlan(p)
-        setSelectedPlan(p)
         // Load usage counts
         Promise.all([
           fetch("/api/stores").then(r => r.json()).catch(() => []),
@@ -248,32 +285,6 @@ export default function SettingsPage() {
     setLoggingOut(true)
     await fetch("/api/auth/logout", { method: "POST" }).catch(() => {})
     router.push("/")
-  }
-
-  const PLAN_LABELS: Record<string, string> = { starter: "Pro", pro: "Pro", enterprise: "Pro" }
-  const PLAN_PRICES: Record<string, string> = { starter: "€31.99 / mois", pro: "€31.99 / mois", enterprise: "€31.99 / mois" }
-
-  async function changePlan() {
-    if (isDemo) { setPlanMsg({ type: "error", text: "Le compte démo ne peut pas être modifié." }); return }
-    if (selectedPlan === plan) { setShowPlans(false); return }
-    setSavingPlan(true)
-    setPlanMsg(null)
-    try {
-      const res = await fetch("/api/client/profile", {
-        method:  "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify({ plan: selectedPlan }),
-      })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error ?? "Erreur")
-      setPlan(selectedPlan)
-      setShowPlans(false)
-      setPlanMsg({ type: "success", text: "Plan mis à jour avec succès." })
-    } catch (e: unknown) {
-      setPlanMsg({ type: "error", text: e instanceof Error ? e.message : "Erreur serveur" })
-    } finally {
-      setSavingPlan(false)
-    }
   }
 
   const tabs = [
@@ -658,7 +669,8 @@ export default function SettingsPage() {
                       <p className="text-xs text-neutral-500 mt-0.5">{item.desc}</p>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer flex-shrink-0">
-                      <input type="checkbox" defaultChecked={i < 4} className="sr-only peer" />
+                      <input type="checkbox" checked={notifToggles[i] ?? false}
+                        onChange={e => setNotif(i, e.target.checked)} className="sr-only peer" />
                       <div className="w-11 h-6 bg-neutral-700 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500" />
                     </label>
                   </div>
@@ -793,21 +805,40 @@ export default function SettingsPage() {
             <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-6">
               <h2 className="text-lg font-medium text-white mb-6">Localisation</h2>
               <div className="space-y-4">
-                {[
-                  { label: "Langue", options: [["fr","Français"],["en","English"],["es","Español"],["ar","العربية"],["pt","Português"]] },
-                  { label: "Fuseau horaire", options: [["lisbon","Europe/Lisbon (GMT+0)"],["madrid","Europe/Madrid (GMT+1)"],["paris","Europe/Paris (GMT+1)"],["casablanca","Africa/Casablanca (GMT+1)"],["utc","UTC"]] },
-                  { label: "Format de date", options: [["dmy","JJ/MM/AAAA"],["mdy","MM/JJ/AAAA"],["ymd","AAAA-MM-JJ"]] },
-                  { label: "Devise", options: [["eur","EUR (€)"],["usd","USD ($)"],["gbp","GBP (£)"],["mad","MAD (DH)"]] },
-                ].map(({ label, options }) => (
-                  <div key={label}>
-                    <label className="block text-sm font-medium text-neutral-400 mb-2">{label}</label>
-                    <select className={INPUT}>
-                      {options.map(([val, name]) => <option key={val} value={val}>{name}</option>)}
-                    </select>
-                  </div>
-                ))}
+                {localeMsg && <Alert type={localeMsg.type} msg={localeMsg.text} />}
+                <div>
+                  <label className="block text-sm font-medium text-neutral-400 mb-2">Langue</label>
+                  <select value={lang} onChange={e => setLang(e.target.value as "fr" | "en")} className={INPUT}>
+                    <option value="fr">Français</option>
+                    <option value="en">English</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-neutral-400 mb-2">Fuseau horaire</label>
+                  <select value={timezone} onChange={e => setTimezone(e.target.value)} className={INPUT}>
+                    {[["lisbon","Europe/Lisbon (GMT+0)"],["madrid","Europe/Madrid (GMT+1)"],["paris","Europe/Paris (GMT+1)"],["casablanca","Africa/Casablanca (GMT+1)"],["utc","UTC"]].map(([v,l]) => (
+                      <option key={v} value={v}>{l}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-neutral-400 mb-2">Format de date</label>
+                  <select value={dateFormat} onChange={e => setDateFormat(e.target.value)} className={INPUT}>
+                    {[["dmy","JJ/MM/AAAA"],["mdy","MM/JJ/AAAA"],["ymd","AAAA-MM-JJ"]].map(([v,l]) => (
+                      <option key={v} value={v}>{l}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-neutral-400 mb-2">Devise</label>
+                  <select value={currency} onChange={e => setCurrency(e.target.value)} className={INPUT}>
+                    {[["eur","EUR (€)"],["usd","USD ($)"],["gbp","GBP (£)"],["mad","MAD (DH)"]].map(([v,l]) => (
+                      <option key={v} value={v}>{l}</option>
+                    ))}
+                  </select>
+                </div>
                 <div className="flex justify-end pt-2">
-                  <Button className="bg-orange-500 hover:bg-orange-600 text-white gap-2">
+                  <Button onClick={saveLocalization} className="bg-orange-500 hover:bg-orange-600 text-white gap-2">
                     <Save className="w-4 h-4" /> Sauvegarder
                   </Button>
                 </div>
@@ -873,7 +904,8 @@ export default function SettingsPage() {
                         <p className="text-xs text-neutral-500 mt-0.5">{item.desc}</p>
                       </div>
                       <label className="relative inline-flex items-center cursor-pointer flex-shrink-0">
-                        <input type="checkbox" defaultChecked={i !== 0} className="sr-only peer" />
+                        <input type="checkbox" checked={dispToggles[i] ?? false}
+                          onChange={e => setDisp(i, e.target.checked)} className="sr-only peer" />
                         <div className="w-11 h-6 bg-neutral-700 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500" />
                       </label>
                     </div>

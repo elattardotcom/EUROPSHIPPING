@@ -20,6 +20,12 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if (body.description     !== undefined) updates.description     = body.description
   if (body.image_url       !== undefined) updates.image_url       = body.image_url
   if (body.status          !== undefined) updates.status          = body.status
+  if (body.cost_price      !== undefined) updates.cost_price      = parseFloat(body.cost_price)
+  if (body.cod_price       !== undefined) updates.cod_price       = parseFloat(body.cod_price)
+  if (body.category        !== undefined) updates.category        = body.category
+  if (body.countries       !== undefined) updates.countries       = body.countries
+  if (body.stock_status    !== undefined) updates.stock_status    = body.stock_status
+  if (body.shipping_days   !== undefined) updates.shipping_days   = parseInt(body.shipping_days)
 
   await sb.from("affiliate_offers").update(updates).eq("id", id)
   return NextResponse.json({ ok: true })

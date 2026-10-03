@@ -1,5 +1,7 @@
 "use client"
 
+import { useRouter } from "next/navigation"
+
 interface Props {
   step: "signup" | "login"
   plan?: string
@@ -8,12 +10,14 @@ interface Props {
   children: React.ReactNode
 }
 
-export function OpenModalButton({ step, plan, className, style, children }: Props) {
-  const handleClick = () => {
-    window.dispatchEvent(new CustomEvent("open-modal", { detail: { step, plan } }))
-  }
+export function OpenModalButton({ step, className, style, children }: Props) {
+  const router = useRouter()
   return (
-    <button onClick={handleClick} className={className} style={style}>
+    <button
+      onClick={() => router.push(step === "login" ? "/auth/login" : "/auth/register")}
+      className={className}
+      style={style}
+    >
       {children}
     </button>
   )

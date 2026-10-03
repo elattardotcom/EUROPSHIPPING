@@ -9,8 +9,16 @@ export async function GET(req: NextRequest) {
   if (!auth(req)) return NextResponse.json({ error: "Non autorisé" }, { status: 401 })
   const sb = getSupabaseAdmin()
   if (!sb) return NextResponse.json([])
-  const { data } = await sb.from("affiliate_offers").select("*").order("created_at", { ascending: false })
-  return NextResponse.json(data ?? [])
+  const [offersRes, countsRes] = await Promise.all([
+    sb.from("affiliate_offers").select("*").order("created_at", { ascending: false }),
+    sb.from("client_product_activations").select("offer_id"),
+  ])
+  const countMap: Record<string, number> = {}
+  for (const row of countsRes.data ?? []) {
+    countMap[row.offer_id] = (countMap[row.offer_id] ?? 0) + 1
+  }
+  const offers = (offersRes.data ?? []).map(o => ({ ...o, activation_count: countMap[o.id] ?? 0 }))
+  return NextResponse.json(offers)
 }
 
 export async function POST(req: NextRequest) {
@@ -26,6 +34,12 @@ export async function POST(req: NextRequest) {
     description:     body.description ?? null,
     image_url:       body.image_url ?? null,
     status:          body.status ?? "active",
+    cost_price:      parseFloat(body.cost_price ?? 0),
+    cod_price:       parseFloat(body.cod_price ?? 0),
+    category:        body.category ?? "Général",
+    countries:       body.countries ?? [],
+    stock_status:    body.stock_status ?? "available",
+    shipping_days:   parseInt(body.shipping_days ?? 5),
   }).select().single()
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json(data)

@@ -100,6 +100,55 @@ export async function POST(req: NextRequest) {
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://www.codshipeurope.com"
 
     if (apiKey && apiKey !== "re_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx") {
+      // Notify admin
+      fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          from,
+          to: ["soufianeattar7@gmail.com"],
+          subject: `🆕 Nouvelle demande de compte — ${firstName.trim()} ${lastName.trim()}`,
+          html: `<!DOCTYPE html>
+<html lang="fr">
+<head><meta charset="UTF-8"></head>
+<body style="margin:0;padding:0;background:#0a0a0a;font-family:'Helvetica Neue',Arial,sans-serif">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#0a0a0a;padding:40px 20px">
+    <tr><td align="center">
+      <table width="520" cellpadding="0" cellspacing="0" style="background:#111;border:1px solid rgba(255,255,255,0.08);border-radius:16px;overflow:hidden;max-width:520px;width:100%">
+        <tr>
+          <td style="background:linear-gradient(135deg,#f97316,#dc2626);padding:22px 32px">
+            <p style="margin:0;color:#fff;font-size:18px;font-weight:800">CODShipEurope — Admin</p>
+            <p style="margin:4px 0 0;color:rgba(255,255,255,0.65);font-size:12px">Nouvelle demande d'inscription</p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:28px 32px">
+            <p style="margin:0 0 20px;color:#fff;font-size:16px;font-weight:700">Un nouveau client souhaite créer un compte :</p>
+            <table cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse">
+              <tr><td style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.06);color:#888;font-size:13px;width:120px">Nom</td><td style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.06);color:#fff;font-size:13px;font-weight:600">${firstName.trim()} ${lastName.trim()}</td></tr>
+              <tr><td style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.06);color:#888;font-size:13px">Email</td><td style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.06);color:#f97316;font-size:13px">${normalizedEmail}</td></tr>
+              <tr><td style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.06);color:#888;font-size:13px">Téléphone</td><td style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.06);color:#fff;font-size:13px">${storedPhone}</td></tr>
+              <tr><td style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.06);color:#888;font-size:13px">Entreprise</td><td style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.06);color:#fff;font-size:13px">${company?.trim() || "—"}</td></tr>
+              <tr><td style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.06);color:#888;font-size:13px">Pays</td><td style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.06);color:#fff;font-size:13px">${COUNTRY_NAMES[countryCode] ?? countryCode ?? "—"}</td></tr>
+              <tr><td style="padding:8px 0;color:#888;font-size:13px">Plan</td><td style="padding:8px 0;color:#fff;font-size:13px;font-weight:600">${plan ?? "Starter"}</td></tr>
+            </table>
+            <a href="${baseUrl}/admin/requests" style="display:inline-block;margin-top:24px;background:#f97316;color:#fff;text-decoration:none;padding:12px 28px;border-radius:10px;font-size:14px;font-weight:700">Voir les demandes →</a>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:16px 32px;border-top:1px solid rgba(255,255,255,0.06)">
+            <p style="margin:0;color:#444;font-size:11px;text-align:center">${new Date().toLocaleString("fr-FR", { timeZone: "Africa/Casablanca" })}</p>
+          </td>
+        </tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`,
+        }),
+      }).catch(err => console.error("[register-email] admin notify error:", err))
+
+      // Confirm to client
       await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" },
