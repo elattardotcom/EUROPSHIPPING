@@ -17,6 +17,10 @@ export function OnboardingBanner() {
   const [loading,  setLoading]  = useState(true)
 
   useEffect(() => {
+    let locallyDismissed = false
+    try { locallyDismissed = localStorage.getItem("onboarding_dismissed") === "1" } catch {}
+    if (locallyDismissed) { setLoading(false); return }
+
     Promise.all([
       fetch("/api/auth/me").then(r => r.json()).catch(() => ({})),
       fetch("/api/stores").then(r => r.json()).catch(() => []),
@@ -47,6 +51,7 @@ export function OnboardingBanner() {
 
   const dismiss = () => {
     setVisible(false)
+    try { localStorage.setItem("onboarding_dismissed", "1") } catch {}
     fetch("/api/client/onboarding", { method: "PATCH" }).catch(() => {})
   }
 

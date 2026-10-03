@@ -6,7 +6,7 @@ export async function GET(req: NextRequest) {
   const clientId = req.cookies.get("client_id")?.value
 
   if (!clientId || clientId === "c1") {
-    return NextResponse.json({ ...MOCK_CLIENT, onboardingDismissed: true })
+    return NextResponse.json({ ...MOCK_CLIENT, onboardingDismissed: false })
   }
 
   const sb = getSupabaseAdmin()
