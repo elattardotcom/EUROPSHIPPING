@@ -1,5 +1,42 @@
 import { NextResponse } from "next/server"
 import { processWithdrawal } from "@/lib/db"
+import { sendEmail, emailShell } from "@/lib/resend"
+
+async function sendRejectionEmail(w: {
+  id: string
+  clientName: string
+  clientEmail: string
+  amount: number
+  currency: string
+  adminNote?: string
+}) {
+  const ref       = `PAY-${w.id.slice(-8).toUpperCase()}`
+  const amount    = new Intl.NumberFormat("en-EU", { style: "currency", currency: w.currency ?? "EUR" }).format(w.amount)
+  const firstName = w.clientName.split(" ")[0] ?? w.clientName
+
+  const bodyHtml = `
+    <p style="margin:0 0 6px;color:#fff;font-size:22px;font-weight:700">Hello ${firstName},</p>
+    <p style="margin:0 0 28px;color:#888;font-size:14px;line-height:1.7">
+      Unfortunately, we were unable to process your withdrawal request <strong style="color:#bbb">${ref}</strong> for
+      <strong style="color:#bbb">${amount}</strong>. The amount remains available in your wallet balance and you can
+      submit a new request at any time.
+    </p>
+    ${w.adminNote ? `
+    <div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:14px;padding:18px 20px;margin-bottom:28px">
+      <p style="margin:0 0 4px;color:#888;font-size:12px;text-transform:uppercase;letter-spacing:1px">Reason</p>
+      <p style="margin:0;color:#fca5a5;font-size:14px;line-height:1.6">${w.adminNote}</p>
+    </div>` : ""}
+    <p style="margin:0 0 8px;color:#555;font-size:12px;line-height:1.6">
+      If you have any questions, please contact us at
+      <a href="mailto:contact@codshipeurope.com" style="color:#f97316;text-decoration:none">contact@codshipeurope.com</a>
+    </p>`
+
+  await sendEmail({
+    to: w.clientEmail,
+    subject: `Your withdrawal request ${ref} could not be processed — CODShipEurope`,
+    html: emailShell({ badgeText: "✕ Withdrawal Request Rejected", badgeColor: "red", bodyHtml }),
+  })
+}
 
 async function sendPayoutEmail(w: {
   id: string
@@ -188,6 +225,17 @@ export async function PATCH(
       paymentMethodType:  w.paymentMethodType,
       paymentDetails:     w.paymentDetails,
       processedAt:        w.processedAt,
+    })
+  }
+
+  if (status === "rejected" && w.clientEmail) {
+    await sendRejectionEmail({
+      id:          w.id,
+      clientName:  w.clientName,
+      clientEmail: w.clientEmail,
+      amount:      w.amount,
+      currency:    w.currency ?? "EUR",
+      adminNote:   adminNote,
     })
   }
 
