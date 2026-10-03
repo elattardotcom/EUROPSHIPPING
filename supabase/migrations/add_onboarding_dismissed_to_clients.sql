@@ -1,0 +1,2 @@
+ALTER TABLE clients
+  ADD COLUMN IF NOT EXISTS onboarding_dismissed BOOLEAN DEFAULT FALSE;

@@ -17,21 +17,25 @@ export function OnboardingBanner() {
   const [loading,  setLoading]  = useState(true)
 
   useEffect(() => {
-    if (typeof window !== "undefined" && localStorage.getItem("onboarding_dismissed") === "1") return
-
     Promise.all([
+      fetch("/api/auth/me").then(r => r.json()).catch(() => ({})),
       fetch("/api/stores").then(r => r.json()).catch(() => []),
       fetch("/api/client/leads").then(r => r.json()).catch(() => []),
       fetch("/api/client/orders").then(r => r.json()).catch(() => []),
-    ]).then(([stores, leads, orders]) => {
+      fetch("/api/client/products").then(r => r.json()).catch(() => ({ products: [] })),
+    ]).then(([me, stores, leads, orders, productsRes]) => {
+      if (me?.onboardingDismissed) { setLoading(false); return }
+
       const hasStore   = Array.isArray(stores) && stores.length > 0
       const hasLead    = Array.isArray(leads)  && leads.length  > 0
       const hasOrder   = Array.isArray(orders) && orders.length > 0
+      const hasProduct = Array.isArray(productsRes?.products) && productsRes.products.length > 0
 
       const s: Step[] = [
-        { id: "store",  label: "Connecter votre première boutique Shopify", done: hasStore,  href: "/dashboard/stores"  },
-        { id: "lead",   label: "Recevoir votre premier lead confirmé",       done: hasLead,   href: "/dashboard/leads"   },
-        { id: "order",  label: "Obtenir votre première commande livrée",     done: hasOrder,  href: "/dashboard/orders"  },
+        { id: "store",   label: "Connecter votre première boutique Shopify",   done: hasStore,   href: "/dashboard/stores"   },
+        { id: "product", label: "Importer ou créer votre premier produit",     done: hasProduct, href: "/dashboard/products" },
+        { id: "lead",    label: "Recevoir votre premier lead confirmé",        done: hasLead,    href: "/dashboard/leads"    },
+        { id: "order",   label: "Obtenir votre première commande livrée",      done: hasOrder,   href: "/dashboard/orders"   },
       ]
 
       setSteps(s)
@@ -43,7 +47,7 @@ export function OnboardingBanner() {
 
   const dismiss = () => {
     setVisible(false)
-    try { localStorage.setItem("onboarding_dismissed", "1") } catch {}
+    fetch("/api/client/onboarding", { method: "PATCH" }).catch(() => {})
   }
 
   if (loading || !visible) return null

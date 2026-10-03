@@ -6,7 +6,7 @@ export async function GET(req: NextRequest) {
   const clientId = req.cookies.get("client_id")?.value
 
   if (!clientId || clientId === "c1") {
-    return NextResponse.json(MOCK_CLIENT)
+    return NextResponse.json({ ...MOCK_CLIENT, onboardingDismissed: true })
   }
 
   const sb = getSupabaseAdmin()
@@ -25,6 +25,7 @@ export async function GET(req: NextRequest) {
         plan:        data.plan         ?? "starter",
         status:      data.status       ?? "trial",
         avatarColor: data.avatar_color ?? "from-orange-500 to-red-600",
+        onboardingDismissed: data.onboarding_dismissed ?? false,
       })
     }
   }
