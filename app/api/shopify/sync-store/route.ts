@@ -37,6 +37,7 @@ export async function POST(req: NextRequest) {
 
   // ── Sync produits ─────────────────────────────────────────────────────────
   let productsSynced = 0
+  const errors: string[] = []
   try {
     const shopifyProducts = await fetchShopifyProducts(store.domain, store.access_token)
     const rows = shopifyProducts.filter(p => p.title).map(p => {
@@ -56,7 +57,9 @@ export async function POST(req: NextRequest) {
       await sb.from("products").delete().eq("store_id", store.id)
     }
     productsSynced = rows.length
-  } catch { /* silent */ }
+  } catch (err) {
+    errors.push(`products: ${err instanceof Error ? err.message : String(err)}`)
+  }
 
   // ── Sync historique commandes ─────────────────────────────────────────────
   let ordersSynced = 0
@@ -93,9 +96,13 @@ export async function POST(req: NextRequest) {
       await sb.from("leads").upsert(leadRows.slice(i, i + CHUNK), { onConflict: "id" })
     }
     ordersSynced = leadRows.length
-  } catch { /* silent */ }
+  } catch (err) {
+    errors.push(`orders: ${err instanceof Error ? err.message : String(err)}`)
+  }
 
-  await sb.from("stores").update({ last_sync: new Date().toISOString() }).eq("id", storeId)
+  if (errors.length === 0) {
+    await sb.from("stores").update({ last_sync: new Date().toISOString() }).eq("id", storeId)
+  }
 
   // Enregistre les webhooks
   const origin = new URL(req.url).origin
@@ -106,5 +113,5 @@ export async function POST(req: NextRequest) {
     registerWebhookWithUrl(store.domain, store.access_token, "orders/create",   origin),
   ])
 
-  return NextResponse.json({ products: productsSynced, orders: ordersSynced })
+  return NextResponse.json({ products: productsSynced, orders: ordersSynced, errors })
 }

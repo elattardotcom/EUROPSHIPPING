@@ -49,6 +49,21 @@ export function verifyOAuthCallback(query: URLSearchParams): boolean {
 /* ── API Shopify ────────────────────────────────────────────────────────── */
 
 /** Récupère toutes les commandes d'une boutique (max 250 par page, toutes) */
+const MAX_ATTEMPTS = 3
+
+/** Retry sur 429 et 5xx avec backoff exponentiel (ou Retry-After si fourni) */
+async function shopifyFetch(url: string, accessToken: string): Promise<Response> {
+  for (let attempt = 1; ; attempt++) {
+    const res = await fetch(url, { headers: { "X-Shopify-Access-Token": accessToken } })
+    const retryable = res.status === 429 || res.status >= 500
+    if (!retryable || attempt >= MAX_ATTEMPTS) return res
+
+    const retryAfter = Number(res.headers.get("Retry-After"))
+    const delayMs = retryAfter > 0 ? retryAfter * 1000 : 500 * 2 ** (attempt - 1)
+    await new Promise(r => setTimeout(r, delayMs))
+  }
+}
+
 export async function fetchShopifyOrders(shop: string, accessToken: string, createdAtMin?: string) {
   const allOrders: Record<string, unknown>[] = []
   const qs = createdAtMin ? `&created_at_min=${encodeURIComponent(createdAtMin)}` : ""
@@ -56,8 +71,8 @@ export async function fetchShopifyOrders(shop: string, accessToken: string, crea
     `https://${shop}/admin/api/${API_VERSION}/orders.json?limit=250&status=any&fields=id,created_at,customer,billing_address,shipping_address,line_items,total_price,currency${qs}`
 
   while (url) {
-    const res: Response = await fetch(url, { headers: { "X-Shopify-Access-Token": accessToken } })
-    if (!res.ok) break
+    const res = await shopifyFetch(url, accessToken)
+    if (!res.ok) throw new Error(`Shopify orders error: ${res.status}`)
     const data = await res.json()
     allOrders.push(...(data.orders ?? []))
     const link: string = res.headers.get("Link") ?? ""
@@ -75,9 +90,7 @@ export async function fetchShopifyProducts(shop: string, accessToken: string) {
     `https://${shop}/admin/api/${API_VERSION}/products.json?limit=250&published_status=any&fields=id,title,images,variants`
 
   while (url) {
-    const res: Response = await fetch(url, {
-      headers: { "X-Shopify-Access-Token": accessToken },
-    })
+    const res = await shopifyFetch(url, accessToken)
     if (!res.ok) throw new Error(`Shopify API error: ${res.status}`)
 
     const data = await res.json()

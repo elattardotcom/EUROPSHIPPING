@@ -12,7 +12,12 @@ export async function POST(req: Request) {
   const sb = getSupabaseAdmin()
   if (!sb) return NextResponse.json({ error: "DB non configurée" }, { status: 500 })
 
-  const orders = await fetchShopifyOrders(shop, accessToken)
+  let orders: Record<string, unknown>[]
+  try {
+    orders = await fetchShopifyOrders(shop, accessToken)
+  } catch (err) {
+    return NextResponse.json({ error: err instanceof Error ? err.message : "Erreur Shopify" }, { status: 502 })
+  }
 
   const rows = orders.map((order) => {
     const customer  = order.customer  as Record<string, string> | undefined
