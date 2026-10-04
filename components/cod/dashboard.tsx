@@ -47,13 +47,18 @@ function filterByPeriod<T extends { createdAt: string }>(
 }
 
 function daysBetween(start: string, end: string): number {
-  const ms = new Date(end).getTime() - new Date(start).getTime()
+  const ms = parseLocalISO(end).getTime() - parseLocalISO(start).getTime()
   return Math.max(1, Math.round(ms / 86400000) + 1)
+}
+
+function parseLocalISO(s: string): Date {
+  const [y, m, d] = s.split("-").map(Number)
+  return new Date(y, m - 1, d)
 }
 
 function lastNDays(n: number, startISO?: string): { key: string; label: string }[] {
   const MONTHS = ["Jan","Fév","Mar","Avr","Mai","Jun","Jul","Aoû","Sep","Oct","Nov","Déc"]
-  const anchor = startISO ? new Date(startISO) : (() => { const d = new Date(); d.setDate(d.getDate() - (n - 1)); return d })()
+  const anchor = startISO ? parseLocalISO(startISO) :(() => { const d = new Date(); d.setDate(d.getDate() - (n - 1)); return d })()
   return Array.from({ length: n }, (_, i) => {
     const d = new Date(anchor)
     d.setDate(anchor.getDate() + i)
@@ -355,7 +360,7 @@ export default function DashboardPage({
           <ResponsiveContainer width="100%" height={220}>
             <LineChart data={revenueByDay} margin={{ top: 4, right: 36, left: 0, bottom: 0 }}>
               <XAxis dataKey="day" tick={{ fill: TICK, fontSize: 11 }} tickLine={false} axisLine={false}
-                interval={isMobile && revenueByDay.length > 7 ? Math.ceil(revenueByDay.length / 5) - 1 : 0} />
+                interval={Math.ceil(revenueByDay.length / (isMobile ? 5 : 10)) - 1} />
               <YAxis yAxisId="revenue" tick={{ fill: TICK, fontSize: 11 }} tickLine={false} axisLine={false} width={46}
                 tickFormatter={(v: number) => fmtShort(v)} />
               <YAxis yAxisId="count" orientation="right" tick={{ fill: TICK, fontSize: 11 }} tickLine={false} axisLine={false} allowDecimals={false} width={28} />
