@@ -70,7 +70,7 @@ function lastNDays(n: number, startISO?: string): { key: string; label: string }
 
 const PERIOD_DAYS:  Record<Exclude<Period,"custom">, number> = { today: 1, "7d": 7, "30d": 30, all: 30 }
 const PERIOD_LABEL: Record<Exclude<Period,"custom">, string> = {
-  today: "aujourd'hui", "7d": "7 derniers jours", "30d": "30 derniers jours", all: "30 derniers jours",
+  today: "aujourd'hui", "7d": "7 derniers jours", "30d": "30 derniers jours", all: "depuis le début",
 }
 
 /* ── stat cards ─────────────────────────────────────────────── */
