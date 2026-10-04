@@ -227,10 +227,23 @@ export default function DashboardPage({
   ]
 
   const revenueByDay = useMemo(() => {
-    const nDays = period === "custom" && customStart && customEnd
-      ? daysBetween(customStart, customEnd)
-      : PERIOD_DAYS[period as Exclude<Period,"custom">] ?? 30
-    const days = lastNDays(nDays, period === "custom" && customStart ? customStart : undefined)
+    const now = new Date()
+    const todayKey = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-${String(now.getDate()).padStart(2,"0")}`
+    let nDays = PERIOD_DAYS[period as Exclude<Period,"custom">] ?? 30
+    let startISO: string | undefined = period === "custom" && customStart ? customStart : undefined
+
+    if (period === "custom" && customStart && customEnd) {
+      nDays = daysBetween(customStart, customEnd)
+    } else if (period === "all") {
+      const dates = [...filteredOrders, ...filteredLeads]
+        .map(x => parseFrDate(x.createdAt)).filter(Boolean).sort()
+      if (dates.length) {
+        startISO = dates[0]
+        nDays = daysBetween(startISO, todayKey)
+      }
+    }
+
+    const days = lastNDays(nDays, startISO)
     const orderMap = new Map<string, { orders: number; revenue: number }>()
     const leadMap  = new Map<string, number>()
 
@@ -253,7 +266,7 @@ export default function DashboardPage({
       orders:  orderMap.get(d.key)?.orders ?? 0,
       revenue: orderMap.get(d.key)?.revenue ?? 0,
     }))
-  }, [filteredOrders, filteredLeads, period])
+  }, [filteredOrders, filteredLeads, period, customStart, customEnd])
 
   const revenueByStore = useMemo(() => {
     const map = new Map<string, { revenue: number; orders: number }>()
