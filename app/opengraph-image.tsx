@@ -110,7 +110,7 @@ export default function OGImage() {
             {[
               { icon: "✈", text: "17 jours par avion depuis la Chine", c: "#f59e0b" },
               { icon: "🚢", text: "30 jours par voie maritime",         c: "#6366f1" },
-              { icon: "📦", text: "2 500+ marchands actifs",            c: "#10b981" },
+              { icon: "📦", text: "Suivi des livraisons en temps réel",  c: "#10b981" },
             ].map(s => (
               <div key={s.text} style={{ display: "flex", alignItems: "center", gap: 12 }}>
                 <div style={{

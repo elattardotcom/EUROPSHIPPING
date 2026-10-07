@@ -13,7 +13,7 @@ export const metadata: Metadata = {
     template: "%s | CODShipEurope",
   },
   description:
-    "Gérez vos commandes Cash on Delivery en Europe. Connectez votre boutique Shopify, confirmez par appel, suivez les livraisons et recevez votre paiement chaque semaine. 2 500+ marchands actifs.",
+    "Gérez vos commandes Cash on Delivery en Europe. Connectez votre boutique Shopify, confirmez par appel, suivez les livraisons et recevez votre paiement chaque semaine.",
   keywords: [
     "COD dropshipping",
     "cash on delivery Europe",
@@ -70,17 +70,9 @@ const jsonLd = {
   description:
     "Plateforme SaaS Cash on Delivery pour dropshippers Shopify en Europe. Gestion des commandes, confirmations d'appel, suivi des livraisons et paiements hebdomadaires.",
   offers: {
-    "@type": "AggregateOffer",
+    "@type": "Offer",
+    price: "31.99",
     priceCurrency: "EUR",
-    lowPrice: "29",
-    highPrice: "89",
-    offerCount: "3",
-  },
-  aggregateRating: {
-    "@type": "AggregateRating",
-    ratingValue: "4.9",
-    reviewCount: "2500",
-    bestRating: "5",
   },
   provider: {
     "@type": "Organization",

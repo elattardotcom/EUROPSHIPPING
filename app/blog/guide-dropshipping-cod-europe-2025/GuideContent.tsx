@@ -122,7 +122,7 @@ const T = {
       { n: "4", title: "Encaissez sous 48h", desc: "Après chaque cycle de livraisons confirmées, votre virement arrive sous 48 heures ouvrables." },
     ],
     ctaTitle: "Prêt à démarrer votre dropshipping COD ?",
-    ctaDesc: "Rejoignez 2 500+ marchands qui vendent en Cash on Delivery en Europe avec CODShipEurope.",
+    ctaDesc: "Rejoignez CODShipEurope pour vendre en Cash on Delivery en Europe.",
     ctaBtn: "Créer mon compte gratuitement",
     relatedTitle: "Articles liés",
     relatedLinks: [
@@ -249,7 +249,7 @@ const T = {
       { n: "4", title: "Get paid within 48h",           desc: "After each cycle of confirmed deliveries, your bank transfer arrives within 48 business hours." },
     ],
     ctaTitle: "Ready to start your COD dropshipping?",
-    ctaDesc: "Join 2,500+ merchants selling Cash on Delivery in Europe with CODShipEurope.",
+    ctaDesc: "Join CODShipEurope to sell Cash on Delivery in Europe.",
     ctaBtn: "Create my free account",
     relatedTitle: "Related articles",
     relatedLinks: [
