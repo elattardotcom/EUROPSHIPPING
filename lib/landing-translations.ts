@@ -49,7 +49,7 @@ export const T = {
     feat_orders_title: "Order Tracking",
     feat_orders_desc: "Real-time: pending, in transit, delivered, returned.",
     feat_security_title: "Secure & Reliable",
-    feat_security_desc: "Your data and transactions protected. 99.9% SLA guaranteed.",
+    feat_security_desc: "Your data and transactions protected.",
     // Pricing
     pricing_badge: "Pricing",
     pricing_h2: "One price. Everything included.",
@@ -57,7 +57,7 @@ export const T = {
     pricing_popular: "FULL ACCESS",
     pricing_cta: "Start — 14 days free",
     pricing_plans: [
-      { name: "Pro", price: "€31.99", desc: "Full access to every feature — for serious COD merchants", features: ["Unlimited Shopify stores", "Unlimited leads & orders", "Affiliate program", "Wallet & weekly payouts", "COD Drop catalog", "Advanced analytics", "Priority support 7/7", "99.9% SLA guaranteed"] },
+      { name: "Pro", price: "€31.99", desc: "Full access to every feature — for serious COD merchants", features: ["Unlimited Shopify stores", "Unlimited leads & orders", "Affiliate program", "Wallet & withdrawals", "COD Drop catalog", "Advanced analytics"] },
     ],
     pricing_period: "/month",
     // Testimonials
@@ -65,28 +65,28 @@ export const T = {
     testi_h2: "They cash out every day",
     testi_with: "with CODShipEurope",
     testimonials: [
-      { name: "Karim B.", country: "🇵🇹 Portugal", role: "3 Shopify stores",       text: "Before CODShipEurope, I managed everything in Excel and constantly lost leads. Now my confirmations are automatic, my deliveries tracked, and I get paid every Monday automatically.", revenue: "+€3,200/month", color: "from-orange-500 to-red-600" },
-      { name: "Sara M.",  country: "🇮🇹 Italy",   role: "Fashion & Beauty COD",    text: "The affiliate program let me double my sales without ads. The interface is clean, my team of 3 picked it up in one day. Support replies within the hour.",              revenue: "+€5,800/month", color: "from-rose-500 to-pink-600" },
-      { name: "Ahmed R.", country: "🇪🇸 Spain",   role: "COD Drop entrepreneur",   text: "I tried 3 other platforms. CODShipEurope is the only one that understands the COD flow from A to Z. Return tracking and the wallet are perfect. I manage 6 stores from one dashboard.", revenue: "+€8,100/month", color: "from-blue-500 to-cyan-600" },
+      { name: "Founding program", country: "🚀 ES · PT", role: "Early access", text: "We are opening the platform to a limited group of founding merchants. You get direct access to the team and can shape the product with us.", revenue: "Limited spots", color: "from-orange-500 to-red-600" },
+      { name: "Logistics",        country: "📦 COD",     role: "Delivery & cash collection", text: "Orders are confirmed, shipped and tracked from one dashboard, with cash collected on delivery and withdrawals handled on request.", revenue: "Live tracking", color: "from-rose-500 to-pink-600" },
+      { name: "Affiliate catalogue", country: "🛍️ Products", role: "Sell without buying stock", text: "Activate products from the affiliate catalogue, see the estimated margin before you start, and track your activations.", revenue: "Pick & activate", color: "from-blue-500 to-cyan-600" },
     ],
     // Global stats
     stats: [
-      { to: 2500,    prefix: "",  suffix: "+",  label: "Active merchants",  color: "#f97316", sub: "in 10 countries" },
-      { to: 1200000, prefix: "€", suffix: "",   label: "Collected / month", color: "#10b981", sub: "paid out every week" },
-      { to: 94,      prefix: "",  suffix: "%",  label: "Delivery rate",     color: "#6366f1", sub: "platform average" },
-      { to: 7,       prefix: "",  suffix: "d",  label: "Weekly payout",     color: "#f59e0b", sub: "every Monday" },
+      { display: "ES · PT",    label: "Target markets",   sub: "COD delivery" },
+      { display: "COD",        label: "Cash on delivery", sub: "collected at the door" },
+      { display: "Real-time",  label: "Order tracking",   sub: "leads and orders" },
+      { display: "Founders",   label: "Early access",     sub: "limited spots" },
     ],
     // Integrations
     integ_ecom: "E-commerce",
     integ_carriers: "COD Carriers",
     integ_withdraw: "Withdrawal methods",
     // CTA
-    cta_badge: "Join 2,500+ active merchants",
+    cta_badge: "Founding program — limited spots",
     cta_h2_1: "Ready to turn every",
     cta_h2_2: "delivery into",
     cta_highlight: "cash?",
-    cta_sub: "14-day free trial. No credit card. Setup in under 10 minutes.",
-    cta_trust: ["No card required", "Cancel anytime", "Secure data", "7/7 support"],
+    cta_sub: "Sign up in 2 minutes. Accounts are validated manually.",
+    cta_trust: ["Manual validation", "Secure data", "Direct contact"],
     // Footer
     footer_desc: "The all-in-one platform to manage your Cash on Delivery business, from order to weekly payout.",
     footer_rights: "© 2025 CODShipEurope. All rights reserved.",
@@ -159,7 +159,7 @@ export const T = {
     feat_orders_title: "Suivi Commandes",
     feat_orders_desc: "Temps réel : en attente, en route, livrée, retournée.",
     feat_security_title: "Sécurisé & Fiable",
-    feat_security_desc: "Vos données et transactions protégées. SLA 99.9% garanti.",
+    feat_security_desc: "Vos données et transactions protégées.",
     // Pricing
     pricing_badge: "Tarifs",
     pricing_h2: "Un prix. Tout inclus.",
@@ -167,7 +167,7 @@ export const T = {
     pricing_popular: "ACCÈS COMPLET",
     pricing_cta: "Commencer — 14j gratuits",
     pricing_plans: [
-      { name: "Pro", price: "€31.99", desc: "Accès complet à toutes les fonctionnalités — pour les marchands COD sérieux", features: ["Boutiques Shopify illimitées", "Leads & commandes illimités", "Programme affiliés", "Wallet & paiements hebdo", "COD Drop catalog", "Analytics avancées", "Support prioritaire 7j/7", "SLA 99.9% garanti"] },
+      { name: "Pro", price: "€31.99", desc: "Accès complet à toutes les fonctionnalités — pour les marchands COD sérieux", features: ["Boutiques Shopify illimitées", "Leads & commandes illimités", "Programme affiliés", "Wallet & retraits", "COD Drop catalog", "Analytics avancées"] },
     ],
     pricing_period: "/mois",
     // Testimonials
@@ -175,28 +175,28 @@ export const T = {
     testi_h2: "Ils encaissent tous les jours",
     testi_with: "avec CODShipEurope",
     testimonials: [
-      { name: "Karim B.", country: "🇵🇹 Portugal", role: "3 boutiques Shopify",    text: "Avant CODShipEurope, je gérais tout sur Excel et je perdais des leads en permanence. Maintenant mes confirmations sont automatiques, mes livraisons suivies et je suis payé chaque lundi automatiquement.", revenue: "+€3,200/mois", color: "from-orange-500 to-red-600" },
-      { name: "Sara M.",  country: "🇮🇹 Italie",   role: "Mode & Beauté COD",      text: "Le programme affilié m'a permis de doubler mes ventes sans pub. L'interface est claire, mon équipe de 3 personnes l'a pris en main en une journée. Le support répond dans l'heure.",   revenue: "+€5,800/mois", color: "from-rose-500 to-pink-600" },
-      { name: "Ahmed R.", country: "🇪🇸 Espagne",  role: "COD Drop entrepreneur",  text: "J'ai essayé 3 autres plateformes. CODShipEurope est la seule qui comprend le flux COD de A à Z. Le suivi des retours et le wallet sont parfaits. Je gère 6 boutiques depuis un seul tableau de bord.", revenue: "+€8,100/mois", color: "from-blue-500 to-cyan-600" },
+      { name: "Programme fondateurs", country: "🚀 ES · PT", role: "Accès anticipé", text: "Nous ouvrons la plateforme à un groupe limité de marchands fondateurs. Vous accédez directement à l'équipe et vous pouvez nous aider à façonner le produit.", revenue: "Places limitées", color: "from-orange-500 to-red-600" },
+      { name: "Logistique",          country: "📦 COD",     role: "Livraison & encaissement", text: "Les commandes sont confirmées, expédiées et suivies depuis un seul tableau de bord, avec encaissement à la livraison et retraits sur demande.", revenue: "Suivi en direct", color: "from-rose-500 to-pink-600" },
+      { name: "Catalogue affilié",   country: "🛍️ Produits", role: "Vendre sans acheter de stock", text: "Activez des produits du catalogue affilié, voyez la marge estimée avant de commencer et suivez vos activations.", revenue: "Choisir & activer", color: "from-blue-500 to-cyan-600" },
     ],
     // Global stats
     stats: [
-      { to: 2500,    prefix: "",  suffix: "+",  label: "Marchands actifs",  color: "#f97316", sub: "dans 10 pays" },
-      { to: 1200000, prefix: "€", suffix: "",   label: "Encaissés / mois",  color: "#10b981", sub: "reversés chaque semaine" },
-      { to: 94,      prefix: "",  suffix: "%",  label: "Taux de livraison", color: "#6366f1", sub: "moyenne plateforme" },
-      { to: 7,       prefix: "",  suffix: "j",  label: "Paiement hebdo",    color: "#f59e0b", sub: "chaque lundi" },
+      { display: "ES · PT",     label: "Marchés ciblés",     sub: "livraison COD" },
+      { display: "COD",         label: "Paiement à la livraison", sub: "encaissé à domicile" },
+      { display: "Temps réel",  label: "Suivi des commandes", sub: "leads et commandes" },
+      { display: "Fondateurs",  label: "Accès anticipé",     sub: "places limitées" },
     ],
     // Integrations
     integ_ecom: "E-commerce",
     integ_carriers: "Transporteurs COD",
     integ_withdraw: "Moyens de retrait",
     // CTA
-    cta_badge: "Rejoignez 2 500+ marchands actifs",
+    cta_badge: "Programme fondateurs — places limitées",
     cta_h2_1: "Prêt à transformer",
     cta_h2_2: "chaque livraison en",
     cta_highlight: "cash ?",
-    cta_sub: "14 jours d'essai gratuit. Aucune carte bancaire. Configuration en moins de 10 minutes.",
-    cta_trust: ["Aucune carte requise", "Annulation à tout moment", "Données sécurisées", "Support 7j/7"],
+    cta_sub: "Inscription en 2 minutes. Les comptes sont validés manuellement.",
+    cta_trust: ["Validation manuelle", "Données sécurisées", "Contact direct"],
     // Footer
     footer_desc: "La plateforme tout-en-un pour gérer votre activité Cash on Delivery, de la commande au paiement hebdomadaire.",
     footer_rights: "© 2025 CODShipEurope. Tous droits réservés.",

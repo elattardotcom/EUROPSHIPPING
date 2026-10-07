@@ -35,9 +35,9 @@ const T = {
     sentSub2:      "vous recevrez un lien de réinitialisation.",
     sentSpam:      "Vérifiez aussi vos spams.",
     sentBack:      "Retour à la connexion",
-    stat1v: "1 200+", stat1l: "Vendeurs actifs",
-    stat2v: "8",      stat2l: "Pays couverts",
-    stat3v: "99.9%",  stat3l: "Disponibilité",
+    stat1v: "Bêta", stat1l: "Accès fondateurs",
+    stat2v: "ES·PT", stat2l: "Marchés ciblés",
+    stat3v: "COD",    stat3l: "Paiement à la livraison",
     trustLine:     "Plateforme sécurisée · Données chiffrées · Support 24/7",
     langSwitch:    "EN",
   },
@@ -69,9 +69,9 @@ const T = {
     sentSub2:      "you will receive a reset link.",
     sentSpam:      "Check your spam folder too.",
     sentBack:      "Back to sign in",
-    stat1v: "1,200+", stat1l: "Active sellers",
-    stat2v: "8",       stat2l: "Countries",
-    stat3v: "99.9%",   stat3l: "Uptime",
+    stat1v: "Beta", stat1l: "Founding access",
+    stat2v: "ES·PT", stat2l: "Target markets",
+    stat3v: "COD",     stat3l: "Cash on delivery",
     trustLine:     "Secure platform · Encrypted data · 24/7 support",
     langSwitch:    "FR",
   },
@@ -283,20 +283,6 @@ export default function LoginPage() {
                       <p className="text-neutral-600 text-[10px] mt-0.5">{s.l}</p>
                     </div>
                   ))}
-                </div>
-
-                {/* Testimonial */}
-                <div className="mt-4 rounded-xl px-4 py-3.5"
-                  style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)" }}>
-                  <div className="flex items-center gap-1 mb-1.5">
-                    {[...Array(5)].map((_, i) => <Star key={i} className="w-3 h-3 fill-orange-400 text-orange-400" />)}
-                  </div>
-                  <p className="text-neutral-400 text-xs leading-relaxed italic">
-                    {lang === "fr"
-                      ? "\"CODShipEurope m'a permis de passer de 0 à 300 commandes/mois en Espagne. Interface claire, paiements rapides.\""
-                      : "\"CODShipEurope helped me go from 0 to 300 orders/month in Spain. Clean interface, fast payments.\""}
-                  </p>
-                  <p className="text-neutral-600 text-[10px] mt-2">— Karim B., {lang === "fr" ? "vendeur COD Espagne" : "COD seller Spain"}</p>
                 </div>
 
                 <div className="mt-6 pt-5" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>

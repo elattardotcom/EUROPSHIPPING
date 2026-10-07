@@ -13,7 +13,6 @@ import Link from "next/link"
 import { Logo }             from "@/components/logo"
 import { OpenModalButton }  from "@/components/landing/open-modal-button"
 import { ModalListener }    from "@/components/landing/modal-listener"
-import { AnimatedCounter }  from "@/components/landing/animated-counter"
 import { LiveTicker }       from "@/components/landing/live-ticker"
 import { LiveHeroStats }    from "@/components/landing/live-hero-stats"
 import { FaqSection }       from "@/components/landing/faq-section"
@@ -55,12 +54,12 @@ const LIVE_ORDERS = {
 const FLOATING = {
   en: {
     confirms_label: "Confirmations",
-    confirms_value: "+198 today",
+    confirms_value: "Example",
     revenue_label:  "Revenue / month",
   },
   fr: {
     confirms_label: "Confirmations",
-    confirms_value: "+198 aujourd'hui",
+    confirms_value: "Exemple",
     revenue_label:  "Revenus / mois",
   },
 }
@@ -393,14 +392,14 @@ export default function LandingPage() {
           {/* Stats strip */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {(lang === "fr" ? [
-              { v: "10",   unit: "pays",         label: "couverts en Europe",  color: "#f97316" },
-              { v: "48h",  unit: "",             label: "délai de livraison",   color: "#10b981" },
-              { v: "99%",  unit: "",             label: "taux de tracking",     color: "#6366f1" },
+              { v: "ES·PT", unit: "",             label: "marchés ciblés",       color: "#f97316" },
+              { v: "COD",   unit: "",             label: "paiement à la livraison", color: "#10b981" },
+              { v: "Live",  unit: "",             label: "suivi des commandes",  color: "#6366f1" },
               { v: "24/7", unit: "",             label: "suivi temps réel",     color: "#f59e0b" },
             ] : [
-              { v: "10",   unit: "countries",    label: "covered in Europe",    color: "#f97316" },
-              { v: "48h",  unit: "",             label: "delivery timeline",    color: "#10b981" },
-              { v: "99%",  unit: "",             label: "tracking rate",        color: "#6366f1" },
+              { v: "ES·PT", unit: "",             label: "target markets",       color: "#f97316" },
+              { v: "COD",   unit: "",             label: "cash on delivery",     color: "#10b981" },
+              { v: "Live",  unit: "",             label: "order tracking",       color: "#6366f1" },
               { v: "24/7", unit: "",             label: "live tracking",        color: "#f59e0b" },
             ]).map(s => (
               <div key={s.label} className="bg-neutral-950 border border-neutral-900 rounded-xl px-4 py-4 text-center">
@@ -618,6 +617,7 @@ export default function LandingPage() {
                 </div>
 
                 {/* Transactions */}
+                <p className="px-5 pt-3 text-[10px] uppercase tracking-widest text-neutral-600">{lang === "fr" ? "Exemple de démonstration" : "Demo example"}</p>
                 <div className="divide-y divide-white/[0.04]">
                   {[
                     { date: lang === "fr" ? "Lun 20 Jan" : "Mon Jan 20", amount: "+€2,140.00", orders: lang === "fr" ? "38 commandes livrées" : "38 orders delivered" },
@@ -1185,10 +1185,10 @@ export default function LandingPage() {
       <section className="py-16 sm:py-20 px-4 sm:px-6 border-y border-white/[0.04]" style={{ background: "linear-gradient(180deg,#0c0c0c,#090909)" }}>
         <div className="max-w-5xl mx-auto">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8">
-            {(t.stats as readonly { to: number; prefix: string; suffix: string; label: string; color: string; sub: string }[]).map(s => (
+            {(t.stats as readonly { display: string; label: string; sub: string }[]).map(s => (
               <div key={s.label} className="text-center">
-                <div className="text-3xl sm:text-4xl md:text-5xl font-black mb-1">
-                  <AnimatedCounter to={s.to} prefix={s.prefix} suffix={s.suffix} color={s.color} duration={2000} />
+                <div className="text-3xl sm:text-4xl md:text-5xl font-black mb-1 text-white">
+                  {s.display}
                 </div>
                 <p className="text-white text-xs sm:text-sm font-semibold mb-0.5">{s.label}</p>
                 <p className="text-neutral-600 text-[10px] sm:text-xs">{s.sub}</p>
