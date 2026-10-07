@@ -1,7 +1,7 @@
 import Image from "next/image"
 
-// Logo aspect ratio: 611x488 ≈ 1.25:1
-// size = height in px, width = size * 1.25
+// Logo aspect ratio: 820x494 ≈ 1.66:1
+// size = height in px, width = size * 1.66
 export function Logo({
   size = 48,
   className,
@@ -12,7 +12,7 @@ export function Logo({
   showBg?: boolean
 }) {
   const h = size
-  const w = Math.round(size * 1.25)
+  const w = Math.round(size * 1.66)
 
   return (
     <Image
