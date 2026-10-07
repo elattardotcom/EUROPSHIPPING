@@ -21,21 +21,42 @@ interface NavItem {
   badge?: number | string
 }
 
-function buildNavItems(leadsCount: number, ordersCount: number): NavItem[] {
+interface NavGroup {
+  label: string
+  items: NavItem[]
+}
+
+function buildNavGroups(leadsCount: number, ordersCount: number): NavGroup[] {
   return [
-    { href: "/dashboard",          icon: LayoutDashboard, label: "Dashboard" },
-    { href: "/dashboard/products", icon: Package,         label: "Products" },
-    { href: "/dashboard/stores",     icon: Link2,        label: "Integrations" },
-    { href: "/dashboard/leads",      icon: Users,        label: "Leads",     badge: leadsCount  || undefined },
-    { href: "/dashboard/orders",     icon: ShoppingCart, label: "Orders",     badge: ordersCount || undefined },
-    { href: "/dashboard/affiliates", icon: Gift,         label: "Affiliate" },
-    { href: "/dashboard/cod-drop",   icon: Boxes,        label: "COD Drop" },
-    { href: "/dashboard/wallet",     icon: Wallet,       label: "Wallet" },
-    { href: "/dashboard/withdrawals", icon: ArrowUpRight, label: "Withdrawals" },
     {
-      href: "/dashboard/sourcing",
-      icon: Search,
-      label: "Sourcing",
+      label: "Overview",
+      items: [
+        { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
+      ],
+    },
+    {
+      label: "Operations",
+      items: [
+        { href: "/dashboard/leads",  icon: Users,        label: "Leads",  badge: leadsCount  || undefined },
+        { href: "/dashboard/orders", icon: ShoppingCart, label: "Orders", badge: ordersCount || undefined },
+      ],
+    },
+    {
+      label: "Catalog",
+      items: [
+        { href: "/dashboard/products",   icon: Package, label: "Products" },
+        { href: "/dashboard/affiliates", icon: Gift,    label: "Affiliate" },
+        { href: "/dashboard/cod-drop",   icon: Boxes,   label: "COD Drop" },
+        { href: "/dashboard/stores",     icon: Link2,   label: "Integrations" },
+        { href: "/dashboard/sourcing",   icon: Search,  label: "Sourcing" },
+      ],
+    },
+    {
+      label: "Finance",
+      items: [
+        { href: "/dashboard/wallet",      icon: Wallet,       label: "Wallet" },
+        { href: "/dashboard/withdrawals", icon: ArrowUpRight, label: "Withdrawals" },
+      ],
     },
   ]
 }
@@ -112,13 +133,6 @@ function relativeTime(isoOrFr: string): string {
   } catch { return isoOrFr }
 }
 
-const BOTTOM_TABS = [
-  { href: "/dashboard",        icon: LayoutDashboard, label: "Home" },
-  { href: "/dashboard/leads",  icon: Users,           label: "Leads" },
-  { href: "/dashboard/orders", icon: ShoppingCart,    label: "Orders" },
-  { href: "/dashboard/wallet", icon: Wallet,          label: "Wallet" },
-]
-
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const router   = useRouter()
@@ -181,7 +195,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     setTimeout(() => dismissToast(id), 4000)
   }, [dismissToast])
 
-  const navItems = buildNavItems(leadsCount, ordersCount)
+  const navGroups = buildNavGroups(leadsCount, ordersCount)
+  const [navSearch, setNavSearch] = useState("")
+  const filteredNavGroups = navSearch.trim()
+    ? navGroups
+        .map(g => ({ ...g, items: g.items.filter(i => i.label.toLowerCase().includes(navSearch.trim().toLowerCase())) }))
+        .filter(g => g.items.length > 0)
+    : navGroups
 
   const [clientName,     setClientName]     = useState("")
   const [clientPlan,     setClientPlan]     = useState("")
@@ -343,36 +363,57 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         )}
       </div>
 
-      {/* Nav */}
-      <nav className="flex-1 overflow-y-auto p-3 space-y-0.5">
-        {(!collapsed || inDrawer) && (
-          <p className="text-neutral-600 text-[10px] uppercase tracking-widest px-3 py-2">Navigation</p>
-        )}
+      {/* Search */}
+      {(!collapsed || inDrawer) && (
+        <div className="px-3 pt-3">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-neutral-500" />
+            <input
+              value={navSearch}
+              onChange={e => setNavSearch(e.target.value)}
+              placeholder="Search"
+              className="w-full bg-neutral-800 border border-neutral-700 rounded-lg pl-9 pr-3 py-2 text-sm text-white placeholder:text-neutral-500 focus:outline-none focus:border-orange-500/60 transition-colors"
+            />
+          </div>
+        </div>
+      )}
 
-        {navItems.map((item) => {
+      {/* Nav */}
+      <nav className="flex-1 overflow-y-auto p-3 space-y-3">
+        {filteredNavGroups.map(group => {
           const showText = !collapsed || inDrawer
           return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors text-sm ${
-                isActive(item.href)
-                  ? "bg-orange-500/10 text-orange-400"
-                  : "text-neutral-400 hover:bg-neutral-800 hover:text-white"
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <item.icon className="w-4 h-4 flex-shrink-0" />
-                {showText && <span>{item.label}</span>}
-              </div>
-              {showText && item.badge !== undefined && (
-                <span className="bg-orange-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-medium">
-                  {item.badge}
-                </span>
+            <div key={group.label} className="space-y-0.5">
+              {showText && (
+                <p className="text-neutral-600 text-[10px] uppercase tracking-widest px-3 py-1">{group.label}</p>
               )}
-            </Link>
+              {group.items.map(item => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors text-sm ${
+                    isActive(item.href)
+                      ? "bg-orange-500/10 text-orange-400"
+                      : "text-neutral-400 hover:bg-neutral-800 hover:text-white"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <item.icon className="w-4 h-4 flex-shrink-0" />
+                    {showText && <span>{item.label}</span>}
+                  </div>
+                  {showText && item.badge !== undefined && (
+                    <span className="bg-orange-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-medium">
+                      {item.badge}
+                    </span>
+                  )}
+                </Link>
+              ))}
+            </div>
           )
         })}
+        {filteredNavGroups.length === 0 && (!collapsed || inDrawer) && (
+          <p className="text-neutral-600 text-sm text-center py-6">No results</p>
+        )}
       </nav>
 
       {/* Bottom */}
@@ -598,39 +639,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </header>
 
         {/* Page content */}
-        <main className="flex-1 overflow-auto bg-neutral-950 pb-16 md:pb-0">
+        <main className="flex-1 overflow-auto bg-neutral-950">
           {children}
         </main>
       </div>
 
       {/* ── Toast notifications ─────────────────────────────── */}
       <ToastStack toasts={toasts} onDismiss={dismissToast} />
-
-      {/* ── Mobile Bottom Tab Bar ───────────────────────────── */}
-      <nav className="fixed bottom-0 left-0 right-0 h-16 bg-neutral-900 border-t border-neutral-800 flex md:hidden z-30">
-        {BOTTOM_TABS.map(tab => {
-          const active = pathname === tab.href || (tab.href !== "/dashboard" && pathname.startsWith(tab.href))
-          return (
-            <Link
-              key={tab.href}
-              href={tab.href}
-              className={`flex-1 flex flex-col items-center justify-center gap-1 transition-colors ${
-                active ? "text-orange-400" : "text-neutral-500"
-              }`}
-            >
-              <tab.icon className="w-5 h-5" />
-              <span className="text-[10px] font-medium">{tab.label}</span>
-            </Link>
-          )
-        })}
-        <button
-          onClick={() => setMobileOpen(true)}
-          className="flex-1 flex flex-col items-center justify-center gap-1 text-neutral-500"
-        >
-          <Menu className="w-5 h-5" />
-          <span className="text-[10px] font-medium">Menu</span>
-        </button>
-      </nav>
     </div>
   )
 }
