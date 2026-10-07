@@ -91,7 +91,13 @@ export default function DashboardHome() {
     iso ? new Date(iso).toLocaleDateString("fr-FR", { day: "numeric", month: "short" }) : ""
 
   return (
-    <div className="p-4 md:p-6 space-y-6">
+    <div className="relative p-4 md:p-6 space-y-6">
+      <div className="fixed inset-0 pointer-events-none -z-10" style={{
+        backgroundImage: "linear-gradient(rgba(249,115,22,0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(249,115,22,0.035) 1px, transparent 1px)",
+        backgroundSize: "44px 44px",
+        maskImage: "radial-gradient(ellipse 70% 50% at 50% 0%, #000 0%, transparent 75%)",
+        WebkitMaskImage: "radial-gradient(ellipse 70% 50% at 50% 0%, #000 0%, transparent 75%)",
+      }} />
       <OnboardingBanner />
 
       {/* Header */}

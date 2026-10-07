@@ -75,6 +75,24 @@ const PERIOD_LABEL: Record<Exclude<Period,"custom">, string> = {
 
 /* ── stat cards ─────────────────────────────────────────────── */
 
+const GLOW = {
+  green:  "rgba(16,185,129,0.22)",  teal:   "rgba(20,184,166,0.22)",
+  purple: "rgba(168,85,247,0.22)",  orange: "rgba(249,115,22,0.22)",
+  red:    "rgba(239,68,68,0.22)",   yellow: "rgba(234,179,8,0.22)",
+}
+
+function CornerBrackets({ color }: { color: string }) {
+  const style = { borderColor: color }
+  return (
+    <>
+      <span className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 rounded-tl-md opacity-70" style={style} />
+      <span className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 rounded-tr-md opacity-70" style={style} />
+      <span className="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 rounded-bl-md opacity-70" style={style} />
+      <span className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 rounded-br-md opacity-70" style={style} />
+    </>
+  )
+}
+
 function StatCard({
   title, subtitle, value, unit, description, icon: Icon, color, trend,
 }: {
@@ -86,7 +104,9 @@ function StatCard({
   const border = { green:"border-l-emerald-500", teal:"border-l-teal-500", purple:"border-l-purple-500", orange:"border-l-orange-500", red:"border-l-red-500", yellow:"border-l-yellow-500" }[color]
   const ico    = { green:"text-emerald-500", teal:"text-teal-500", purple:"text-purple-500", orange:"text-orange-500", red:"text-red-500", yellow:"text-yellow-500" }[color]
   return (
-    <div className={`bg-neutral-900 border border-neutral-800 rounded-xl p-5 border-l-4 ${border}`}>
+    <div className={`relative bg-neutral-900 border border-neutral-800 rounded-xl p-5 border-l-4 ${border}`}
+      style={{ boxShadow: `0 0 28px -8px ${GLOW[color]}` }}>
+      <CornerBrackets color={GLOW[color].replace("0.22", "0.55")} />
       <div className="flex items-start justify-between mb-4">
         <div>
           <h3 className="text-sm font-medium text-white">{title}</h3>
@@ -97,10 +117,10 @@ function StatCard({
         </div>
       </div>
       <div className="flex items-baseline gap-2 mb-2">
-        <span className="text-3xl font-bold text-white">{value}</span>
+        <span className="text-3xl font-bold text-white font-mono tracking-tight">{value}</span>
         <span className="text-sm text-neutral-500">{unit}</span>
         {trend && (
-          <span className={`flex items-center gap-1 text-xs ml-auto ${trend.positive ? "text-emerald-500" : "text-red-500"}`}>
+          <span className={`flex items-center gap-1 text-xs ml-auto font-mono ${trend.positive ? "text-emerald-500" : "text-red-500"}`}>
             {trend.positive ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
             {trend.value}%
           </span>
@@ -131,7 +151,7 @@ function SmallStatCard({
         </div>
       </div>
       <div className="flex items-baseline gap-1">
-        <span className="text-2xl font-bold text-white">{value}</span>
+        <span className="text-2xl font-bold text-white font-mono tracking-tight">{value}</span>
         <span className="text-sm text-neutral-500">{unit}</span>
       </div>
     </div>
@@ -144,21 +164,23 @@ function RingStat({
   const r = 24, c = 2 * Math.PI * r
   const offset = c - (Math.min(100, Math.max(0, pct)) / 100) * c
   return (
-    <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-5 flex items-center gap-4">
+    <div className="relative bg-neutral-900 border border-neutral-800 rounded-xl p-5 flex items-center gap-4 overflow-hidden">
+      <div className="absolute -top-10 -right-10 w-28 h-28 rounded-full pointer-events-none"
+        style={{ background: `radial-gradient(circle, ${color}22 0%, transparent 70%)` }} />
       <div className="relative w-16 h-16 flex-shrink-0">
         <svg viewBox="0 0 56 56" className="w-16 h-16 -rotate-90">
           <circle cx="28" cy="28" r={r} stroke="#262626" strokeWidth="5" fill="none" />
           <circle cx="28" cy="28" r={r} stroke={color} strokeWidth="5" fill="none"
             strokeDasharray={c} strokeDashoffset={offset} strokeLinecap="round"
-            style={{ transition: "stroke-dashoffset 0.6s ease" }} />
+            style={{ transition: "stroke-dashoffset 0.6s ease", filter: `drop-shadow(0 0 5px ${color}aa)` }} />
         </svg>
-        <div className="absolute inset-0 flex items-center justify-center text-white text-sm font-bold">
+        <div className="absolute inset-0 flex items-center justify-center text-white text-sm font-bold font-mono">
           {pct}%
         </div>
       </div>
-      <div className="min-w-0">
+      <div className="min-w-0 relative">
         <p className="text-sm font-semibold text-white truncate">{title}</p>
-        <p className="text-xs text-neutral-500 truncate">{subtitle}</p>
+        <p className="text-xs text-neutral-500 truncate font-mono">{subtitle}</p>
       </div>
     </div>
   )
@@ -168,15 +190,18 @@ function FunnelCard({ stages }: { stages: { label: string; value: number; color:
   const max = Math.max(1, ...stages.map(s => s.value))
   return (
     <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-5">
-      <h3 className="text-sm font-semibold text-white mb-0.5">Du lead au paiement</h3>
+      <h3 className="text-sm font-semibold text-white mb-0.5 flex items-center gap-2">
+        <span className="w-1.5 h-1.5 rounded-full bg-orange-500" style={{ boxShadow: "0 0 6px 1px rgba(249,115,22,0.7)" }} />
+        Du lead au paiement
+      </h3>
       <p className="text-xs text-neutral-500 mb-5">Parcours des leads reçus jusqu'à la livraison, sur la période</p>
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
         {stages.map(s => (
           <div key={s.label}>
-            <p className="text-2xl font-bold text-white mb-1">{s.value}</p>
+            <p className="text-2xl font-bold text-white mb-1 font-mono tracking-tight">{s.value}</p>
             <p className="text-xs text-neutral-500 mb-2 truncate">{s.label}</p>
             <div className="w-full bg-neutral-800 rounded-full h-1.5">
-              <div className="h-1.5 rounded-full" style={{ width: `${(s.value / max) * 100}%`, background: s.color }} />
+              <div className="h-1.5 rounded-full" style={{ width: `${(s.value / max) * 100}%`, background: s.color, boxShadow: `0 0 6px 0 ${s.color}99` }} />
             </div>
           </div>
         ))}
@@ -576,10 +601,10 @@ export default function DashboardPage({
                         <td className="px-4 py-3 text-white flex items-center gap-2">
                           <span>{flagEmoji(m.countryCode)}</span>{m.name}
                         </td>
-                        <td className="px-3 py-3 text-right text-neutral-400">{m.leads}</td>
-                        <td className="px-3 py-3 text-right text-neutral-400">{m.confirmRate === null ? "—" : `${m.confirmRate}%`}</td>
-                        <td className="px-3 py-3 text-right text-neutral-400">{m.deliveryRate === null ? "—" : `${m.deliveryRate}%`}</td>
-                        <td className="px-4 py-3 text-right text-white font-semibold">{fmtShort(m.revenue)} {currency}</td>
+                        <td className="px-3 py-3 text-right text-neutral-400 font-mono">{m.leads}</td>
+                        <td className="px-3 py-3 text-right text-neutral-400 font-mono">{m.confirmRate === null ? "—" : `${m.confirmRate}%`}</td>
+                        <td className="px-3 py-3 text-right text-neutral-400 font-mono">{m.deliveryRate === null ? "—" : `${m.deliveryRate}%`}</td>
+                        <td className="px-4 py-3 text-right text-white font-semibold font-mono">{fmtShort(m.revenue)} {currency}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -612,9 +637,9 @@ export default function DashboardPage({
                     {productStats.map(p => (
                       <tr key={p.name} className="border-b border-neutral-800/60 last:border-0">
                         <td className="px-4 py-3 text-white truncate max-w-[160px]">{p.name}</td>
-                        <td className="px-3 py-3 text-right text-neutral-400">{p.leads}</td>
-                        <td className="px-3 py-3 text-right text-neutral-400">{p.orders}</td>
-                        <td className="px-4 py-3 text-right text-white font-semibold">{fmtShort(p.revenue)} {currency}</td>
+                        <td className="px-3 py-3 text-right text-neutral-400 font-mono">{p.leads}</td>
+                        <td className="px-3 py-3 text-right text-neutral-400 font-mono">{p.orders}</td>
+                        <td className="px-4 py-3 text-right text-white font-semibold font-mono">{fmtShort(p.revenue)} {currency}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -666,7 +691,7 @@ export default function DashboardPage({
                 <div key={item.id} className="flex items-center gap-3 px-4 py-3">
                   <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: STATUS_DOT[item.status] ?? "#525252" }} />
                   <span className="text-sm text-neutral-300 flex-1 truncate">{item.text}</span>
-                  <span className="text-xs text-neutral-600 flex-shrink-0">{item.date}</span>
+                  <span className="text-xs text-neutral-600 flex-shrink-0 font-mono">{item.date}</span>
                 </div>
               ))}
             </div>
