@@ -226,7 +226,7 @@ function WebhookView({
       </div>
 
       {/* ── SECTION 1 : Commandes via webhook ── */}
-      <div className="rounded-2xl border border-neutral-800 bg-neutral-900 overflow-hidden">
+      <div className="relative rounded-2xl border border-neutral-800 bg-neutral-900 overflow-hidden" style={{ boxShadow: "0 0 32px -12px rgba(249,115,22,0.18)" }}>
         <div className="px-6 py-4 border-b border-neutral-800 flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-orange-500/10 border border-orange-500/20 flex items-center justify-center flex-shrink-0">
             <Zap className="w-4 h-4 text-orange-400" />
@@ -235,7 +235,10 @@ function WebhookView({
             <p className="text-white font-bold text-sm">Commandes en temps réel</p>
             <p className="text-neutral-500 text-xs">Webhook Shopify — aucune app requise</p>
           </div>
-          <span className="ml-auto text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-full font-bold">PRÊT</span>
+          <span className="ml-auto text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-full font-bold flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" style={{ boxShadow: "0 0 6px 1px rgba(16,185,129,0.8)" }} />
+            PRÊT
+          </span>
         </div>
         <div className="p-6 space-y-4">
           <div>
@@ -269,7 +272,7 @@ function WebhookView({
       {stores.length > 0 && (
         <div className="rounded-2xl border border-neutral-800 bg-neutral-900 overflow-hidden">
           <div className="px-5 py-4 border-b border-neutral-800">
-            <p className="text-white font-bold text-sm">Boutiques connectées ({stores.length})</p>
+            <p className="text-white font-bold text-sm">Boutiques connectées (<span className="font-mono">{stores.length}</span>)</p>
           </div>
           <div className="divide-y divide-neutral-800">
             {stores.map(s => (
@@ -588,13 +591,13 @@ export default function StoresPage() {
           { label: "Total commandes",    value: stores.reduce((a, s) => a + s.totalOrders, 0).toLocaleString(), icon: CheckCircle, color: "text-purple-400",  bg: "bg-purple-500/10" },
           { label: "Erreurs de sync",    value: stores.filter(s => s.status === "error").length,     icon: AlertCircle, color: "text-orange-400",  bg: "bg-orange-500/10" },
         ].map(s => (
-          <div key={s.label} className="bg-neutral-900 border border-neutral-800 rounded-xl p-5 flex items-center gap-4">
+          <div key={s.label} className="relative bg-neutral-900 border border-neutral-800 rounded-xl p-5 flex items-center gap-4">
             <div className={`w-10 h-10 ${s.bg} rounded-lg flex items-center justify-center flex-shrink-0`}>
               <s.icon className={`w-5 h-5 ${s.color}`} />
             </div>
             <div>
               <p className="text-xs text-neutral-500">{s.label}</p>
-              <p className="text-xl font-bold text-white">{s.value}</p>
+              <p className="text-xl font-bold text-white font-mono tracking-tight">{s.value}</p>
             </div>
           </div>
         ))}
@@ -629,15 +632,15 @@ export default function StoresPage() {
               </div>
               <div className="flex items-center gap-8">
                 <div className="text-center">
-                  <p className="text-base font-bold text-white">{store.ordersToday}</p>
+                  <p className="text-base font-bold text-white font-mono">{store.ordersToday}</p>
                   <p className="text-[10px] text-neutral-600 uppercase tracking-wide">Aujourd'hui</p>
                 </div>
                 <div className="text-center">
-                  <p className="text-base font-bold text-white">{store.totalOrders.toLocaleString()}</p>
+                  <p className="text-base font-bold text-white font-mono">{store.totalOrders.toLocaleString()}</p>
                   <p className="text-[10px] text-neutral-600 uppercase tracking-wide">Total</p>
                 </div>
                 <div className="text-center">
-                  <p className="text-xs text-neutral-400">{store.lastSync}</p>
+                  <p className="text-xs text-neutral-400 font-mono">{store.lastSync}</p>
                   <p className="text-[10px] text-neutral-600 uppercase tracking-wide">Dernière sync</p>
                 </div>
                 <div className="flex items-center gap-1">

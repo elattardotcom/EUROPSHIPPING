@@ -42,6 +42,26 @@ const AVATAR_COLORS = [
 
 const PER_PAGE = 10
 
+const GLOW: Record<string, string> = {
+  "border-l-blue-500":    "rgba(59,130,246,0.22)",
+  "border-l-amber-500":   "rgba(245,158,11,0.22)",
+  "border-l-blue-400":    "rgba(96,165,250,0.22)",
+  "border-l-emerald-500": "rgba(16,185,129,0.22)",
+  "border-l-red-500":     "rgba(239,68,68,0.22)",
+}
+
+function CornerBrackets({ color }: { color: string }) {
+  const style = { borderColor: color }
+  return (
+    <>
+      <span className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 rounded-tl-md opacity-70" style={style} />
+      <span className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 rounded-tr-md opacity-70" style={style} />
+      <span className="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 rounded-bl-md opacity-70" style={style} />
+      <span className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 rounded-br-md opacity-70" style={style} />
+    </>
+  )
+}
+
 export default function OrdersPage() {
   const [search, setSearch]       = useState("")
   const [statusFilter, setStatus] = useState<OrderStatus | "ALL">("ALL")
@@ -96,7 +116,13 @@ export default function OrdersPage() {
   }
 
   return (
-    <div className="p-4 md:p-6 space-y-4 md:space-y-6">
+    <div className="relative p-4 md:p-6 space-y-4 md:space-y-6">
+      <div className="fixed inset-0 pointer-events-none -z-10" style={{
+        backgroundImage: "linear-gradient(rgba(249,115,22,0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(249,115,22,0.035) 1px, transparent 1px)",
+        backgroundSize: "44px 44px",
+        maskImage: "radial-gradient(ellipse 70% 50% at 50% 0%, #000 0%, transparent 75%)",
+        WebkitMaskImage: "radial-gradient(ellipse 70% 50% at 50% 0%, #000 0%, transparent 75%)",
+      }} />
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
@@ -125,10 +151,12 @@ export default function OrdersPage() {
         ].map(c => (
           <button key={c.label}
             onClick={() => { setStatus(c.status as OrderStatus | "ALL"); setPage(1) }}
-            className={`bg-neutral-900 border border-neutral-800 border-l-4 ${c.border} rounded-xl p-4 text-left hover:border-neutral-700 transition-colors`}
+            className={`relative bg-neutral-900 border border-neutral-800 border-l-4 ${c.border} rounded-xl p-4 text-left hover:border-neutral-700 transition-colors ${statusFilter === c.status ? "ring-1 ring-orange-500/40" : ""}`}
+            style={{ boxShadow: `0 0 24px -10px ${GLOW[c.border] ?? "transparent"}` }}
           >
+            <CornerBrackets color={(GLOW[c.border] ?? "transparent").replace("0.22", "0.5")} />
             <c.Icon className="w-4 h-4 text-neutral-500 mb-3" />
-            <div className="text-2xl font-bold text-white mb-0.5">{c.value}</div>
+            <div className="text-2xl font-bold text-white mb-0.5 font-mono tracking-tight">{c.value}</div>
             <p className="text-xs text-neutral-500">{c.label}</p>
           </button>
         ))}
@@ -178,8 +206,11 @@ export default function OrdersPage() {
       {/* Table */}
       <div className="bg-neutral-900 border border-neutral-800 rounded-2xl overflow-hidden">
         <div className="px-5 py-4 border-b border-neutral-800">
-          <h2 className="text-base font-semibold text-white">Toutes les commandes</h2>
-          <p className="text-xs text-neutral-500 mt-0.5">{filtered.length} résultats</p>
+          <h2 className="text-base font-semibold text-white flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-orange-500" style={{ boxShadow: "0 0 6px 1px rgba(249,115,22,0.7)" }} />
+            Toutes les commandes
+          </h2>
+          <p className="text-xs text-neutral-500 mt-0.5 font-mono">{filtered.length} résultats</p>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -227,14 +258,14 @@ export default function OrdersPage() {
                   <td className="p-4"><span className="text-sm text-neutral-300 truncate block max-w-[130px]">{order.product}</span></td>
                   <td className="p-4">
                     {order.trackingNumber
-                      ? <code className="text-xs text-orange-400 bg-orange-500/10 px-2 py-1 rounded">{order.trackingNumber}</code>
+                      ? <code className="text-xs text-orange-400 bg-orange-500/10 border border-orange-500/20 px-2 py-1 rounded">{order.trackingNumber}</code>
                       : <span className="text-xs text-neutral-600">—</span>
                     }
                   </td>
-                  <td className="p-4"><span className="text-sm font-semibold text-white">€{order.orderValue.toFixed(2)}</span></td>
+                  <td className="p-4"><span className="text-sm font-semibold text-white font-mono">€{order.orderValue.toFixed(2)}</span></td>
                   <td className="p-4">
-                    <p className="text-sm text-neutral-300">{order.createdAt}</p>
-                    <p className="text-xs text-neutral-600">{order.createdTime}</p>
+                    <p className="text-sm text-neutral-300 font-mono">{order.createdAt}</p>
+                    <p className="text-xs text-neutral-600 font-mono">{order.createdTime}</p>
                   </td>
                   <td className="p-4">
                     <Button variant="ghost" size="icon" className="h-8 w-8 text-neutral-500 hover:text-white">
