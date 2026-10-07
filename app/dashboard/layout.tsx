@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button"
 import { getClientIdFromCookie } from "@/lib/client-cookie"
 import { Logo } from "@/components/logo"
 import { useRealtime, type RealtimeEvent } from "@/hooks/useSse"
+import { useCurrency } from "@/hooks/useCurrency"
 interface NavItem {
   href: string
   icon: React.ElementType
@@ -164,7 +165,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     if (typeof window === "undefined") return new Set()
     try { return new Set(JSON.parse(localStorage.getItem("client_notif_read") ?? "[]")) } catch { return new Set() }
   })
-  const [balance,        setBalance]        = useState<string | null>(null)
+  const [balance,        setBalance]        = useState<number | null>(null)
+  const { fmt: fmtBalance }                 = useCurrency()
   const [refreshing,     setRefreshing]     = useState(false)
   const [clientId,       setClientId]       = useState(getClientIdFromCookie)
   const [leadsCount,     setLeadsCount]     = useState(0)
@@ -225,7 +227,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       .then(r => r.json())
       .then(d => {
         if (d.balance !== undefined) {
-          setBalance(new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(d.balance))
+          setBalance(d.balance)
         }
       })
       .catch(() => {})
@@ -556,7 +558,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 className="hidden sm:flex items-center gap-2 px-3 py-1.5 mr-1 rounded-lg border border-neutral-800 hover:border-orange-500/40 bg-neutral-800/40 transition-colors">
                 <span className="text-neutral-500 text-xs">Solde</span>
                 <span className="text-orange-400 font-bold text-sm font-mono" style={{ textShadow: "0 0 8px rgba(249,115,22,0.35)" }}>
-                  {balance}
+                  {fmtBalance(balance)}
                 </span>
               </Link>
             )}
