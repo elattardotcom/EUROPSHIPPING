@@ -452,14 +452,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         })}
       </nav>
 
-      {/* Wallet balance */}
-      {(!collapsed || inDrawer) && balance !== null && (
-        <div className="mx-3 mb-2 px-3 py-2.5 rounded-xl bg-orange-500/10 border border-orange-500/20">
-          <p className="text-[10px] uppercase tracking-wider text-orange-400/60 mb-0.5">Solde disponible</p>
-          <p className="text-orange-400 font-bold text-base">{balance}</p>
-        </div>
-      )}
-
       {/* Bottom */}
       <div className="p-3 border-t border-neutral-800 space-y-0.5">
         {(!collapsed || inDrawer) && (
@@ -558,6 +550,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
 
           <div className="flex items-center gap-1 md:gap-2">
+            {/* Wallet balance */}
+            {balance !== null && (
+              <Link href="/dashboard/wallet"
+                className="hidden sm:flex items-center gap-2 px-3 py-1.5 mr-1 rounded-lg border border-neutral-800 hover:border-orange-500/40 bg-neutral-800/40 transition-colors">
+                <span className="text-neutral-500 text-xs">Solde</span>
+                <span className="text-orange-400 font-bold text-sm font-mono" style={{ textShadow: "0 0 8px rgba(249,115,22,0.35)" }}>
+                  {balance}
+                </span>
+              </Link>
+            )}
+
             {/* Refresh */}
             <Button
               variant="ghost" size="icon"
