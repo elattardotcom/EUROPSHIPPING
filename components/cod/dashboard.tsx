@@ -138,6 +138,62 @@ function SmallStatCard({
   )
 }
 
+function RingStat({
+  title, subtitle, pct, color,
+}: { title: string; subtitle: string; pct: number; color: string }) {
+  const r = 24, c = 2 * Math.PI * r
+  const offset = c - (Math.min(100, Math.max(0, pct)) / 100) * c
+  return (
+    <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-5 flex items-center gap-4">
+      <div className="relative w-16 h-16 flex-shrink-0">
+        <svg viewBox="0 0 56 56" className="w-16 h-16 -rotate-90">
+          <circle cx="28" cy="28" r={r} stroke="#262626" strokeWidth="5" fill="none" />
+          <circle cx="28" cy="28" r={r} stroke={color} strokeWidth="5" fill="none"
+            strokeDasharray={c} strokeDashoffset={offset} strokeLinecap="round"
+            style={{ transition: "stroke-dashoffset 0.6s ease" }} />
+        </svg>
+        <div className="absolute inset-0 flex items-center justify-center text-white text-sm font-bold">
+          {pct}%
+        </div>
+      </div>
+      <div className="min-w-0">
+        <p className="text-sm font-semibold text-white truncate">{title}</p>
+        <p className="text-xs text-neutral-500 truncate">{subtitle}</p>
+      </div>
+    </div>
+  )
+}
+
+function FunnelCard({ stages }: { stages: { label: string; value: number; color: string }[] }) {
+  const max = Math.max(1, ...stages.map(s => s.value))
+  return (
+    <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-5">
+      <h3 className="text-sm font-semibold text-white mb-0.5">Du lead au paiement</h3>
+      <p className="text-xs text-neutral-500 mb-5">Parcours des leads reçus jusqu'à la livraison, sur la période</p>
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
+        {stages.map(s => (
+          <div key={s.label}>
+            <p className="text-2xl font-bold text-white mb-1">{s.value}</p>
+            <p className="text-xs text-neutral-500 mb-2 truncate">{s.label}</p>
+            <div className="w-full bg-neutral-800 rounded-full h-1.5">
+              <div className="h-1.5 rounded-full" style={{ width: `${(s.value / max) * 100}%`, background: s.color }} />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+const STATUS_LABEL_FR: Record<string, string> = {
+  PENDING: "en attente", CONFIRMED: "confirmé", UNREACHED: "non joint", CANCELED: "annulé",
+  ERROR: "erreur", SHIPPED: "expédiée", DELIVERED: "livrée", RETURNED: "retournée",
+}
+const STATUS_DOT: Record<string, string> = {
+  PENDING: "#f59e0b", CONFIRMED: "#10b981", UNREACHED: "#3b82f6", CANCELED: "#ef4444",
+  ERROR: "#ef4444", SHIPPED: "#3b82f6", DELIVERED: "#10b981", RETURNED: "#ef4444",
+}
+
 function ChartCard({ title, subtitle, children }: { title: string; subtitle?: string; children: React.ReactNode }) {
   return (
     <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-5">
@@ -287,35 +343,82 @@ export default function DashboardPage({
       .slice(0, 3)
   }, [filteredOrders])
 
-  const revenueByCountry = useMemo(() => {
-    const map = new Map<string, { revenue: number; orders: number; countryCode: string }>()
-    filteredOrders.filter(o => o.status === "DELIVERED").forEach(o => {
+
+  const reachedLeads  = filteredLeads.filter(l => l.status !== "PENDING").length
+  const shippedOrMore = filteredOrders.filter(o => o.status === "SHIPPED" || o.status === "DELIVERED").length
+
+  const funnelStages = [
+    { label: "Leads reçus", value: totalLeads,     color: "#14b8a6" },
+    { label: "Contactés",   value: reachedLeads,   color: "#6366f1" },
+    { label: "Confirmés",   value: confirmedLeads, color: "#f59e0b" },
+    { label: "Expédiés",    value: shippedOrMore,  color: "#3b82f6" },
+    { label: "Livrés",      value: deliveredOrders,color: "#10b981" },
+  ]
+
+  const marketStats = useMemo(() => {
+    const map = new Map<string, { countryCode: string; leads: number; confirmed: number; orders: number; delivered: number; revenue: number }>()
+    filteredLeads.forEach(l => {
+      const c = l.country || "Autre"
+      const cur = map.get(c) ?? { countryCode: l.countryCode || "", leads: 0, confirmed: 0, orders: 0, delivered: 0, revenue: 0 }
+      cur.leads++
+      if (l.status === "CONFIRMED") cur.confirmed++
+      map.set(c, cur)
+    })
+    filteredOrders.forEach(o => {
       const c = o.country || "Autre"
-      const cur = map.get(c) ?? { revenue: 0, orders: 0, countryCode: o.countryCode || "" }
-      cur.revenue += o.orderValue; cur.orders++
+      const cur = map.get(c) ?? { countryCode: o.countryCode || "", leads: 0, confirmed: 0, orders: 0, delivered: 0, revenue: 0 }
+      cur.orders++
+      if (o.status === "DELIVERED") { cur.delivered++; cur.revenue += o.orderValue }
       map.set(c, cur)
     })
     return [...map.entries()]
-      .map(([name, v]) => ({ name, ...v }))
+      .map(([name, v]) => ({
+        name, ...v,
+        confirmRate:  v.leads  ? Math.round((v.confirmed / v.leads) * 100)  : null,
+        deliveryRate: v.orders ? Math.round((v.delivered / v.orders) * 100) : null,
+      }))
       .sort((a, b) => b.revenue - a.revenue)
-  }, [filteredOrders])
+  }, [filteredLeads, filteredOrders])
 
-  const topProducts = useMemo(() => {
-    const map = new Map<string, { revenue: number; orders: number }>()
-    filteredOrders.filter(o => o.status === "DELIVERED").forEach(o => {
+  const productStats = useMemo(() => {
+    const map = new Map<string, { leads: number; orders: number; delivered: number; revenue: number }>()
+    filteredLeads.forEach(l => {
+      const p = l.product || "Produit"
+      const cur = map.get(p) ?? { leads: 0, orders: 0, delivered: 0, revenue: 0 }
+      cur.leads++
+      map.set(p, cur)
+    })
+    filteredOrders.forEach(o => {
       const p = o.product || "Produit"
-      const cur = map.get(p) ?? { revenue: 0, orders: 0 }
-      cur.revenue += o.orderValue; cur.orders++
+      const cur = map.get(p) ?? { leads: 0, orders: 0, delivered: 0, revenue: 0 }
+      cur.orders++
+      if (o.status === "DELIVERED") { cur.delivered++; cur.revenue += o.orderValue }
       map.set(p, cur)
     })
     return [...map.entries()]
       .map(([name, v]) => ({ name, ...v }))
       .sort((a, b) => b.revenue - a.revenue)
-      .slice(0, 5)
-  }, [filteredOrders])
+      .slice(0, 8)
+  }, [filteredLeads, filteredOrders])
 
-  const maxCountryRevenue = revenueByCountry[0]?.revenue ?? 0
-  const maxProductRevenue = topProducts[0]?.revenue ?? 0
+  const activityFeed = useMemo(() => {
+    type Item = { id: string; icon: "lead" | "order"; text: string; date: string; status: string }
+    const items: Item[] = [
+      ...filteredLeads.map(l => ({
+        id: `l-${l.id}`, icon: "lead" as const,
+        text: `Lead ${STATUS_LABEL_FR[l.status] ?? l.status} — ${l.product}`,
+        date: l.createdAt, status: l.status,
+      })),
+      ...filteredOrders.map(o => ({
+        id: `o-${o.id}`, icon: "order" as const,
+        text: `Commande ${STATUS_LABEL_FR[o.status] ?? o.status} — ${o.product}`,
+        date: o.createdAt, status: o.status,
+      })),
+    ]
+    return items
+      .sort((a, b) => parseFrDate(b.date).localeCompare(parseFrDate(a.date)))
+      .slice(0, 8)
+  }, [filteredLeads, filteredOrders])
 
   function flagEmoji(code: string): string {
     if (!code || code.length !== 2) return "🌍"
@@ -344,6 +447,13 @@ export default function DashboardPage({
         <StatCard title="TOTAL COMMANDES" subtitle="Commandes traitées" value={totalOrders} unit="ORDERS"
           description={`${deliveredOrders} livrées — taux ${deliveryRate}%`} icon={ShoppingCart} color="purple" />
       </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <RingStat title="Taux de confirmation" subtitle={`${confirmedLeads} sur ${totalLeads} leads décidés`} pct={confirmRate} color="#f59e0b" />
+        <RingStat title="Taux de livraison"     subtitle={`${deliveredOrders} sur ${totalOrders} commandes`}  pct={deliveryRate} color="#10b981" />
+      </div>
+
+      <FunnelCard stages={funnelStages} />
 
       {/* Activity chart */}
       <ChartCard title={`Activité — ${period === "custom" && customStart && customEnd ? `${new Date(customStart).toLocaleDateString("fr-FR",{day:"numeric",month:"short"})} → ${new Date(customEnd).toLocaleDateString("fr-FR",{day:"numeric",month:"short"})}` : PERIOD_LABEL[period as Exclude<Period,"custom">] ?? "tout"}`} subtitle="Leads, commandes et revenus">
@@ -438,6 +548,83 @@ export default function DashboardPage({
         </div>
       </div>
 
+      {/* Markets + Top products tables */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div>
+          <div className="mb-4">
+            <h2 className="text-xl font-semibold text-white">Marchés</h2>
+            <p className="text-sm text-neutral-500">Performance par pays de destination</p>
+          </div>
+          <div className="bg-neutral-900 border border-neutral-800 rounded-xl overflow-hidden">
+            {marketStats.length === 0 ? (
+              <p className="text-neutral-600 text-sm text-center py-10">Aucun lead sur cette période</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-neutral-800 text-neutral-500 text-xs">
+                      <th className="text-left font-medium px-4 py-3">Pays</th>
+                      <th className="text-right font-medium px-3 py-3">Leads</th>
+                      <th className="text-right font-medium px-3 py-3">Confirm.</th>
+                      <th className="text-right font-medium px-3 py-3">Livraison</th>
+                      <th className="text-right font-medium px-4 py-3">Revenus</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {marketStats.map(m => (
+                      <tr key={m.name} className="border-b border-neutral-800/60 last:border-0">
+                        <td className="px-4 py-3 text-white flex items-center gap-2">
+                          <span>{flagEmoji(m.countryCode)}</span>{m.name}
+                        </td>
+                        <td className="px-3 py-3 text-right text-neutral-400">{m.leads}</td>
+                        <td className="px-3 py-3 text-right text-neutral-400">{m.confirmRate === null ? "—" : `${m.confirmRate}%`}</td>
+                        <td className="px-3 py-3 text-right text-neutral-400">{m.deliveryRate === null ? "—" : `${m.deliveryRate}%`}</td>
+                        <td className="px-4 py-3 text-right text-white font-semibold">{fmtShort(m.revenue)} {currency}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div>
+          <div className="mb-4">
+            <h2 className="text-xl font-semibold text-white">Top produits</h2>
+            <p className="text-sm text-neutral-500">Classés par revenus livrés</p>
+          </div>
+          <div className="bg-neutral-900 border border-neutral-800 rounded-xl overflow-hidden">
+            {productStats.length === 0 ? (
+              <p className="text-neutral-600 text-sm text-center py-10">Aucune activité produit sur cette période</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-neutral-800 text-neutral-500 text-xs">
+                      <th className="text-left font-medium px-4 py-3">Produit</th>
+                      <th className="text-right font-medium px-3 py-3">Leads</th>
+                      <th className="text-right font-medium px-3 py-3">Commandes</th>
+                      <th className="text-right font-medium px-4 py-3">Revenus</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {productStats.map(p => (
+                      <tr key={p.name} className="border-b border-neutral-800/60 last:border-0">
+                        <td className="px-4 py-3 text-white truncate max-w-[160px]">{p.name}</td>
+                        <td className="px-3 py-3 text-right text-neutral-400">{p.leads}</td>
+                        <td className="px-3 py-3 text-right text-neutral-400">{p.orders}</td>
+                        <td className="px-4 py-3 text-right text-white font-semibold">{fmtShort(p.revenue)} {currency}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
       {/* Revenue by store */}
       {revenueByStore.length > 0 && (
         <div>
@@ -464,62 +651,28 @@ export default function DashboardPage({
         </div>
       )}
 
-      {/* Revenue by country + Top products */}
-      {(revenueByCountry.length > 0 || topProducts.length > 0) && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {revenueByCountry.length > 0 && (
-            <div>
-              <div className="mb-4">
-                <h2 className="text-xl font-semibold text-white">Revenus par pays</h2>
-                <p className="text-sm text-neutral-500">Performance par marché</p>
-              </div>
-              <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-5 space-y-3">
-                {revenueByCountry.map(c => (
-                  <div key={c.name}>
-                    <div className="flex items-center justify-between mb-1.5">
-                      <span className="text-sm text-white flex items-center gap-2">
-                        <span>{flagEmoji(c.countryCode)}</span>{c.name}
-                        <span className="text-xs text-neutral-500">· {c.orders} commandes</span>
-                      </span>
-                      <span className="text-sm font-semibold text-white">{fmtShort(c.revenue)} {currency}</span>
-                    </div>
-                    <div className="w-full bg-neutral-800 rounded-full h-1.5">
-                      <div className="bg-orange-500 h-1.5 rounded-full"
-                        style={{ width: maxCountryRevenue > 0 ? `${(c.revenue / maxCountryRevenue) * 100}%` : "0%" }} />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {topProducts.length > 0 && (
-            <div>
-              <div className="mb-4">
-                <h2 className="text-xl font-semibold text-white">Top produits</h2>
-                <p className="text-sm text-neutral-500">Meilleures ventes livrées</p>
-              </div>
-              <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-5 space-y-3">
-                {topProducts.map((p, i) => (
-                  <div key={p.name}>
-                    <div className="flex items-center justify-between mb-1.5">
-                      <span className="text-sm text-white flex items-center gap-2">
-                        <span className="text-xs text-neutral-500 w-4">#{i + 1}</span>{p.name}
-                        <span className="text-xs text-neutral-500">· {p.orders} ventes</span>
-                      </span>
-                      <span className="text-sm font-semibold text-white">{fmtShort(p.revenue)} {currency}</span>
-                    </div>
-                    <div className="w-full bg-neutral-800 rounded-full h-1.5">
-                      <div className="bg-purple-500 h-1.5 rounded-full"
-                        style={{ width: maxProductRevenue > 0 ? `${(p.revenue / maxProductRevenue) * 100}%` : "0%" }} />
-                    </div>
-                  </div>
-                ))}
-              </div>
+      {/* Activity feed */}
+      <div>
+        <div className="mb-4">
+          <h2 className="text-xl font-semibold text-white">Activité</h2>
+          <p className="text-sm text-neutral-500">Derniers mouvements sur vos leads et commandes</p>
+        </div>
+        <div className="bg-neutral-900 border border-neutral-800 rounded-xl overflow-hidden">
+          {activityFeed.length === 0 ? (
+            <p className="text-neutral-600 text-sm text-center py-10">Aucune activité pour le moment</p>
+          ) : (
+            <div className="divide-y divide-neutral-800/60">
+              {activityFeed.map(item => (
+                <div key={item.id} className="flex items-center gap-3 px-4 py-3">
+                  <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: STATUS_DOT[item.status] ?? "#525252" }} />
+                  <span className="text-sm text-neutral-300 flex-1 truncate">{item.text}</span>
+                  <span className="text-xs text-neutral-600 flex-shrink-0">{item.date}</span>
+                </div>
+              ))}
             </div>
           )}
         </div>
-      )}
+      </div>
 
     </div>
   )
