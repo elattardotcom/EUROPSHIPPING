@@ -11,7 +11,7 @@
 @layer base {
   /* Dark by default — avoids white flash on SSR before JS applies .dark class */
   :root {
-    --font-sans: var(--font-inter);
+    --font-sans: var(--font-geist-sans);
     --background: 0 0% 4%;
     --foreground: 0 0% 98%;
     --card: 0 0% 7%;
