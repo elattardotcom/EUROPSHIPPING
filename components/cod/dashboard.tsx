@@ -58,20 +58,20 @@ function parseLocalISO(s: string): Date {
 }
 
 function lastNDays(n: number, startISO?: string): { key: string; label: string }[] {
-  const MONTHS = ["Jan","Fév","Mar","Avr","Mai","Jun","Jul","Aoû","Sep","Oct","Nov","Déc"]
+  const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
   const anchor = startISO ? parseLocalISO(startISO) :(() => { const d = new Date(); d.setDate(d.getDate() - (n - 1)); return d })()
   return Array.from({ length: n }, (_, i) => {
     const d = new Date(anchor)
     d.setDate(anchor.getDate() + i)
     const key   = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`
-    const label = n === 1 ? "Aujourd'hui" : `${d.getDate()} ${MONTHS[d.getMonth()]}`
+    const label = n === 1 ? "Today" : `${d.getDate()} ${MONTHS[d.getMonth()]}`
     return { key, label }
   })
 }
 
 const PERIOD_DAYS:  Record<Exclude<Period,"custom">, number> = { today: 1, "7d": 7, "30d": 30, all: 30 }
 const PERIOD_LABEL: Record<Exclude<Period,"custom">, string> = {
-  today: "aujourd'hui", "7d": "7 derniers jours", "30d": "30 derniers jours", all: "depuis le début",
+  today: "today", "7d": "last 7 days", "30d": "last 30 days", all: "all time",
 }
 
 /* ── stat cards ─────────────────────────────────────────────── */
@@ -177,9 +177,9 @@ function FunnelCard({ stages }: { stages: { label: string; value: number; color:
     <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-5">
       <h3 className="text-sm font-semibold text-white mb-0.5 flex items-center gap-2">
         <span className="w-1.5 h-1.5 rounded-full bg-orange-500" style={{ boxShadow: "0 0 6px 1px rgba(249,115,22,0.7)" }} />
-        Du lead au paiement
+        From lead to payment
       </h3>
-      <p className="text-xs text-neutral-500 mb-5">Parcours des leads reçus jusqu'à la livraison, sur la période</p>
+      <p className="text-xs text-neutral-500 mb-5">Journey of received leads through to delivery, for the selected period</p>
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
         {stages.map(s => (
           <div key={s.label}>
@@ -195,9 +195,9 @@ function FunnelCard({ stages }: { stages: { label: string; value: number; color:
   )
 }
 
-const STATUS_LABEL_FR: Record<string, string> = {
-  PENDING: "en attente", CONFIRMED: "confirmé", UNREACHED: "non joint", CANCELED: "annulé",
-  ERROR: "erreur", SHIPPED: "expédiée", DELIVERED: "livrée", RETURNED: "retournée",
+const STATUS_LABEL: Record<string, string> = {
+  PENDING: "pending", CONFIRMED: "confirmed", UNREACHED: "unreached", CANCELED: "canceled",
+  ERROR: "error", SHIPPED: "shipped", DELIVERED: "delivered", RETURNED: "returned",
 }
 const STATUS_DOT: Record<string, string> = {
   PENDING: "#f59e0b", CONFIRMED: "#10b981", UNREACHED: "#3b82f6", CANCELED: "#ef4444",
@@ -284,17 +284,17 @@ export default function DashboardPage({
   const totalRevenue    = filteredOrders.filter(o => o.status === "DELIVERED").reduce((s, o) => s + o.orderValue, 0)
 
   const leadsChartData = [
-    { name: "Confirmés",   value: confirmedLeads,  fill: "#10b981" },
-    { name: "En attente",  value: pendingLeads,    fill: "#f59e0b" },
-    { name: "Pas répondu", value: unreachedLeads,  fill: "#3b82f6" },
-    { name: "Annulés",     value: canceledLeads,   fill: "#ef4444" },
+    { name: "Confirmed", value: confirmedLeads,  fill: "#10b981" },
+    { name: "Pending",   value: pendingLeads,    fill: "#f59e0b" },
+    { name: "Unreached", value: unreachedLeads,  fill: "#3b82f6" },
+    { name: "Canceled",  value: canceledLeads,   fill: "#ef4444" },
   ]
 
   const ordersChartData = [
-    { name: "Livrés",     value: deliveredOrders, fill: "#10b981" },
-    { name: "Expédiés",   value: shippedOrders,   fill: "#3b82f6" },
-    { name: "En attente", value: pendingOrders,   fill: "#f59e0b" },
-    { name: "Retournés",  value: returnedOrders,  fill: "#ef4444" },
+    { name: "Delivered", value: deliveredOrders, fill: "#10b981" },
+    { name: "Shipped",   value: shippedOrders,   fill: "#3b82f6" },
+    { name: "Pending",   value: pendingOrders,   fill: "#f59e0b" },
+    { name: "Returned",  value: returnedOrders,  fill: "#ef4444" },
   ]
 
   const revenueByDay = useMemo(() => {
@@ -342,7 +342,7 @@ export default function DashboardPage({
   const revenueByStore = useMemo(() => {
     const map = new Map<string, { revenue: number; orders: number }>()
     filteredOrders.filter(o => o.status === "DELIVERED").forEach(o => {
-      const s = o.store || "Boutique"
+      const s = o.store || "Store"
       const cur = map.get(s) ?? { revenue: 0, orders: 0 }
       cur.revenue += o.orderValue; cur.orders++
       map.set(s, cur)
@@ -358,24 +358,24 @@ export default function DashboardPage({
   const shippedOrMore = filteredOrders.filter(o => o.status === "SHIPPED" || o.status === "DELIVERED").length
 
   const funnelStages = [
-    { label: "Leads reçus", value: totalLeads,     color: "#14b8a6" },
-    { label: "Contactés",   value: reachedLeads,   color: "#6366f1" },
-    { label: "Confirmés",   value: confirmedLeads, color: "#f59e0b" },
-    { label: "Expédiés",    value: shippedOrMore,  color: "#3b82f6" },
-    { label: "Livrés",      value: deliveredOrders,color: "#10b981" },
+    { label: "Leads received", value: totalLeads,     color: "#14b8a6" },
+    { label: "Contacted",      value: reachedLeads,   color: "#6366f1" },
+    { label: "Confirmed",      value: confirmedLeads, color: "#f59e0b" },
+    { label: "Shipped",        value: shippedOrMore,  color: "#3b82f6" },
+    { label: "Delivered",      value: deliveredOrders,color: "#10b981" },
   ]
 
   const marketStats = useMemo(() => {
     const map = new Map<string, { countryCode: string; leads: number; confirmed: number; orders: number; delivered: number; revenue: number }>()
     filteredLeads.forEach(l => {
-      const c = l.country || "Autre"
+      const c = l.country || "Other"
       const cur = map.get(c) ?? { countryCode: l.countryCode || "", leads: 0, confirmed: 0, orders: 0, delivered: 0, revenue: 0 }
       cur.leads++
       if (l.status === "CONFIRMED") cur.confirmed++
       map.set(c, cur)
     })
     filteredOrders.forEach(o => {
-      const c = o.country || "Autre"
+      const c = o.country || "Other"
       const cur = map.get(c) ?? { countryCode: o.countryCode || "", leads: 0, confirmed: 0, orders: 0, delivered: 0, revenue: 0 }
       cur.orders++
       if (o.status === "DELIVERED") { cur.delivered++; cur.revenue += o.orderValue }
@@ -393,13 +393,13 @@ export default function DashboardPage({
   const productStats = useMemo(() => {
     const map = new Map<string, { leads: number; orders: number; delivered: number; revenue: number }>()
     filteredLeads.forEach(l => {
-      const p = l.product || "Produit"
+      const p = l.product || "Product"
       const cur = map.get(p) ?? { leads: 0, orders: 0, delivered: 0, revenue: 0 }
       cur.leads++
       map.set(p, cur)
     })
     filteredOrders.forEach(o => {
-      const p = o.product || "Produit"
+      const p = o.product || "Product"
       const cur = map.get(p) ?? { leads: 0, orders: 0, delivered: 0, revenue: 0 }
       cur.orders++
       if (o.status === "DELIVERED") { cur.delivered++; cur.revenue += o.orderValue }
@@ -416,12 +416,12 @@ export default function DashboardPage({
     const items: Item[] = [
       ...filteredLeads.map(l => ({
         id: `l-${l.id}`, icon: "lead" as const,
-        text: `Lead ${STATUS_LABEL_FR[l.status] ?? l.status} — ${l.product}`,
+        text: `Lead ${STATUS_LABEL[l.status] ?? l.status} — ${l.product}`,
         date: l.createdAt, status: l.status,
       })),
       ...filteredOrders.map(o => ({
         id: `o-${o.id}`, icon: "order" as const,
-        text: `Commande ${STATUS_LABEL_FR[o.status] ?? o.status} — ${o.product}`,
+        text: `Order ${STATUS_LABEL[o.status] ?? o.status} — ${o.product}`,
         date: o.createdAt, status: o.status,
       })),
     ]
@@ -441,7 +441,7 @@ export default function DashboardPage({
   if (loading) return (
     <div className="flex flex-col items-center justify-center h-64 gap-3">
       <div className="w-8 h-8 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
-      <p className="text-neutral-500 text-sm">Chargement des données…</p>
+      <p className="text-neutral-500 text-sm">Loading data…</p>
     </div>
   )
 
@@ -450,30 +450,30 @@ export default function DashboardPage({
 
       {/* KPIs */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <StatCard title="REVENUS LIVRÉS" subtitle="Commandes livrées" value={fmtShort(totalRevenue)} unit={currency}
-          description={`${deliveredOrders} commandes livrées avec succès`} icon={DollarSign} color="green" />
-        <StatCard title="TOTAL LEADS" subtitle="Prospects qualifiés" value={totalLeads} unit="LEADS"
-          description={`${confirmedLeads} confirmés — taux ${confirmRate}%`} icon={Users} color="teal" />
-        <StatCard title="TOTAL COMMANDES" subtitle="Commandes traitées" value={totalOrders} unit="ORDERS"
-          description={`${deliveredOrders} livrées — taux ${deliveryRate}%`} icon={ShoppingCart} color="purple" />
+        <StatCard title="DELIVERED REVENUE" subtitle="Delivered orders" value={fmtShort(totalRevenue)} unit={currency}
+          description={`${deliveredOrders} orders successfully delivered`} icon={DollarSign} color="green" />
+        <StatCard title="TOTAL LEADS" subtitle="Qualified prospects" value={totalLeads} unit="LEADS"
+          description={`${confirmedLeads} confirmed — ${confirmRate}% rate`} icon={Users} color="teal" />
+        <StatCard title="TOTAL ORDERS" subtitle="Orders processed" value={totalOrders} unit="ORDERS"
+          description={`${deliveredOrders} delivered — ${deliveryRate}% rate`} icon={ShoppingCart} color="purple" />
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <RingStat title="Taux de confirmation" subtitle={`${confirmedLeads} sur ${totalLeads} leads décidés`} pct={confirmRate} color="#f59e0b" />
-        <RingStat title="Taux de livraison"     subtitle={`${deliveredOrders} sur ${totalOrders} commandes`}  pct={deliveryRate} color="#10b981" />
+        <RingStat title="Confirmation rate" subtitle={`${confirmedLeads} of ${totalLeads} leads decided`} pct={confirmRate} color="#f59e0b" />
+        <RingStat title="Delivery rate"     subtitle={`${deliveredOrders} of ${totalOrders} orders`}  pct={deliveryRate} color="#10b981" />
       </div>
 
       <FunnelCard stages={funnelStages} />
 
       {/* Activity chart */}
-      <ChartCard title={`Activité — ${period === "custom" && customStart && customEnd ? `${new Date(customStart).toLocaleDateString("fr-FR",{day:"numeric",month:"short"})} → ${new Date(customEnd).toLocaleDateString("fr-FR",{day:"numeric",month:"short"})}` : PERIOD_LABEL[period as Exclude<Period,"custom">] ?? "tout"}`} subtitle="Leads, commandes et revenus">
+      <ChartCard title={`Activity — ${period === "custom" && customStart && customEnd ? `${new Date(customStart).toLocaleDateString("en-GB",{day:"numeric",month:"short"})} → ${new Date(customEnd).toLocaleDateString("en-GB",{day:"numeric",month:"short"})}` : PERIOD_LABEL[period as Exclude<Period,"custom">] ?? "all time"}`} subtitle="Leads, orders and revenue">
         {!hasActivity ? (
           <div className="h-[220px] flex flex-col items-center justify-center gap-2">
             <TrendingUp className="w-8 h-8 text-neutral-700" />
             <p className="text-neutral-500 text-sm">
               {totalOrders === 0 && totalLeads === 0
-                ? "Connectez votre boutique pour voir l'activité"
-                : "Aucune activité sur cette période"}
+                ? "Connect your store to see activity"
+                : "No activity for this period"}
             </p>
           </div>
         ) : (
@@ -488,13 +488,13 @@ export default function DashboardPage({
                 contentStyle={{ background: TT_BG, border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, fontSize: 12 }}
                 labelStyle={TT_LBL} itemStyle={TT_ITM}
                 formatter={(v: number | string, name: string) =>
-                  (name as string).startsWith("Revenus") ? [fmtShort(convert(Number(v))), name] : [v, name]
+                  (name as string).startsWith("Revenue") ? [fmtShort(convert(Number(v))), name] : [v, name]
                 }
               />
               <Legend wrapperStyle={{ fontSize: 12, color: TICK }} />
-              <Line yAxisId="revenue" type="monotone" dataKey="revenue" stroke="#f97316" strokeWidth={2} dot={false} name={`Revenus (${currency})`} />
+              <Line yAxisId="revenue" type="monotone" dataKey="revenue" stroke="#f97316" strokeWidth={2} dot={false} name={`Revenue (${currency})`} />
               <Line yAxisId="count"   type="monotone" dataKey="leads"   stroke="#14b8a6" strokeWidth={2} dot={false} name="Leads" />
-              <Line yAxisId="count"   type="monotone" dataKey="orders"  stroke="#8b5cf6" strokeWidth={2} dot={false} name="Commandes" />
+              <Line yAxisId="count"   type="monotone" dataKey="orders"  stroke="#8b5cf6" strokeWidth={2} dot={false} name="Orders" />
             </LineChart>
           </ResponsiveContainer>
         )}
@@ -503,18 +503,18 @@ export default function DashboardPage({
       {/* Leads */}
       <div>
         <div className="mb-4">
-          <h2 className="text-xl font-semibold text-white">Performance Leads</h2>
-          <p className="text-sm text-neutral-500">Génération et conversion des prospects</p>
+          <h2 className="text-xl font-semibold text-white">Lead performance</h2>
+          <p className="text-sm text-neutral-500">Prospect generation and conversion</p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-          <SmallStatCard title="TOTAL LEADS"   subtitle="Toutes sources"     value={totalLeads}       unit="LEADS" icon={Users}       color="blue" />
-          <SmallStatCard title="CONFIRMÉS"     subtitle="Leads convertis"    value={confirmedLeads}   unit="LEADS" icon={CheckCircle} color="green" />
-          <SmallStatCard title="EN ATTENTE"    subtitle="En cours"           value={pendingLeads}     unit="LEADS" icon={Clock}       color="yellow" />
-          <SmallStatCard title="ANNULÉS"       subtitle="Non convertis"      value={canceledLeads}    unit="LEADS" icon={XCircle}     color="red" />
-          <SmallStatCard title="TAUX CONFIRM." subtitle="Taux de conversion" value={`${confirmRate}`} unit="%"     icon={Percent}    color="orange" />
+          <SmallStatCard title="TOTAL LEADS"   subtitle="All sources"        value={totalLeads}       unit="LEADS" icon={Users}       color="blue" />
+          <SmallStatCard title="CONFIRMED"     subtitle="Converted leads"    value={confirmedLeads}   unit="LEADS" icon={CheckCircle} color="green" />
+          <SmallStatCard title="PENDING"       subtitle="In progress"        value={pendingLeads}     unit="LEADS" icon={Clock}       color="yellow" />
+          <SmallStatCard title="CANCELED"      subtitle="Not converted"      value={canceledLeads}    unit="LEADS" icon={XCircle}     color="red" />
+          <SmallStatCard title="CONFIRM. RATE" subtitle="Conversion rate"    value={`${confirmRate}`} unit="%"     icon={Percent}    color="orange" />
         </div>
         <div className="mt-4">
-          <ChartCard title="Répartition des leads par statut">
+          <ChartCard title="Lead breakdown by status">
             <ResponsiveContainer width="100%" height={240}>
               <BarChart data={leadsChartData} margin={{ top: 4, right: 16, left: -10, bottom: 0 }}>
                 <XAxis dataKey="name" tick={{ fill: TICK, fontSize: 11 }} tickLine={false} axisLine={false} />
@@ -532,24 +532,24 @@ export default function DashboardPage({
       {/* Orders */}
       <div>
         <div className="mb-4">
-          <h2 className="text-xl font-semibold text-white">Performance Commandes</h2>
-          <p className="text-sm text-neutral-500">Traitement et livraison des commandes</p>
+          <h2 className="text-xl font-semibold text-white">Order performance</h2>
+          <p className="text-sm text-neutral-500">Order processing and delivery</p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-          <SmallStatCard title="TOTAL ORDERS"   subtitle="Toutes sources"      value={totalOrders}       unit="ORDERS" icon={ShoppingCart} color="blue" />
-          <SmallStatCard title="LIVRÉS"         subtitle="Livraisons réussies" value={deliveredOrders}   unit="ORDERS" icon={CheckCircle}  color="green" />
-          <SmallStatCard title="EN TRANSIT"     subtitle="Expédiés"            value={shippedOrders}     unit="ORDERS" icon={Clock}        color="yellow" />
-          <SmallStatCard title="RETOURNÉS"      subtitle="Échecs livraison"    value={returnedOrders}    unit="ORDERS" icon={XCircle}      color="red" />
-          <SmallStatCard title="TAUX LIVRAISON" subtitle="Taux de succès"      value={`${deliveryRate}`} unit="%"      icon={TrendingUp}   color="orange" />
+          <SmallStatCard title="TOTAL ORDERS"   subtitle="All sources"         value={totalOrders}       unit="ORDERS" icon={ShoppingCart} color="blue" />
+          <SmallStatCard title="DELIVERED"      subtitle="Successful deliveries" value={deliveredOrders} unit="ORDERS" icon={CheckCircle}  color="green" />
+          <SmallStatCard title="IN TRANSIT"     subtitle="Shipped"             value={shippedOrders}     unit="ORDERS" icon={Clock}        color="yellow" />
+          <SmallStatCard title="RETURNED"       subtitle="Delivery failures"   value={returnedOrders}    unit="ORDERS" icon={XCircle}      color="red" />
+          <SmallStatCard title="DELIVERY RATE"  subtitle="Success rate"        value={`${deliveryRate}`} unit="%"      icon={TrendingUp}   color="orange" />
         </div>
         <div className="mt-4">
-          <ChartCard title="Répartition des commandes par statut">
+          <ChartCard title="Order breakdown by status">
             <ResponsiveContainer width="100%" height={240}>
               <BarChart data={ordersChartData} margin={{ top: 4, right: 16, left: -10, bottom: 0 }}>
                 <XAxis dataKey="name" tick={{ fill: TICK, fontSize: 11 }} tickLine={false} axisLine={false} />
                 <YAxis tick={{ fill: TICK, fontSize: 11 }} tickLine={false} axisLine={false} allowDecimals={false} />
                 <Tooltip contentStyle={{ background: TT_BG, border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, fontSize: 12 }} labelStyle={TT_LBL} itemStyle={TT_ITM} cursor={{ fill: "rgba(255,255,255,0.04)" }} />
-                <Bar dataKey="value" name="Commandes" radius={[4, 4, 0, 0]} maxBarSize={60}>
+                <Bar dataKey="value" name="Orders" radius={[4, 4, 0, 0]} maxBarSize={60}>
                   {ordersChartData.map((entry, i) => <Cell key={i} fill={entry.fill} />)}
                 </Bar>
               </BarChart>
@@ -562,22 +562,22 @@ export default function DashboardPage({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div>
           <div className="mb-4">
-            <h2 className="text-xl font-semibold text-white">Marchés</h2>
-            <p className="text-sm text-neutral-500">Performance par pays de destination</p>
+            <h2 className="text-xl font-semibold text-white">Markets</h2>
+            <p className="text-sm text-neutral-500">Performance by destination country</p>
           </div>
           <div className="bg-neutral-900 border border-neutral-800 rounded-xl overflow-hidden">
             {marketStats.length === 0 ? (
-              <p className="text-neutral-600 text-sm text-center py-10">Aucun lead sur cette période</p>
+              <p className="text-neutral-600 text-sm text-center py-10">No leads for this period</p>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-neutral-800 text-neutral-500 text-xs">
-                      <th className="text-left font-medium px-4 py-3">Pays</th>
+                      <th className="text-left font-medium px-4 py-3">Country</th>
                       <th className="text-right font-medium px-3 py-3">Leads</th>
                       <th className="text-right font-medium px-3 py-3">Confirm.</th>
-                      <th className="text-right font-medium px-3 py-3">Livraison</th>
-                      <th className="text-right font-medium px-4 py-3">Revenus</th>
+                      <th className="text-right font-medium px-3 py-3">Delivery</th>
+                      <th className="text-right font-medium px-4 py-3">Revenue</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -601,21 +601,21 @@ export default function DashboardPage({
 
         <div>
           <div className="mb-4">
-            <h2 className="text-xl font-semibold text-white">Top produits</h2>
-            <p className="text-sm text-neutral-500">Classés par revenus livrés</p>
+            <h2 className="text-xl font-semibold text-white">Top products</h2>
+            <p className="text-sm text-neutral-500">Ranked by delivered revenue</p>
           </div>
           <div className="bg-neutral-900 border border-neutral-800 rounded-xl overflow-hidden">
             {productStats.length === 0 ? (
-              <p className="text-neutral-600 text-sm text-center py-10">Aucune activité produit sur cette période</p>
+              <p className="text-neutral-600 text-sm text-center py-10">No product activity for this period</p>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-neutral-800 text-neutral-500 text-xs">
-                      <th className="text-left font-medium px-4 py-3">Produit</th>
+                      <th className="text-left font-medium px-4 py-3">Product</th>
                       <th className="text-right font-medium px-3 py-3">Leads</th>
-                      <th className="text-right font-medium px-3 py-3">Commandes</th>
-                      <th className="text-right font-medium px-4 py-3">Revenus</th>
+                      <th className="text-right font-medium px-3 py-3">Orders</th>
+                      <th className="text-right font-medium px-4 py-3">Revenue</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -639,8 +639,8 @@ export default function DashboardPage({
       {revenueByStore.length > 0 && (
         <div>
           <div className="mb-4">
-            <h2 className="text-xl font-semibold text-white">Revenus par boutique</h2>
-            <p className="text-sm text-neutral-500">Performance des boutiques connectées</p>
+            <h2 className="text-xl font-semibold text-white">Revenue by store</h2>
+            <p className="text-sm text-neutral-500">Connected store performance</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {revenueByStore.map(store => (
@@ -654,7 +654,7 @@ export default function DashboardPage({
                   <div className="bg-orange-500 h-1.5 rounded-full"
                     style={{ width: totalRevenue > 0 ? `${(store.revenue / totalRevenue) * 100}%` : "0%" }} />
                 </div>
-                <p className="text-xs text-neutral-500">{store.orders} commandes livrées</p>
+                <p className="text-xs text-neutral-500">{store.orders} delivered orders</p>
               </div>
             ))}
           </div>
@@ -664,12 +664,12 @@ export default function DashboardPage({
       {/* Activity feed */}
       <div>
         <div className="mb-4">
-          <h2 className="text-xl font-semibold text-white">Activité</h2>
-          <p className="text-sm text-neutral-500">Derniers mouvements sur vos leads et commandes</p>
+          <h2 className="text-xl font-semibold text-white">Activity</h2>
+          <p className="text-sm text-neutral-500">Latest updates on your leads and orders</p>
         </div>
         <div className="bg-neutral-900 border border-neutral-800 rounded-xl overflow-hidden">
           {activityFeed.length === 0 ? (
-            <p className="text-neutral-600 text-sm text-center py-10">Aucune activité pour le moment</p>
+            <p className="text-neutral-600 text-sm text-center py-10">No activity yet</p>
           ) : (
             <div className="divide-y divide-neutral-800/60">
               {activityFeed.map(item => (

@@ -9,15 +9,15 @@ import { OnboardingBanner } from "@/components/dashboard/onboarding-banner"
 import { GridBackground } from "@/components/dashboard/hud-accents"
 
 const PERIODS: { label: string; value: Period }[] = [
-  { label: "Aujourd'hui", value: "today" },
-  { label: "7 jours",     value: "7d"    },
-  { label: "30 jours",    value: "30d"   },
-  { label: "Tout",        value: "all"   },
+  { label: "Today",   value: "today" },
+  { label: "7 days",  value: "7d"    },
+  { label: "30 days", value: "30d"   },
+  { label: "All",     value: "all"   },
 ]
 
 function greeting(name: string) {
   const h = new Date().getHours()
-  const prefix = h < 12 ? "Bonjour" : h < 18 ? "Bon après-midi" : "Bonsoir"
+  const prefix = h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening"
   return name ? `${prefix}, ${name}` : prefix
 }
 
@@ -85,11 +85,11 @@ export default function DashboardHome() {
 
   const isCustomActive = period === ("custom" as Period)
 
-  const timeStr = now.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })
-  const dateStr = now.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" })
+  const timeStr = now.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })
+  const dateStr = now.toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" })
 
   const fmtDate = (iso: string) =>
-    iso ? new Date(iso).toLocaleDateString("fr-FR", { day: "numeric", month: "short" }) : ""
+    iso ? new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short" }) : ""
 
   return (
     <div className="relative p-4 md:p-6 space-y-6">
@@ -154,7 +154,7 @@ export default function DashboardHome() {
               <div className="absolute right-0 top-[calc(100%+8px)] z-50 bg-neutral-900 border border-neutral-800 rounded-2xl p-5 shadow-2xl w-64">
                 <div className="space-y-3">
                   <div>
-                    <label className="text-neutral-500 text-[11px] uppercase tracking-wider mb-1.5 block">Début</label>
+                    <label className="text-neutral-500 text-[11px] uppercase tracking-wider mb-1.5 block">Start</label>
                     <input
                       type="date"
                       value={customStart}
@@ -164,7 +164,7 @@ export default function DashboardHome() {
                     />
                   </div>
                   <div>
-                    <label className="text-neutral-500 text-[11px] uppercase tracking-wider mb-1.5 block">Fin</label>
+                    <label className="text-neutral-500 text-[11px] uppercase tracking-wider mb-1.5 block">End</label>
                     <input
                       type="date"
                       value={customEnd}
@@ -180,7 +180,7 @@ export default function DashboardHome() {
                   disabled={!customStart || !customEnd}
                   className="w-full mt-4 py-2 rounded-lg text-xs font-semibold text-white bg-orange-500 hover:bg-orange-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                 >
-                  Appliquer
+                  Apply
                 </button>
               </div>
             )}
@@ -189,7 +189,7 @@ export default function DashboardHome() {
           <button
             onClick={() => setRefreshKey(k => k + 1)}
             className="p-2 text-neutral-400 hover:text-white hover:bg-neutral-800 rounded-xl border border-neutral-800 transition-colors"
-            title="Actualiser"
+            title="Refresh"
           >
             <RefreshCw className="w-4 h-4" />
           </button>

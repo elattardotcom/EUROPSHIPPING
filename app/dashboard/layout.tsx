@@ -24,13 +24,13 @@ interface NavItem {
 function buildNavItems(leadsCount: number, ordersCount: number): NavItem[] {
   return [
     { href: "/dashboard",          icon: LayoutDashboard, label: "Dashboard" },
-    { href: "/dashboard/products", icon: Package,         label: "Produits" },
-    { href: "/dashboard/stores",     icon: Link2,        label: "Intégrations" },
+    { href: "/dashboard/products", icon: Package,         label: "Products" },
+    { href: "/dashboard/stores",     icon: Link2,        label: "Integrations" },
     { href: "/dashboard/leads",      icon: Users,        label: "Leads",     badge: leadsCount  || undefined },
-    { href: "/dashboard/orders",     icon: ShoppingCart, label: "Commandes", badge: ordersCount || undefined },
-    { href: "/dashboard/affiliates", icon: Gift,         label: "Affiliés" },
+    { href: "/dashboard/orders",     icon: ShoppingCart, label: "Orders",     badge: ordersCount || undefined },
+    { href: "/dashboard/affiliates", icon: Gift,         label: "Affiliate" },
     { href: "/dashboard/cod-drop",   icon: Boxes,        label: "COD Drop" },
-    { href: "/dashboard/wallet",     icon: Wallet,       label: "Finances" },
+    { href: "/dashboard/wallet",     icon: Wallet,       label: "Finance" },
     {
       href: "/dashboard/sourcing",
       icon: Search,
@@ -54,13 +54,13 @@ interface Notif {
 const NOTIF_CFG: Record<NotifType, { Icon: React.ElementType; iconBg: string; iconColor: string; badge: string; badgeBg: string }> = {
   lead_new:        { Icon: UserPlus,      iconBg: "bg-purple-500/15",  iconColor: "text-purple-400",  badge: "Lead",     badgeBg: "bg-purple-500/15 text-purple-400"  },
   lead_confirmed:  { Icon: CheckCircle2,  iconBg: "bg-emerald-500/15", iconColor: "text-emerald-400", badge: "Lead",     badgeBg: "bg-emerald-500/15 text-emerald-400" },
-  order_new:       { Icon: ShoppingCart,  iconBg: "bg-blue-500/15",    iconColor: "text-blue-400",    badge: "Commande", badgeBg: "bg-blue-500/15 text-blue-400"       },
-  order_delivered: { Icon: Truck,         iconBg: "bg-emerald-500/15", iconColor: "text-emerald-400", badge: "Commande", badgeBg: "bg-emerald-500/15 text-emerald-400" },
+  order_new:       { Icon: ShoppingCart,  iconBg: "bg-blue-500/15",    iconColor: "text-blue-400",    badge: "Order",    badgeBg: "bg-blue-500/15 text-blue-400"       },
+  order_delivered: { Icon: Truck,         iconBg: "bg-emerald-500/15", iconColor: "text-emerald-400", badge: "Order",    badgeBg: "bg-emerald-500/15 text-emerald-400" },
   wallet_approved: { Icon: CheckCircle2,  iconBg: "bg-emerald-500/15", iconColor: "text-emerald-400", badge: "Wallet",   badgeBg: "bg-emerald-500/15 text-emerald-400" },
   wallet_rejected: { Icon: AlertTriangle, iconBg: "bg-red-500/15",     iconColor: "text-red-400",     badge: "Wallet",   badgeBg: "bg-red-500/15 text-red-400"         },
   wallet_requested:{ Icon: DollarSign,    iconBg: "bg-orange-500/15",  iconColor: "text-orange-400",  badge: "Wallet",   badgeBg: "bg-orange-500/15 text-orange-400"   },
   wallet_update:   { Icon: DollarSign,    iconBg: "bg-teal-500/15",    iconColor: "text-teal-400",    badge: "Wallet",   badgeBg: "bg-teal-500/15 text-teal-400"       },
-  system:          { Icon: Info,          iconBg: "bg-neutral-500/15", iconColor: "text-neutral-400", badge: "Système",  badgeBg: "bg-neutral-500/15 text-neutral-400" },
+  system:          { Icon: Info,          iconBg: "bg-neutral-500/15", iconColor: "text-neutral-400", badge: "System",   badgeBg: "bg-neutral-500/15 text-neutral-400" },
 }
 
 /* ── Toast for real-time events ─────────────────────────────── */
@@ -103,19 +103,19 @@ function relativeTime(isoOrFr: string): string {
     if (isNaN(d.getTime())) return isoOrFr
     const diff = Date.now() - d.getTime()
     const mins = Math.floor(diff / 60000)
-    if (mins < 1)  return "À l'instant"
-    if (mins < 60) return `Il y a ${mins} min`
+    if (mins < 1)  return "Just now"
+    if (mins < 60) return `${mins} min ago`
     const hrs = Math.floor(mins / 60)
-    if (hrs < 24)  return `Il y a ${hrs}h`
-    return `Il y a ${Math.floor(hrs / 24)}j`
+    if (hrs < 24)  return `${hrs}h ago`
+    return `${Math.floor(hrs / 24)}d ago`
   } catch { return isoOrFr }
 }
 
 const BOTTOM_TABS = [
   { href: "/dashboard",        icon: LayoutDashboard, label: "Home" },
   { href: "/dashboard/leads",  icon: Users,           label: "Leads" },
-  { href: "/dashboard/orders", icon: ShoppingCart,    label: "Commandes" },
-  { href: "/dashboard/wallet", icon: Wallet,          label: "Finances" },
+  { href: "/dashboard/orders", icon: ShoppingCart,    label: "Orders" },
+  { href: "/dashboard/wallet", icon: Wallet,          label: "Finance" },
 ]
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -215,9 +215,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               const id = `lead-${l.id}`
               newNotifs.push({
                 id, type: "lead_confirmed",
-                title: `Lead confirmé`,
+                title: `Lead confirmed`,
                 sub:   l.name + (l.product ? ` · ${l.product}` : ""),
-                time:  l.createdAt ? relativeTime(l.createdAt) : "Récemment",
+                time:  l.createdAt ? relativeTime(l.createdAt) : "Recently",
                 href:  "/dashboard/leads",
                 read:  seen.has(id),
               })
@@ -232,9 +232,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               const id = `order-${o.id}`
               newNotifs.push({
                 id, type: "order_delivered",
-                title: `Commande livrée`,
+                title: `Order delivered`,
                 sub:   (o.customerName ?? "") + (o.product ? ` · ${o.product}` : ""),
-                time:  o.createdAt ? relativeTime(o.createdAt) : "Récemment",
+                time:  o.createdAt ? relativeTime(o.createdAt) : "Recently",
                 href:  "/dashboard/orders",
                 read:  seen.has(id),
               })
@@ -260,7 +260,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         const lastName  = client.lastName  ?? ""
         setClientId(client.id)
         setClientName(firstName)
-        setClientPlan(client.plan === "enterprise" ? "Enterprise" : client.plan === "pro" ? "Pro" : client.status === "trial" ? "Essai gratuit" : "Starter")
+        setClientPlan(client.plan === "enterprise" ? "Enterprise" : client.plan === "pro" ? "Pro" : client.status === "trial" ? "Free trial" : "Starter")
         setClientInitials((firstName[0] ?? "") + (lastName[0] ?? ""))
         setClientColor(client.avatarColor ?? "from-orange-500 to-red-600")
         fetchBalance(client.id)
@@ -281,26 +281,26 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const onRealtimeEvent = useCallback((e: RealtimeEvent) => {
     const fmt = (n: number) => `€${n.toFixed(2)}`
     if (e.type === "withdrawal_inserted") {
-      pushNotif({ type: "wallet_requested", title: "Retrait en cours de traitement", sub: fmt(e.row.amount), time: "À l'instant", href: "/dashboard/wallet" })
+      pushNotif({ type: "wallet_requested", title: "Withdrawal being processed", sub: fmt(e.row.amount), time: "Just now", href: "/dashboard/wallet" })
     } else if (e.type === "withdrawal_updated") {
       if (e.row.status === "approved") {
-        pushNotif({ type: "wallet_approved", title: "Retrait approuvé ✓", sub: `${fmt(e.row.amount)} envoyé sur votre compte`, time: "À l'instant", href: "/dashboard/wallet" })
+        pushNotif({ type: "wallet_approved", title: "Withdrawal approved ✓", sub: `${fmt(e.row.amount)} sent to your account`, time: "Just now", href: "/dashboard/wallet" })
         if (e.row.amount) fetchBalance(clientId)
       } else if (e.row.status === "rejected") {
-        pushNotif({ type: "wallet_rejected", title: "Retrait refusé", sub: `${fmt(e.row.amount)} — contactez le support`, time: "À l'instant", href: "/dashboard/wallet" })
+        pushNotif({ type: "wallet_rejected", title: "Withdrawal rejected", sub: `${fmt(e.row.amount)} — contact support`, time: "Just now", href: "/dashboard/wallet" })
       }
     } else if (e.type === "balance_updated") {
-      pushNotif({ type: "wallet_update", title: "Solde mis à jour", sub: fmt(e.row.amount), time: "À l'instant", href: "/dashboard/wallet" })
+      pushNotif({ type: "wallet_update", title: "Balance updated", sub: fmt(e.row.amount), time: "Just now", href: "/dashboard/wallet" })
       fetchBalance(clientId)
     } else if (e.type === "lead_inserted") {
-      pushNotif({ type: "lead_new", title: "Nouveau lead reçu", sub: e.row.name, time: "À l'instant", href: "/dashboard/leads" })
+      pushNotif({ type: "lead_new", title: "New lead received", sub: e.row.name, time: "Just now", href: "/dashboard/leads" })
       setLeadsCount(c => c + 1)
     } else if (e.type === "lead_updated" && e.row.status === "CONFIRMED") {
-      pushNotif({ type: "lead_confirmed", title: "Lead confirmé", sub: e.row.name, time: "À l'instant", href: "/dashboard/leads" })
+      pushNotif({ type: "lead_confirmed", title: "Lead confirmed", sub: e.row.name, time: "Just now", href: "/dashboard/leads" })
     } else if (e.type === "order_inserted") {
-      pushNotif({ type: "order_new", title: "Nouvelle commande", sub: e.row.name, time: "À l'instant", href: "/dashboard/orders" })
+      pushNotif({ type: "order_new", title: "New order", sub: e.row.name, time: "Just now", href: "/dashboard/orders" })
     } else if (e.type === "order_updated" && e.row.status === "DELIVERED") {
-      pushNotif({ type: "order_delivered", title: "Commande livrée", sub: e.row.name, time: "À l'instant", href: "/dashboard/orders" })
+      pushNotif({ type: "order_delivered", title: "Order delivered", sub: e.row.name, time: "Just now", href: "/dashboard/orders" })
     }
   }, [pushNotif, clientId, fetchBalance])
 
@@ -377,7 +377,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* Bottom */}
       <div className="p-3 border-t border-neutral-800 space-y-0.5">
         {(!collapsed || inDrawer) && (
-          <p className="text-neutral-600 text-[10px] uppercase tracking-widest px-3 py-1">Aide</p>
+          <p className="text-neutral-600 text-[10px] uppercase tracking-widest px-3 py-1">Help</p>
         )}
         <Link
           href="/dashboard/contact"
@@ -399,7 +399,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           }`}
         >
           <Settings className="w-4 h-4 flex-shrink-0" />
-          {(!collapsed || inDrawer) && <span>Paramètres</span>}
+          {(!collapsed || inDrawer) && <span>Settings</span>}
         </Link>
       </div>
     </>
@@ -413,14 +413,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
           </svg>
         </div>
-        <h1 className="text-2xl font-bold text-white mb-3">Compte suspendu</h1>
+        <h1 className="text-2xl font-bold text-white mb-3">Account suspended</h1>
         <p className="text-neutral-400 text-sm leading-relaxed mb-6">
-          Votre compte a été temporairement suspendu. Veuillez contacter le support pour régulariser votre situation et réactiver l'accès.
+          Your account has been temporarily suspended. Please contact support to resolve the situation and reactivate access.
         </p>
         <a href="mailto:support@codshipeurope.com"
           className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold text-white"
           style={{ background: "linear-gradient(135deg,#f97316,#dc2626)" }}>
-          Contacter le support
+          Contact support
         </a>
       </div>
     </div>
@@ -476,7 +476,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             {balance !== null && (
               <Link href="/dashboard/wallet"
                 className="hidden sm:flex items-center gap-2 px-3 py-1.5 mr-1 rounded-lg border border-neutral-800 hover:border-orange-500/40 bg-neutral-800/40 transition-colors">
-                <span className="text-neutral-500 text-xs">Solde</span>
+                <span className="text-neutral-500 text-xs">Balance</span>
                 <span className="text-orange-400 font-bold text-sm font-mono" style={{ textShadow: "0 0 8px rgba(249,115,22,0.35)" }}>
                   {fmtBalance(balance)}
                 </span>
@@ -488,7 +488,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               variant="ghost" size="icon"
               onClick={handleRefresh}
               className="text-neutral-400 hover:bg-neutral-800 hover:text-orange-500"
-              title="Actualiser"
+              title="Refresh"
             >
               <RefreshCw className={`w-5 h-5 ${refreshing ? "animate-spin" : ""}`} />
             </Button>
@@ -529,7 +529,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                       <div className="flex items-center gap-3">
                         {unreadCount > 0 && (
                           <button onClick={markAllRead} className="text-xs text-orange-400 hover:text-orange-300 font-medium transition-colors">
-                            Tout lire
+                            Mark all read
                           </button>
                         )}
                         <button onClick={() => setShowNotifs(false)} className="text-neutral-500 hover:text-white transition-colors">
@@ -545,7 +545,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                           <div className="w-12 h-12 rounded-full bg-neutral-800 flex items-center justify-center">
                             <Bell className="w-5 h-5 text-neutral-600" />
                           </div>
-                          <p className="text-neutral-500 text-sm">Aucune notification</p>
+                          <p className="text-neutral-500 text-sm">No notifications</p>
                         </div>
                       ) : notifs.map(n => {
                         const cfg = NOTIF_CFG[n.type]

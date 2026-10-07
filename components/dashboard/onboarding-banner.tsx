@@ -36,10 +36,10 @@ export function OnboardingBanner() {
       const hasProduct = Array.isArray(productsRes?.products) && productsRes.products.length > 0
 
       const s: Step[] = [
-        { id: "store",   label: "Connecter votre première boutique Shopify",   done: hasStore,   href: "/dashboard/stores"   },
-        { id: "product", label: "Importer ou créer votre premier produit",     done: hasProduct, href: "/dashboard/products" },
-        { id: "lead",    label: "Recevoir votre premier lead confirmé",        done: hasLead,    href: "/dashboard/leads"    },
-        { id: "order",   label: "Obtenir votre première commande livrée",      done: hasOrder,   href: "/dashboard/orders"   },
+        { id: "store",   label: "Connect your first Shopify store",   done: hasStore,   href: "/dashboard/stores"   },
+        { id: "product", label: "Import or create your first product", done: hasProduct, href: "/dashboard/products" },
+        { id: "lead",    label: "Receive your first confirmed lead",   done: hasLead,    href: "/dashboard/leads"    },
+        { id: "order",   label: "Get your first delivered order",      done: hasOrder,   href: "/dashboard/orders"   },
       ]
 
       setSteps(s)
@@ -71,7 +71,7 @@ export function OnboardingBanner() {
           <Zap className="w-3.5 h-3.5 text-white" />
         </div>
         <div>
-          <p className="text-white font-bold text-sm">Démarrage — {doneCount}/{steps.length} complété</p>
+          <p className="text-white font-bold text-sm">Getting started — {doneCount}/{steps.length} complete</p>
         </div>
         <div className="ml-auto text-orange-400 font-bold text-sm">{pct}%</div>
       </div>
