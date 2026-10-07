@@ -4,9 +4,9 @@ import { useState, useEffect, useCallback } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import {
-  ChevronRight, ChevronDown, LayoutDashboard, Settings, Package,
+  ChevronRight, LayoutDashboard, Settings, Package,
   Users, ShoppingCart, Wallet, HelpCircle, Bell, RefreshCw,
-  Link2, ListOrdered, Gift, Boxes, X, Menu, Search,
+  Link2, Gift, Boxes, X, Menu, Search,
   CheckCircle2, UserPlus, Truck, DollarSign, AlertTriangle, Info,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -19,51 +19,18 @@ interface NavItem {
   icon: React.ElementType
   label: string
   badge?: number | string
-  children?: { href: string; label: string }[]
 }
 
 function buildNavItems(leadsCount: number, ordersCount: number): NavItem[] {
   return [
     { href: "/dashboard",          icon: LayoutDashboard, label: "Dashboard" },
     { href: "/dashboard/products", icon: Package,         label: "Produits" },
-    {
-      href: "/dashboard/stores",
-      icon: Link2,
-      label: "Intégrations",
-      children: [{ href: "/dashboard/stores", label: "Boutiques" }],
-    },
-    {
-      href: "/dashboard/leads",
-      icon: Users,
-      label: "Leads",
-      badge: leadsCount || undefined,
-      children: [{ href: "/dashboard/leads", label: "Listes" }],
-    },
-    {
-      href: "/dashboard/orders",
-      icon: ShoppingCart,
-      label: "Commandes",
-      badge: ordersCount || undefined,
-      children: [{ href: "/dashboard/orders", label: "Toutes les commandes" }],
-    },
-    {
-      href: "/dashboard/affiliates",
-      icon: Gift,
-      label: "Affiliés",
-      children: [{ href: "/dashboard/affiliates", label: "Offres" }],
-    },
-    {
-      href: "/dashboard/cod-drop",
-      icon: Boxes,
-      label: "COD Drop",
-      children: [{ href: "/dashboard/cod-drop", label: "Offres" }],
-    },
-    {
-      href: "/dashboard/wallet",
-      icon: Wallet,
-      label: "Finances",
-      children: [{ href: "/dashboard/wallet", label: "Mon Wallet" }],
-    },
+    { href: "/dashboard/stores",     icon: Link2,        label: "Intégrations" },
+    { href: "/dashboard/leads",      icon: Users,        label: "Leads",     badge: leadsCount  || undefined },
+    { href: "/dashboard/orders",     icon: ShoppingCart, label: "Commandes", badge: ordersCount || undefined },
+    { href: "/dashboard/affiliates", icon: Gift,         label: "Affiliés" },
+    { href: "/dashboard/cod-drop",   icon: Boxes,        label: "COD Drop" },
+    { href: "/dashboard/wallet",     icon: Wallet,       label: "Finances" },
     {
       href: "/dashboard/sourcing",
       icon: Search,
@@ -157,7 +124,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const [collapsed,      setCollapsed]      = useState(false)
   const [mobileOpen,     setMobileOpen]     = useState(false)
-  const [expandedMenus,  setExpandedMenus]  = useState<string[]>(["leads", "orders", "affiliates", "cod-drop", "wallet", "stores"])
   const [showNotifs,     setShowNotifs]     = useState(false)
   const [notifs,         setNotifs]         = useState<Notif[]>([])
   const [toasts,         setToasts]         = useState<Toast[]>([])
@@ -349,12 +315,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     setTimeout(() => setRefreshing(false), 800)
   }
 
-  const toggleMenu = (href: string) =>
-    setExpandedMenus(prev => prev.includes(href) ? prev.filter(h => h !== href) : [...prev, href])
-
-  const isActive       = (href: string) => pathname === href
-  const isParentActive = (item: NavItem) =>
-    pathname === item.href || item.children?.some(c => pathname === c.href)
+  const isActive = (href: string) => pathname === href
 
   const SidebarContent = ({ inDrawer = false }: { inDrawer?: boolean }) => (
     <>
@@ -388,68 +349,27 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         )}
 
         {navItems.map((item) => {
-          const active = isParentActive(item)
           const showText = !collapsed || inDrawer
           return (
-            <div key={item.href}>
-              {item.children ? (
-                <button
-                  onClick={() => toggleMenu(item.href)}
-                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors text-sm ${
-                    active
-                      ? "bg-orange-500/10 text-orange-400"
-                      : "text-neutral-400 hover:bg-neutral-800 hover:text-white"
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <item.icon className="w-4 h-4 flex-shrink-0" />
-                    {showText && <span>{item.label}</span>}
-                  </div>
-                  {showText && (
-                    <div className="flex items-center gap-2">
-                      {item.badge !== undefined && (
-                        <span className="bg-orange-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-medium">
-                          {item.badge}
-                        </span>
-                      )}
-                      <ChevronDown className={`w-3.5 h-3.5 transition-transform ${expandedMenus.includes(item.href) ? "rotate-180" : ""}`} />
-                    </div>
-                  )}
-                </button>
-              ) : (
-                <Link
-                  href={item.href}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-sm ${
-                    isActive(item.href)
-                      ? "bg-orange-500/10 text-orange-400"
-                      : "text-neutral-400 hover:bg-neutral-800 hover:text-white"
-                  }`}
-                >
-                  <item.icon className="w-4 h-4 flex-shrink-0" />
-                  {showText && <span>{item.label}</span>}
-                </Link>
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors text-sm ${
+                isActive(item.href)
+                  ? "bg-orange-500/10 text-orange-400"
+                  : "text-neutral-400 hover:bg-neutral-800 hover:text-white"
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <item.icon className="w-4 h-4 flex-shrink-0" />
+                {showText && <span>{item.label}</span>}
+              </div>
+              {showText && item.badge !== undefined && (
+                <span className="bg-orange-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-medium">
+                  {item.badge}
+                </span>
               )}
-
-              {/* Children */}
-              {showText && item.children && expandedMenus.includes(item.href) && (
-                <div className="ml-7 mt-0.5 space-y-0.5 border-l border-neutral-800 pl-3">
-                  {item.children.map((child) => (
-                    <Link
-                      key={child.href}
-                      href={child.href}
-                      className={`flex items-center gap-2 px-2 py-2 rounded-lg text-xs transition-colors ${
-                        isActive(child.href)
-                          ? "text-orange-400 bg-orange-500/5"
-                          : "text-neutral-400 hover:bg-neutral-800 hover:text-white"
-                      }`}
-                    >
-                      <ListOrdered className="w-3.5 h-3.5" />
-                      {child.label}
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
+            </Link>
           )
         })}
       </nav>
