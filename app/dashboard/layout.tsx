@@ -6,7 +6,7 @@ import { usePathname, useRouter } from "next/navigation"
 import {
   ChevronRight, LayoutDashboard, Settings, Package,
   Users, ShoppingCart, Wallet, HelpCircle, Bell, RefreshCw,
-  Link2, Gift, Boxes, X, Menu, Search,
+  Link2, Gift, Boxes, X, Menu, Search, ArrowUpRight,
   CheckCircle2, UserPlus, Truck, DollarSign, AlertTriangle, Info,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -30,7 +30,8 @@ function buildNavItems(leadsCount: number, ordersCount: number): NavItem[] {
     { href: "/dashboard/orders",     icon: ShoppingCart, label: "Orders",     badge: ordersCount || undefined },
     { href: "/dashboard/affiliates", icon: Gift,         label: "Affiliate" },
     { href: "/dashboard/cod-drop",   icon: Boxes,        label: "COD Drop" },
-    { href: "/dashboard/wallet",     icon: Wallet,       label: "Finance" },
+    { href: "/dashboard/wallet",     icon: Wallet,       label: "Wallet" },
+    { href: "/dashboard/withdrawals", icon: ArrowUpRight, label: "Withdrawals" },
     {
       href: "/dashboard/sourcing",
       icon: Search,
@@ -115,7 +116,7 @@ const BOTTOM_TABS = [
   { href: "/dashboard",        icon: LayoutDashboard, label: "Home" },
   { href: "/dashboard/leads",  icon: Users,           label: "Leads" },
   { href: "/dashboard/orders", icon: ShoppingCart,    label: "Orders" },
-  { href: "/dashboard/wallet", icon: Wallet,          label: "Finance" },
+  { href: "/dashboard/wallet", icon: Wallet,          label: "Wallet" },
 ]
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {

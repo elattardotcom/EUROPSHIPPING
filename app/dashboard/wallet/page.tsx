@@ -3,29 +3,18 @@
 import { useState, useEffect, useCallback, useMemo } from "react"
 import { getClientIdFromCookie } from "@/lib/client-cookie"
 import {
-  Wallet, ArrowDownLeft, ArrowUpRight, Clock, CheckCircle, CheckCircle2,
-  XCircle, Plus, RefreshCw, AlertCircle, ChevronDown, Zap,
-  TrendingUp, TrendingDown, Download, Filter, Search,
-  Building2, Euro, Calendar, FileText, Eye, Bitcoin, ArrowRight,
-  Receipt, Truck, RotateCcw, Phone, ChevronRight,
+  Wallet, ArrowDownLeft, ArrowUpRight, Clock, CheckCircle2,
+  XCircle, RefreshCw, Zap, TrendingUp, TrendingDown, Download, Filter, Search,
+  Calendar, FileText, Eye,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import type { Withdrawal, WithdrawalStatus, BalanceAdjustment, PaymentMethod, InvoicePreview } from "@/lib/db"
-import Link from "next/link"
+import type { Withdrawal, BalanceAdjustment } from "@/lib/db"
 import { useRealtime, type RealtimeEvent } from "@/hooks/useSse"
 import { useCurrency } from "@/hooks/useCurrency"
 import { GridBackground, CornerBrackets, GLOW_COLOR, SectionDot } from "@/components/dashboard/hud-accents"
-
-// CLIENT_ID is resolved dynamically from /api/auth/me
-
-const STATUS_CFG: Record<WithdrawalStatus, { label: string; color: string; bg: string; Icon: React.ElementType }> = {
-  pending:  { label: "Pending",  color: "text-amber-400",   bg: "bg-amber-500/15 border-amber-500/25",    Icon: Clock },
-  approved: { label: "Approved", color: "text-emerald-400", bg: "bg-emerald-500/15 border-emerald-500/25", Icon: CheckCircle },
-  rejected: { label: "Rejected", color: "text-red-400",     bg: "bg-red-500/15 border-red-500/25",         Icon: XCircle },
-}
-
-const CURRENCIES = ["EUR", "USD", "GBP", "MAD"]
+import { getWithdrawalLabel } from "@/components/wallet/shared"
+import Link from "next/link"
 
 interface WalletData {
   balance:      number
@@ -60,18 +49,6 @@ const MOCK_DEPOSITS: Transaction[] = [
   { id: "d3", type: "deposit", amount: 2340.00, status: "completed", date: "7 May 2025",  description: "Order payout — Batch #1245", reference: "TXN-2025-001245" },
   { id: "d4", type: "deposit", amount: 1567.25, status: "completed", date: "5 May 2025",  description: "Order payout — Batch #1244", reference: "TXN-2025-001244" },
 ]
-
-function getWithdrawalLabel(w: Withdrawal): string {
-  if (w.paymentMethodType === "wise" && w.paymentDetails) {
-    return `Wise withdrawal — ${w.paymentDetails.split("|")[0]}`
-  }
-  if (w.paymentMethodType === "crypto" && w.paymentDetails) {
-    const [network, addr] = w.paymentDetails.split("|")
-    return `Crypto withdrawal (${network ?? ""}) — ${addr ? `${addr.slice(0, 6)}…${addr.slice(-4)}` : ""}`
-  }
-  const raw = (w.paymentDetails || w.iban).replace(/\s/g, "")
-  return `Bank transfer — IBAN ***${raw.slice(-4)}`
-}
 
 function withdrawalToTx(w: Withdrawal): Transaction {
   return {
@@ -331,31 +308,6 @@ async function downloadInvoice(inv: Invoice, clientWithdrawals: Withdrawal[], in
   }
 }
 
-/* ── Brand logos ─────────────────────────────────────────────── */
-function WiseLogo({ size = 18 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
-      <rect width="32" height="32" rx="7" fill="#9FE870"/>
-      <path fill="#163300" d="M8,17 L12,9.5 L23,9.5 L27,14 L23,18.5 L18,18.5 L18,25 L13,25 L13,18.5 Z"/>
-    </svg>
-  )
-}
-
-function BinanceLogo({ size = 18 }: { size?: number }) {
-  // 5 identical diamonds (half-diag=6) overlapping with evenodd rule
-  // creates the authentic BNB interlocking mark with yellow cutouts
-  return (
-    <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
-      <circle cx="16" cy="16" r="16" fill="#F3BA2F"/>
-      <path
-        fillRule="evenodd"
-        fill="white"
-        d="M16,3 L22,9 L16,15 L10,9 Z M9,10 L15,16 L9,22 L3,16 Z M16,10 L22,16 L16,22 L10,16 Z M23,10 L29,16 L23,22 L17,16 Z M16,17 L22,23 L16,29 L10,23 Z"
-      />
-    </svg>
-  )
-}
-
 const INVOICES: Invoice[] = [
   { id: "1", number: "INV-2025-0047", amount: 89.00,  status: "paid",    date: "1 May 2025",  dueDate: "15 May 2025",  description: "Monthly subscription — May 2025" },
   { id: "2", number: "INV-2025-0046", amount: 156.50, status: "paid",    date: "1 Apr 2025",  dueDate: "15 Apr 2025",  description: "Subscription + SMS pack — April 2025" },
@@ -378,24 +330,10 @@ export default function WalletPage() {
   const [tab, setTab] = useState<"overview" | "transactions" | "invoices">("overview")
   const [data,       setData]    = useState<WalletData | null>(null)
   const [loading,    setLoading] = useState(true)
-  const [showForm,   setShowForm]= useState(false)
-  const [submitting, setSub]     = useState(false)
-  const [success,    setSuccess] = useState(false)
-  const [error,      setError]   = useState("")
   const [live,       setLive]    = useState(false)
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null)
-  const [form, setForm] = useState({ amount: "", currency: "EUR" })
 
-  const [quickAmount,    setQuickAmount]    = useState("")
-  const [quickError,     setQuickError]     = useState("")
-  const [quickSub,       setQuickSub]       = useState(false)
-  const [quickOk,        setQuickOk]        = useState(false)
-  const [payMethods,     setPayMethods]     = useState<PaymentMethod[]>([])
-  const [selectedMethod, setSelectedMethod] = useState<string>("")
-  const [preview,        setPreview]        = useState<InvoicePreview | null>(null)
-  const [previewLoading, setPreviewLoading] = useState(false)
-
-  const { fmt: fmtMoney, currency: displayCurrency } = useCurrency()
+  const { fmt: fmtMoney } = useCurrency()
 
   // Current client — resolved synchronously from cookie, supplemented async
   const [clientId,     setClientId]     = useState(getClientIdFromCookie)
@@ -435,18 +373,6 @@ export default function WalletPage() {
         setClientEmail(c.email ?? "")
       })
       .catch(() => {})
-
-    fetch("/api/client/payment-methods")
-      .then(r => r.json())
-      .then((methods: PaymentMethod[]) => {
-        if (Array.isArray(methods)) {
-          setPayMethods(methods)
-          const def = methods.find(m => m.isDefault)
-          if (def) setSelectedMethod(def.id)
-          else if (methods.length > 0) setSelectedMethod(methods[0].id)
-        }
-      })
-      .catch(() => {})
   }, [])
 
   const onEvent = useCallback((e: RealtimeEvent) => {
@@ -461,90 +387,7 @@ export default function WalletPage() {
 
   useRealtime(onEvent)
 
-  const openWithdrawalForm = useCallback(async () => {
-    setShowForm(true)
-    setPreviewLoading(true)
-    try {
-      const res = await fetch("/api/client/invoice-preview")
-      if (res.ok) setPreview(await res.json())
-    } catch { /* no-op */ }
-    setPreviewLoading(false)
-  }, [])
-
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    const amount = parseFloat(form.amount)
-    if (!amount || amount <= 0)        { setError("Invalid amount"); return }
-    if (data && amount > data.balance) { setError(`Insufficient balance — available: ${fmtMoney(data.balance)}`); return }
-    const method = payMethods.find(m => m.id === selectedMethod)
-    if (!method) { setError("Please select a payment method in Settings"); return }
-    const paymentDetails = JSON.stringify(
-      method.type === "bank"
-        ? { iban: method.iban, bic: method.bic ?? null, accountHolder: method.accountHolder ?? null }
-        : method.type === "wise"
-        ? { wiseEmail: method.wiseEmail, wiseCurrency: method.wiseCurrency ?? "EUR" }
-        : { cryptoNetwork: method.cryptoNetwork, cryptoAddress: method.cryptoAddress }
-    )
-    setError("")
-    setSub(true)
-    const res = await fetch("/api/withdrawals", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        clientId, clientName, clientEmail,
-        amount, currency: form.currency,
-        iban: method.iban ?? method.wiseEmail ?? method.cryptoAddress ?? "",
-        paymentMethodType: method.type,
-        paymentDetails,
-      }),
-    })
-    setSub(false)
-    if (!res.ok) { setError("Insufficient balance or server error"); return }
-    setSuccess(true)
-    setForm({ amount: "", currency: "EUR" })
-    setShowForm(false)
-    setTimeout(() => setSuccess(false), 4000)
-    load()
-    window.dispatchEvent(new CustomEvent("wallet:updated"))
-  }
-
-  const submitQuick = async () => {
-    const amount = parseFloat(quickAmount)
-    if (!amount || amount <= 0)        { setQuickError("Invalid amount"); return }
-    if (data && amount > data.balance) { setQuickError(`Insufficient balance — available: ${fmtMoney(data.balance)}`); return }
-    const method = payMethods.find(m => m.id === selectedMethod)
-    if (!method) { setQuickError("Add a payment method in Settings"); return }
-    const paymentDetails = JSON.stringify(
-      method.type === "bank"
-        ? { iban: method.iban, bic: method.bic ?? null, accountHolder: method.accountHolder ?? null }
-        : method.type === "wise"
-        ? { wiseEmail: method.wiseEmail, wiseCurrency: method.wiseCurrency ?? "EUR" }
-        : { cryptoNetwork: method.cryptoNetwork, cryptoAddress: method.cryptoAddress }
-    )
-    setQuickError("")
-    setQuickSub(true)
-    const res = await fetch("/api/withdrawals", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        clientId, clientName, clientEmail,
-        amount, currency: "EUR",
-        iban: method.iban ?? method.wiseEmail ?? method.cryptoAddress ?? "",
-        paymentMethodType: method.type,
-        paymentDetails,
-      }),
-    })
-    setQuickSub(false)
-    if (!res.ok) { setQuickError("Insufficient balance or server error"); return }
-    setQuickOk(true)
-    setQuickAmount("")
-    setTimeout(() => setQuickOk(false), 4000)
-    load()
-    window.dispatchEvent(new CustomEvent("wallet:updated"))
-  }
-
   const withdrawals = data?.withdrawals ?? []
-
   const isDemo = clientId === "c1"
 
   const allTransactions = useMemo<Transaction[]>(() => {
@@ -552,7 +395,6 @@ export default function WalletPage() {
     const realAdjustments  = adjustments.map(adjustmentToTx)
     const all = [...realWithdrawals, ...realAdjustments]
     if (isDemo) all.push(...MOCK_DEPOSITS)
-    // Sort by date descending (adjustments have ISO dates, withdrawals have fr-FR strings — keep as-is)
     return all
   }, [withdrawals, adjustments, isDemo])
 
@@ -586,28 +428,20 @@ export default function WalletPage() {
         </Button>
       </div>
 
-      {/* Success */}
-      {success && (
-        <div className="bg-emerald-500/10 border border-emerald-500/25 rounded-xl p-4 flex items-center gap-3">
-          <CheckCircle className="w-5 h-5 text-emerald-400 flex-shrink-0" />
-          <p className="text-emerald-300 text-sm">Withdrawal request submitted. Processed within 24h.</p>
-        </div>
-      )}
-
       {/* Balance cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="md:col-span-1 bg-gradient-to-br from-orange-500 to-amber-600 rounded-2xl p-6 relative overflow-hidden"
+        <Link href="/dashboard/withdrawals"
+          className="md:col-span-1 bg-gradient-to-br from-orange-500 to-amber-600 rounded-2xl p-6 relative overflow-hidden block hover:brightness-105 transition-all"
           style={{ boxShadow: "0 0 40px -8px rgba(249,115,22,0.35)" }}>
           <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
           <Wallet className="w-8 h-8 text-white/60 mb-3" />
           <p className="text-white/70 text-sm font-medium mb-1">Available to withdraw</p>
           <div className="text-4xl font-extrabold text-white font-mono tracking-tight">{loading ? "…" : fmtMoney(data?.balance ?? 0)}</div>
           <p className="text-white/60 text-xs mt-1">Ready now</p>
-          <Button onClick={openWithdrawalForm} disabled={!data || data.balance <= 0}
-            className="mt-4 bg-white/20 hover:bg-white/30 text-white border-0 text-sm font-medium w-full disabled:opacity-50">
-            <ArrowDownLeft className="w-4 h-4 mr-2" />Request withdrawal
-          </Button>
-        </div>
+          <div className="mt-4 bg-white/20 hover:bg-white/30 text-white border-0 text-sm font-medium w-full rounded-md py-2 flex items-center justify-center gap-2 transition-colors">
+            <ArrowDownLeft className="w-4 h-4" />Withdraw
+          </div>
+        </Link>
 
         <div className="md:col-span-3 grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="relative bg-neutral-900 border border-neutral-800 border-l-4 border-l-teal-500 rounded-xl p-5"
@@ -647,154 +481,6 @@ export default function WalletPage() {
         </div>
       </div>
 
-      {/* Withdrawal form */}
-      {showForm && (
-        <div className="bg-neutral-900 border border-orange-500/25 rounded-2xl p-6">
-          <div className="flex items-center justify-between mb-5">
-            <h2 className="text-white font-semibold flex items-center gap-2"><Receipt className="w-4 h-4 text-orange-400" />New withdrawal request</h2>
-            <button onClick={() => { setShowForm(false); setError(""); setPreview(null) }} className="text-neutral-500 hover:text-white text-xl leading-none">×</button>
-          </div>
-          {error && (
-            <div className="bg-red-500/10 border border-red-500/25 rounded-xl p-3 flex items-center gap-2 mb-4">
-              <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0" /><p className="text-red-300 text-sm">{error}</p>
-            </div>
-          )}
-
-          {/* Invoice fee preview */}
-          {previewLoading ? (
-            <div className="bg-neutral-800 rounded-xl p-4 mb-5 flex items-center gap-2">
-              <RefreshCw className="w-3.5 h-3.5 text-neutral-500 animate-spin" />
-              <span className="text-neutral-500 text-sm">Calculating service fees…</span>
-            </div>
-          ) : preview && preview.orders.length > 0 ? (
-            <div className="bg-neutral-800/60 border border-neutral-700 rounded-xl p-4 mb-5 space-y-3">
-              <div className="flex items-center gap-2 mb-1">
-                <Receipt className="w-3.5 h-3.5 text-orange-400" />
-                <span className="text-white text-sm font-semibold">Service fee breakdown</span>
-                <span className="ml-auto text-neutral-500 text-xs">{preview.deliveredCount} delivered{preview.returnedCount > 0 ? ` · ${preview.returnedCount} return${preview.returnedCount > 1 ? "s" : ""}` : ""}</span>
-              </div>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="flex items-center gap-2 text-neutral-400"><Truck className="w-3.5 h-3.5" />Delivery fee</span>
-                  <span className="text-neutral-300 font-medium">- €{fmt(preview.deliveryFees)}</span>
-                </div>
-                {preview.returnFees > 0 && (
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="flex items-center gap-2 text-neutral-400"><RotateCcw className="w-3.5 h-3.5" />Return fee</span>
-                    <span className="text-neutral-300 font-medium">- €{fmt(preview.returnFees)}</span>
-                  </div>
-                )}
-                <div className="flex items-center justify-between text-sm">
-                  <span className="flex items-center gap-2 text-neutral-400"><Phone className="w-3.5 h-3.5" />Call center fee</span>
-                  <span className="text-neutral-300 font-medium">- €{fmt(preview.callCenterFees)}</span>
-                </div>
-                <div className="h-px bg-neutral-700" />
-                <div className="flex items-center justify-between">
-                  <span className="text-neutral-300 text-sm font-medium">Gross revenue</span>
-                  <span className="text-white font-semibold">€{fmt(preview.grossAmount)}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-neutral-400 text-sm">Total service fees</span>
-                  <span className="text-red-400 font-semibold">- €{fmt(preview.totalFees)}</span>
-                </div>
-                <div className="flex items-center justify-between bg-orange-500/10 border border-orange-500/20 rounded-lg px-3 py-2 mt-1">
-                  <span className="text-orange-300 text-sm font-semibold flex items-center gap-1.5">
-                    <ChevronRight className="w-3.5 h-3.5" />Net available
-                  </span>
-                  <span className="text-orange-400 font-bold text-base">{fmtMoney(data?.balance ?? 0)}</span>
-                </div>
-              </div>
-            </div>
-          ) : preview && preview.orders.length === 0 ? (
-            <div className="bg-neutral-800/40 border border-neutral-700 rounded-xl px-4 py-3 mb-5 flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-              <span className="text-neutral-400 text-sm">All orders have already been invoiced — no additional fees.</span>
-            </div>
-          ) : null}
-
-          {data && (
-            <div className="bg-orange-500/5 border border-orange-500/15 rounded-xl px-4 py-3 mb-5 flex items-center justify-between">
-              <span className="text-neutral-400 text-sm">Net available balance</span>
-              <span className="text-orange-400 font-bold text-lg">{fmtMoney(data.balance)}</span>
-            </div>
-          )}
-          <form onSubmit={submit} className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="text-xs text-neutral-400 font-medium mb-1.5 block">Amount (max {fmtMoney(data?.balance ?? 0)})</label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500 text-sm">€</span>
-                  <input type="number" min="1" step="0.01" max={data?.balance ?? undefined}
-                    value={form.amount} onChange={e => setForm(f => ({ ...f, amount: e.target.value }))}
-                    placeholder="0.00"
-                    className="w-full bg-neutral-800 border border-neutral-700 rounded-xl pl-8 pr-4 py-2.5 text-sm text-white placeholder:text-neutral-600 focus:outline-none focus:border-orange-500" />
-                </div>
-              </div>
-              <div>
-                <label className="text-xs text-neutral-400 font-medium mb-1.5 block">Currency</label>
-                <div className="relative">
-                  <select value={form.currency} onChange={e => setForm(f => ({ ...f, currency: e.target.value }))}
-                    className="w-full appearance-none bg-neutral-800 border border-neutral-700 rounded-xl pl-4 pr-9 py-2.5 text-sm text-white focus:outline-none focus:border-orange-500 cursor-pointer">
-                    {CURRENCIES.map(c => <option key={c} value={c}>{c}</option>)}
-                  </select>
-                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-neutral-500 pointer-events-none" />
-                </div>
-              </div>
-            </div>
-            <div>
-              <label className="text-xs text-neutral-400 font-medium mb-2 block">Payment method</label>
-              {payMethods.length === 0 ? (
-                <div className="bg-amber-500/5 border border-amber-500/20 rounded-xl p-4 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <AlertCircle className="w-4 h-4 text-amber-400 flex-shrink-0" />
-                    <p className="text-neutral-400 text-sm">No payment method saved</p>
-                  </div>
-                  <Link href="/dashboard/settings?tab=payment" className="text-orange-400 text-sm flex items-center gap-1 hover:text-orange-300">
-                    Add <ArrowRight className="w-3.5 h-3.5" />
-                  </Link>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {payMethods.map(m => (
-                    <button key={m.id} type="button" onClick={() => setSelectedMethod(m.id)}
-                      className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-colors ${
-                        selectedMethod === m.id
-                          ? "bg-orange-500/10 border-orange-500/40"
-                          : "bg-neutral-800 border-neutral-700 hover:border-neutral-600"
-                      }`}>
-                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                        m.type === "bank" ? "bg-blue-500/15" : "bg-transparent"
-                      }`}>
-                        {m.type === "bank" ? <Building2 className="w-4 h-4 text-blue-400" />
-                          : m.type === "wise" ? <WiseLogo size={28} />
-                          : <BinanceLogo size={28} />}
-                      </div>
-                      <div className="text-left min-w-0 flex-1">
-                        <p className="text-white text-sm font-medium">{m.label}</p>
-                        <p className="text-neutral-500 text-xs truncate">
-                          {m.type === "bank" ? (m.iban ?? "") : m.type === "wise" ? `${m.wiseEmail ?? ""} · ${m.wiseCurrency ?? "EUR"}` : `${m.cryptoNetwork ?? ""} · ${m.cryptoAddress?.slice(0, 8) ?? ""}…`}
-                        </p>
-                      </div>
-                      {selectedMethod === m.id && <CheckCircle2 className="w-4 h-4 text-orange-400 flex-shrink-0" />}
-                    </button>
-                  ))}
-                  <Link href="/dashboard/settings?tab=payment" className="flex items-center gap-1.5 text-xs text-neutral-500 hover:text-orange-400 transition-colors pt-1">
-                    <Plus className="w-3 h-3" />Add a method
-                  </Link>
-                </div>
-              )}
-            </div>
-            <div className="flex gap-3 pt-1">
-              <Button type="submit" disabled={submitting || !selectedMethod} className="bg-orange-500 hover:bg-orange-600 text-white font-semibold disabled:opacity-50">
-                {submitting ? "Sending…" : "Submit request"}
-              </Button>
-              <Button type="button" variant="ghost" onClick={() => { setShowForm(false); setError(""); setPreview(null) }}
-                className="text-neutral-400 hover:text-white hover:bg-white/5">Cancel</Button>
-            </div>
-          </form>
-        </div>
-      )}
-
       {/* Tabs */}
       <div className="flex gap-2 border-b border-neutral-800 pb-2">
         {[
@@ -811,212 +497,35 @@ export default function WalletPage() {
 
       {/* ── Overview ─────────────────────────── */}
       {tab === "overview" && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Recent transactions */}
-          <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-5">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-white font-semibold">Recent transactions</h3>
-              <Button variant="ghost" size="sm" className="text-orange-400 hover:text-orange-300" onClick={() => setTab("transactions")}>View all</Button>
-            </div>
-            <div className="space-y-3">
-              {allTransactions.slice(0, 5).map(tx => (
-                <div key={tx.id} className="flex items-center justify-between p-3 bg-neutral-800/50 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${tx.type === "deposit" ? "bg-emerald-500/10" : "bg-orange-500/10"}`}>
-                      {tx.type === "deposit"
-                        ? <ArrowDownLeft className="w-4 h-4 text-emerald-400" />
-                        : <ArrowUpRight className="w-4 h-4 text-orange-400" />}
-                    </div>
-                    <div>
-                      <p className="text-white text-sm font-medium">{tx.description}</p>
-                      <p className="text-neutral-500 text-xs">{tx.date}</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className={`font-semibold text-sm ${tx.type === "deposit" ? "text-emerald-400" : "text-orange-400"}`}>
-                      {tx.type === "deposit" ? "+" : "-"}{fmtMoney(tx.amount)}
-                    </p>
-                    <StatusPill status={tx.status} />
-                  </div>
-                </div>
-              ))}
-            </div>
+        <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-5">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-white font-semibold flex items-center gap-2"><SectionDot />Recent transactions</h3>
+            <Button variant="ghost" size="sm" className="text-orange-400 hover:text-orange-300" onClick={() => setTab("transactions")}>View all</Button>
           </div>
-
-          {/* Quick withdrawal */}
-          <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-5">
-            <h3 className="text-white font-semibold mb-4">Quick withdrawal</h3>
-            <div className="space-y-4">
-
-              {quickOk && (
-                <div className="bg-emerald-500/10 border border-emerald-500/25 rounded-xl p-3 flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                  <p className="text-emerald-300 text-sm">Withdrawal submitted successfully!</p>
-                </div>
-              )}
-              {quickError && (
-                <div className="bg-red-500/10 border border-red-500/25 rounded-xl p-3 flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
-                  <p className="text-red-300 text-sm">{quickError}</p>
-                </div>
-              )}
-
-              <div>
-                <label className="text-neutral-400 text-xs font-medium mb-2 block">Payment method</label>
-                {payMethods.length === 0 ? (
-                  <div className="bg-amber-500/5 border border-amber-500/20 rounded-xl p-3 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <AlertCircle className="w-4 h-4 text-amber-400 flex-shrink-0" />
-                      <p className="text-neutral-400 text-xs">No payment method saved</p>
-                    </div>
-                    <Link href="/dashboard/settings?tab=payment" className="text-orange-400 text-xs flex items-center gap-1 hover:text-orange-300">
-                      Add <ArrowRight className="w-3 h-3" />
-                    </Link>
+          <div className="space-y-3">
+            {allTransactions.slice(0, 6).map(tx => (
+              <div key={tx.id} className="flex items-center justify-between p-3 bg-neutral-800/50 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${tx.type === "deposit" ? "bg-emerald-500/10" : "bg-orange-500/10"}`}>
+                    {tx.type === "deposit"
+                      ? <ArrowDownLeft className="w-4 h-4 text-emerald-400" />
+                      : <ArrowUpRight className="w-4 h-4 text-orange-400" />}
                   </div>
-                ) : (
-                  <div className="space-y-2">
-                    {payMethods.map(m => (
-                      <button key={m.id} type="button" onClick={() => { setSelectedMethod(m.id); setQuickError("") }}
-                        className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-colors ${
-                          selectedMethod === m.id
-                            ? "bg-orange-500/10 border-orange-500/40"
-                            : "bg-neutral-800 border-neutral-700 hover:border-neutral-600"
-                        }`}>
-                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                          m.type === "bank" ? "bg-blue-500/15" : "bg-transparent"
-                        }`}>
-                          {m.type === "bank" ? <Building2 className="w-3.5 h-3.5 text-blue-400" />
-                            : m.type === "wise" ? <WiseLogo size={26} />
-                            : <BinanceLogo size={26} />}
-                        </div>
-                        <div className="text-left min-w-0 flex-1">
-                          <p className="text-white text-xs font-medium">{m.label}</p>
-                          <p className="text-neutral-500 text-xs truncate">
-                            {m.type === "bank" ? (m.iban ?? "") : m.type === "wise" ? `${m.wiseEmail ?? ""} · ${m.wiseCurrency ?? "EUR"}` : `${m.cryptoNetwork ?? ""} · ${m.cryptoAddress?.slice(0, 8) ?? ""}…`}
-                          </p>
-                        </div>
-                        {selectedMethod === m.id && <CheckCircle2 className="w-3.5 h-3.5 text-orange-400 flex-shrink-0" />}
-                      </button>
-                    ))}
-                    <Link href="/dashboard/settings?tab=payment" className="flex items-center gap-1 text-xs text-neutral-600 hover:text-orange-400 transition-colors">
-                      <Plus className="w-3 h-3" />Add a method
-                    </Link>
+                  <div>
+                    <p className="text-white text-sm font-medium">{tx.description}</p>
+                    <p className="text-neutral-500 text-xs font-mono">{tx.date}</p>
                   </div>
-                )}
-              </div>
-
-              <div>
-                <label className="text-neutral-400 text-xs font-medium mb-1.5 block">Amount to withdraw</label>
-                <div className="relative">
-                  <Euro className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
-                  <input
-                    type="number" min="1" step="0.01" max={data?.balance ?? undefined}
-                    value={quickAmount}
-                    onChange={e => { setQuickAmount(e.target.value); setQuickError("") }}
-                    placeholder="0.00"
-                    className="w-full bg-neutral-800 border border-neutral-700 rounded-xl pl-9 pr-4 py-2.5 text-sm text-white placeholder:text-neutral-600 focus:outline-none focus:border-orange-500"
-                  />
                 </div>
-                <p className="text-neutral-500 text-xs mt-1.5">
-                  Available: <span className="text-orange-400 font-medium">{loading ? "…" : fmtMoney(data?.balance ?? 0)}</span>
-                </p>
+                <div className="text-right">
+                  <p className={`font-semibold text-sm font-mono ${tx.type === "deposit" ? "text-emerald-400" : "text-orange-400"}`}>
+                    {tx.type === "deposit" ? "+" : "-"}{fmtMoney(tx.amount)}
+                  </p>
+                  <StatusPill status={tx.status} />
+                </div>
               </div>
-
-              <div className="flex gap-2">
-                {[100, 500, 1000].map(a => {
-                  const disabled = data !== null && data.balance < a
-                  return (
-                    <button
-                      key={a}
-                      disabled={disabled}
-                      onClick={() => { setQuickAmount(String(a)); setQuickError("") }}
-                      className={`flex-1 py-2 rounded-lg text-sm transition-colors border ${
-                        quickAmount === String(a)
-                          ? "bg-orange-500/20 border-orange-500/40 text-orange-400"
-                          : "bg-neutral-800 border-neutral-700 hover:bg-neutral-700 text-neutral-300"
-                      } disabled:opacity-40 disabled:cursor-not-allowed`}
-                    >{a} EUR</button>
-                  )
-                })}
-                <button
-                  disabled={!data || !data.balance}
-                  onClick={() => { setQuickAmount(String(data?.balance ?? 0)); setQuickError("") }}
-                  className="flex-1 py-2 bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/20 text-orange-400 rounded-lg text-sm transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                >Max</button>
-              </div>
-
-              <Button
-                onClick={submitQuick}
-                disabled={quickSub || !quickAmount || parseFloat(quickAmount) <= 0 || !selectedMethod}
-                className="w-full bg-orange-500 hover:bg-orange-600 text-white gap-2 disabled:opacity-50"
-              >
-                <ArrowUpRight className="w-4 h-4" />
-                {quickSub ? "Sending…" : "Submit withdrawal"}
-              </Button>
-              <p className="text-neutral-500 text-xs text-center">Withdrawals are processed within 1-3 business days</p>
-            </div>
-          </div>
-
-          {/* Withdrawal history (real data) */}
-          <div className="bg-neutral-900 border border-neutral-800 rounded-xl lg:col-span-2 overflow-hidden">
-            <div className="px-5 py-4 border-b border-neutral-800 flex items-center justify-between">
-              <h3 className="text-white font-semibold">Withdrawal history</h3>
-              {!showForm && (
-                <Button onClick={openWithdrawalForm} size="sm" className="bg-orange-500 hover:bg-orange-600 text-white text-xs h-8">
-                  <Plus className="w-3.5 h-3.5 mr-1" />New withdrawal
-                </Button>
-              )}
-            </div>
-            {loading ? (
-              <div className="py-10 text-center text-neutral-500 text-sm">Loading…</div>
-            ) : withdrawals.length === 0 ? (
-              <div className="py-10 text-center">
-                <ArrowDownLeft className="w-8 h-8 text-neutral-700 mx-auto mb-3" />
-                <p className="text-neutral-500 text-sm">No withdrawals yet.</p>
-              </div>
-            ) : (
-              <div className="divide-y divide-neutral-800">
-                {withdrawals.map(w => {
-                  const cfg = STATUS_CFG[w.status]
-                  return (
-                    <div key={w.id} className="px-5 py-4 flex items-center justify-between gap-4 hover:bg-neutral-800/30 transition-colors">
-                      <div className="flex items-center gap-4 min-w-0">
-                        {/* Payment method logo */}
-                        <div className="relative flex-shrink-0">
-                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                            w.paymentMethodType === "wise"   ? "" :
-                            w.paymentMethodType === "crypto" ? "" :
-                            w.status === "approved" ? "bg-emerald-500/15" : w.status === "rejected" ? "bg-red-500/15" : "bg-amber-500/15"
-                          }`}>
-                            {w.paymentMethodType === "wise"
-                              ? <WiseLogo size={36} />
-                              : w.paymentMethodType === "crypto"
-                              ? <BinanceLogo size={36} />
-                              : <Building2 className="w-5 h-5 text-blue-400" />}
-                          </div>
-                          {/* Status badge */}
-                          <span className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center border-2 border-neutral-900 ${
-                            w.status === "approved" ? "bg-emerald-500" : w.status === "rejected" ? "bg-red-500" : "bg-amber-500"
-                          }`}>
-                            <cfg.Icon className="w-2 h-2 text-white" />
-                          </span>
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-white text-sm font-medium">{getWithdrawalLabel(w)}</p>
-                          <p className="text-neutral-500 text-xs mt-0.5">Requested on {w.requestedAt}{w.processedAt && ` · Processed on ${w.processedAt}`}</p>
-                          {w.adminNote && <p className="text-neutral-400 text-xs mt-1 italic">"{w.adminNote}"</p>}
-                        </div>
-                      </div>
-                      <div className="text-right flex-shrink-0">
-                        <p className="text-white font-bold text-base font-mono">€{fmt(w.amount)}</p>
-                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border mt-1 ${cfg.bg} ${cfg.color}`}>
-                          <cfg.Icon className="w-2.5 h-2.5" />{cfg.label}
-                        </span>
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
+            ))}
+            {allTransactions.length === 0 && (
+              <p className="text-neutral-500 text-sm text-center py-8">No transactions yet</p>
             )}
           </div>
         </div>
@@ -1026,7 +535,7 @@ export default function WalletPage() {
       {tab === "transactions" && (
         <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-5">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-            <h3 className="text-white font-semibold">All transactions</h3>
+            <h3 className="text-white font-semibold flex items-center gap-2"><SectionDot />All transactions</h3>
             <div className="flex gap-3">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
@@ -1065,10 +574,10 @@ export default function WalletPage() {
                         </td>
                         <td className="py-4 text-neutral-300">{tx.description}</td>
                         <td className="py-4 text-neutral-500 font-mono text-xs">{tx.reference}</td>
-                        <td className="py-4 text-neutral-400">{tx.date}</td>
+                        <td className="py-4 text-neutral-400 font-mono text-xs">{tx.date}</td>
                         <td className="py-4">
-                          <span className={`font-semibold ${tx.type === "deposit" ? "text-emerald-400" : "text-orange-400"}`}>
-                            <span className="font-mono">{tx.type === "deposit" ? "+" : "-"}{fmt(tx.amount)} EUR</span>
+                          <span className={`font-semibold font-mono ${tx.type === "deposit" ? "text-emerald-400" : "text-orange-400"}`}>
+                            {tx.type === "deposit" ? "+" : "-"}{fmt(tx.amount)} EUR
                           </span>
                         </td>
                         <td className="py-4"><StatusPill status={tx.status} /></td>
@@ -1089,7 +598,7 @@ export default function WalletPage() {
       {tab === "invoices" && (
         <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-5">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-            <h3 className="text-white font-semibold">All invoices</h3>
+            <h3 className="text-white font-semibold flex items-center gap-2"><SectionDot />All invoices</h3>
             <div className="flex gap-3">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
@@ -1127,8 +636,8 @@ export default function WalletPage() {
                           </div>
                         </td>
                         <td className="py-4 text-neutral-300">{inv.description}</td>
-                        <td className="py-4 text-neutral-400">{inv.date}</td>
-                        <td className="py-4 text-neutral-400">{inv.dueDate}</td>
+                        <td className="py-4 text-neutral-400 font-mono text-xs">{inv.date}</td>
+                        <td className="py-4 text-neutral-400 font-mono text-xs">{inv.dueDate}</td>
                         <td className="py-4 text-white font-semibold font-mono">{fmt(inv.amount)} EUR</td>
                         <td className="py-4"><StatusPill status={inv.status} /></td>
                         <td className="py-4">
