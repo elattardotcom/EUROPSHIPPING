@@ -8,7 +8,9 @@ import { useLang } from "@/hooks/useLang"
 
 const T = {
   fr: {
-    badge:       "Rejoignez 1 200+ vendeurs actifs",
+    badge:       "Programme fondateurs — places limitées",
+    netLine:     "10 marchés ciblés · Paiement à la livraison · Suivi en direct",
+    cities:      ["Madrid", "Lisbonne", "Rome", "Bucarest"],
     hero:        ["Lancez votre", "business COD", "dès aujourd'hui"],
     heroSub:     "Accès complet à la plateforme en 24-48h après validation de votre demande.",
     benefits:    [
@@ -53,7 +55,9 @@ const T = {
     langSwitch:     "EN",
   },
   en: {
-    badge:       "Join 1,200+ active sellers",
+    badge:       "Founding program — limited spots",
+    netLine:     "10 target markets · Cash on delivery · Live order tracking",
+    cities:      ["Madrid", "Lisbon", "Rome", "Bucharest"],
     hero:        ["Launch your", "COD business", "today"],
     heroSub:     "Full platform access within 24-48h after your request is approved.",
     benefits:    [
@@ -186,10 +190,52 @@ export default function RegisterPage() {
       {/* ── Left panel ────────────────────────────────────────────── */}
       <div className="hidden lg:flex flex-col w-[42%] relative overflow-hidden"
         style={{ background: "#08080e", borderRight: "1px solid rgba(255,255,255,0.04)" }}>
+        <style>{`
+          @keyframes regNodePulse { 0% { transform: scale(1); opacity: 0.9 } 70% { transform: scale(2.6); opacity: 0 } 100% { opacity: 0 } }
+          .reg-node-pulse { transform-origin: center; transform-box: fill-box; animation: regNodePulse 2.6s ease-out infinite; }
+          @keyframes regDashFlow { to { stroke-dashoffset: -60; } }
+          .reg-dash { animation: regDashFlow 3.5s linear infinite; }
+        `}</style>
         <div className="absolute -bottom-40 -right-40 w-[500px] h-[500px] rounded-full pointer-events-none"
           style={{ background: "radial-gradient(circle, rgba(249,115,22,0.16) 0%, transparent 70%)" }} />
         <div className="absolute top-1/3 -left-20 w-64 h-64 rounded-full pointer-events-none"
           style={{ background: "radial-gradient(circle, rgba(99,102,241,0.1) 0%, transparent 70%)" }} />
+
+        {/* Animated COD network map */}
+        <svg viewBox="0 0 400 190" className="absolute top-20 left-8 right-8 h-[170px] pointer-events-none" fill="none">
+          <defs>
+            <linearGradient id="regArc" x1="0" y1="1" x2="1" y2="0">
+              <stop offset="0%" stopColor="#f97316" stopOpacity="0.75" />
+              <stop offset="100%" stopColor="#f97316" stopOpacity="0.05" />
+            </linearGradient>
+          </defs>
+          {[
+            { x: 30,  y: 160, label: t.cities[0] },
+            { x: 85,  y: 140, label: t.cities[1] },
+            { x: 230, y: 120, label: t.cities[2] },
+            { x: 320, y: 95,  label: t.cities[3] },
+          ].map((c, i) => (
+            <path key={`arc-${c.label}`} d={`M${c.x},${c.y} Q${(c.x+365)/2},10 365,30`}
+              stroke="url(#regArc)" strokeWidth="1.25" strokeDasharray="3 7" className="reg-dash"
+              style={{ animationDelay: `${i * 0.35}s` }} />
+          ))}
+          {[
+            { x: 30,  y: 160, label: t.cities[0] },
+            { x: 85,  y: 140, label: t.cities[1] },
+            { x: 230, y: 120, label: t.cities[2] },
+            { x: 320, y: 95,  label: t.cities[3] },
+          ].map((c, i) => (
+            <g key={c.label}>
+              <circle cx={c.x} cy={c.y} r="2.5" fill="#f97316" />
+              <circle cx={c.x} cy={c.y} r="2.5" fill="#f97316" className="reg-node-pulse" style={{ animationDelay: `${i * 0.3}s` }} />
+              <text x={c.x} y={c.y - 9} fontSize="8.5" fill="rgba(255,255,255,0.5)" textAnchor="middle" fontWeight={600} letterSpacing="0.4">
+                {c.label.toUpperCase()}
+              </text>
+            </g>
+          ))}
+          <circle cx="365" cy="30" r="4.5" fill="#fff" />
+          <circle cx="365" cy="30" r="4.5" fill="#f97316" className="reg-node-pulse" />
+        </svg>
 
         <div className="relative z-10 flex flex-col h-full p-10">
           <div className="flex items-center gap-3">
@@ -200,12 +246,15 @@ export default function RegisterPage() {
             </div>
           </div>
 
-          <div className="my-auto">
-            <div className="inline-flex items-center gap-2 rounded-full px-3 py-1 mb-7"
+          <div className="h-[150px] flex-shrink-0" />
+
+          <div className="mt-auto mb-auto">
+            <div className="inline-flex items-center gap-2 rounded-full px-3 py-1 mb-3"
               style={{ background: "rgba(16,185,129,0.1)", border: "1px solid rgba(16,185,129,0.2)" }}>
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
               <span className="text-emerald-400 text-xs font-semibold">{t.badge}</span>
             </div>
+            <p className="text-neutral-600 text-[11px] mb-6 tracking-wide">{t.netLine}</p>
 
             <h2 className="text-[2rem] font-black text-white leading-[1.15] mb-4">
               {t.hero[0]}<br />{t.hero[1]}<br />

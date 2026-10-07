@@ -12,7 +12,6 @@ import {
 import Link from "next/link"
 import { Logo }             from "@/components/logo"
 import { OpenModalButton }  from "@/components/landing/open-modal-button"
-import { ModalListener }    from "@/components/landing/modal-listener"
 import { LiveTicker }       from "@/components/landing/live-ticker"
 import { LiveHeroStats }    from "@/components/landing/live-hero-stats"
 import { FaqSection }       from "@/components/landing/faq-section"
@@ -80,7 +79,7 @@ export default function LandingPage() {
 
   useEffect(() => {
     if (typeof window !== "undefined" && window.location.search.includes("signup=1")) {
-      window.dispatchEvent(new CustomEvent("open-modal", { detail: { step: "signup" } }))
+      window.location.href = "/auth/register"
     }
   }, [])
 
@@ -1318,7 +1317,6 @@ export default function LandingPage() {
         </div>
       </footer>
 
-      <ModalListener />
 
       {/* ── WhatsApp floating button ─────────────────────────── */}
       <a
