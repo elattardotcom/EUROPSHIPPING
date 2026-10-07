@@ -11,6 +11,7 @@ import {
 } from "recharts"
 import type { Order, Lead } from "@/lib/mock-data"
 import { useCurrency } from "@/hooks/useCurrency"
+import { GLOW_COLOR, CornerBrackets } from "@/components/dashboard/hud-accents"
 
 export type Period = "today" | "7d" | "30d" | "all" | "custom"
 
@@ -75,23 +76,7 @@ const PERIOD_LABEL: Record<Exclude<Period,"custom">, string> = {
 
 /* ── stat cards ─────────────────────────────────────────────── */
 
-const GLOW = {
-  green:  "rgba(16,185,129,0.22)",  teal:   "rgba(20,184,166,0.22)",
-  purple: "rgba(168,85,247,0.22)",  orange: "rgba(249,115,22,0.22)",
-  red:    "rgba(239,68,68,0.22)",   yellow: "rgba(234,179,8,0.22)",
-}
-
-function CornerBrackets({ color }: { color: string }) {
-  const style = { borderColor: color }
-  return (
-    <>
-      <span className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 rounded-tl-md opacity-70" style={style} />
-      <span className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 rounded-tr-md opacity-70" style={style} />
-      <span className="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 rounded-bl-md opacity-70" style={style} />
-      <span className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 rounded-br-md opacity-70" style={style} />
-    </>
-  )
-}
+const GLOW = GLOW_COLOR
 
 function StatCard({
   title, subtitle, value, unit, description, icon: Icon, color, trend,

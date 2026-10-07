@@ -12,6 +12,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { exportToCSV } from "@/lib/mock-data"
 import type { Lead, LeadStatus } from "@/lib/mock-data"
+import { CornerBrackets, GridBackground, GLOW_COLOR, SectionDot } from "@/components/dashboard/hud-accents"
 
 /* ─── Constants ─────────────────────────────────────────── */
 
@@ -185,7 +186,7 @@ function LeadDrawer({
               {/* Value */}
               <div className="flex items-center justify-between px-4 py-3">
                 <span className="text-sm text-neutral-500 pl-6">Valeur totale</span>
-                <span className="text-base font-black text-white">
+                <span className="text-base font-black text-white font-mono">
                   {lead.currency === "EUR" ? "€" : "$"}{lead.orderValue.toFixed(2)}
                 </span>
               </div>
@@ -207,7 +208,7 @@ function LeadDrawer({
               <p className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest">
                 Tentatives d&apos;appel
               </p>
-              <span className={`text-sm font-bold ${lead.attempts >= 4 ? "text-red-400" : lead.attempts >= 2 ? "text-amber-400" : "text-neutral-400"}`}>
+              <span className={`text-sm font-bold font-mono ${lead.attempts >= 4 ? "text-red-400" : lead.attempts >= 2 ? "text-amber-400" : "text-neutral-400"}`}>
                 {lead.attempts} / 5
               </span>
             </div>
@@ -293,7 +294,8 @@ export default function LeadsPage() {
     setSelected(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id])
 
   return (
-    <div className="p-4 md:p-6 space-y-4 md:space-y-6">
+    <div className="relative p-4 md:p-6 space-y-4 md:space-y-6">
+      <GridBackground />
 
       {/* Drawer */}
       <LeadDrawer
@@ -334,25 +336,27 @@ export default function LeadsPage() {
       {/* ── KPI Cards ──────────────────────────────────────── */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         {[
-          { label: "Total leads",   value: total,      icon: Users,      color: "text-blue-400",    bg: "bg-blue-500/15",    border: "border-l-blue-500",    status: "ALL"       },
-          { label: "Confirmés",     value: confirmed,  icon: CheckCircle,color: "text-emerald-400", bg: "bg-emerald-500/15", border: "border-l-emerald-500", status: "CONFIRMED" },
-          { label: "En attente",    value: pending,    icon: Clock,      color: "text-amber-400",   bg: "bg-amber-500/15",   border: "border-l-amber-500",   status: "PENDING"   },
-          { label: "Pas répondu",   value: unreached,  icon: PhoneMissed,color: "text-blue-400",    bg: "bg-blue-500/15",    border: "border-l-blue-400",    status: "UNREACHED" },
-          { label: "Taux confirm.", value: `${rate}%`, icon: Percent,    color: "text-orange-400",  bg: "bg-orange-500/15",  border: "border-l-orange-500",  status: "ALL"       },
+          { label: "Total leads",   value: total,      icon: Users,      color: "text-blue-400",    bg: "bg-blue-500/15",    border: "border-l-blue-500",    glow: "blue",    status: "ALL"       },
+          { label: "Confirmés",     value: confirmed,  icon: CheckCircle,color: "text-emerald-400", bg: "bg-emerald-500/15", border: "border-l-emerald-500", glow: "emerald", status: "CONFIRMED" },
+          { label: "En attente",    value: pending,    icon: Clock,      color: "text-amber-400",   bg: "bg-amber-500/15",   border: "border-l-amber-500",   glow: "amber",   status: "PENDING"   },
+          { label: "Pas répondu",   value: unreached,  icon: PhoneMissed,color: "text-blue-400",    bg: "bg-blue-500/15",    border: "border-l-blue-400",    glow: "blue",    status: "UNREACHED" },
+          { label: "Taux confirm.", value: `${rate}%`, icon: Percent,    color: "text-orange-400",  bg: "bg-orange-500/15",  border: "border-l-orange-500",  glow: "orange",  status: "ALL"       },
         ].map((c) => {
           const Icon = c.icon
           return (
             <button
               key={c.label}
               onClick={() => { setStatus(c.status as LeadStatus | "ALL"); setPage(1) }}
-              className={`bg-neutral-900 border border-neutral-800 border-l-4 ${c.border} rounded-xl p-4 text-left hover:border-neutral-700 transition-colors`}
+              className={`relative bg-neutral-900 border border-neutral-800 border-l-4 ${c.border} rounded-xl p-4 text-left hover:border-neutral-700 transition-colors`}
+              style={{ boxShadow: `0 0 24px -10px ${GLOW_COLOR[c.glow]}` }}
             >
+              <CornerBrackets color={GLOW_COLOR[c.glow].replace("0.22", "0.5")} />
               <div className="flex items-center justify-between mb-3">
                 <div className={`w-8 h-8 rounded-lg ${c.bg} flex items-center justify-center`}>
                   <Icon className={`w-4 h-4 ${c.color}`} />
                 </div>
               </div>
-              <div className="text-2xl font-bold text-white mb-0.5">{c.value}</div>
+              <div className="text-2xl font-bold text-white mb-0.5 font-mono tracking-tight">{c.value}</div>
               <p className="text-xs text-neutral-500">{c.label}</p>
             </button>
           )
@@ -448,7 +452,9 @@ export default function LeadsPage() {
             {tab.label}
             <span className={`text-xs px-1.5 py-0.5 rounded-full ${
               statusFilter === tab.value ? "bg-orange-500/20 text-orange-400" : "bg-neutral-800 text-neutral-500"
-            }`}>{tab.count}</span>
+            }`}>
+              <span className="font-mono">{tab.count}</span>
+            </span>
           </button>
         ))}
       </div>
@@ -457,8 +463,11 @@ export default function LeadsPage() {
       <div className="bg-neutral-900 border border-neutral-800 rounded-2xl overflow-hidden">
         <div className="px-5 py-4 border-b border-neutral-800 flex items-center justify-between">
           <div>
-            <h2 className="text-base font-semibold text-white">Tous les Leads</h2>
-            <p className="text-xs text-neutral-500 mt-0.5">{filtered.length} résultats · cliquer sur une ligne pour voir les détails</p>
+            <h2 className="text-base font-semibold text-white flex items-center gap-2">
+              <SectionDot />
+              Tous les Leads
+            </h2>
+            <p className="text-xs text-neutral-500 mt-0.5 font-mono">{filtered.length} résultats · cliquer sur une ligne pour voir les détails</p>
           </div>
         </div>
 
@@ -574,7 +583,7 @@ export default function LeadsPage() {
 
                       {/* Value */}
                       <td className="p-4">
-                        <span className="text-sm font-semibold text-white">
+                        <span className="text-sm font-semibold text-white font-mono">
                           {lead.currency === "EUR" ? "€" : "$"}{lead.orderValue.toFixed(2)}
                         </span>
                       </td>
@@ -583,7 +592,7 @@ export default function LeadsPage() {
                       <td className="p-4">
                         <div className="flex items-center gap-1">
                           <Phone className="w-3.5 h-3.5 text-neutral-500" />
-                          <span className={`text-sm font-medium ${lead.attempts >= 4 ? "text-red-400" : lead.attempts >= 2 ? "text-amber-400" : "text-neutral-300"}`}>
+                          <span className={`text-sm font-medium font-mono ${lead.attempts >= 4 ? "text-red-400" : lead.attempts >= 2 ? "text-amber-400" : "text-neutral-300"}`}>
                             {lead.attempts}
                           </span>
                         </div>
@@ -592,8 +601,8 @@ export default function LeadsPage() {
                       {/* Date */}
                       <td className="p-4">
                         <div>
-                          <p className="text-sm text-neutral-300">{lead.createdAt}</p>
-                          <p className="text-xs text-neutral-600">{lead.createdTime}</p>
+                          <p className="text-sm text-neutral-300 font-mono">{lead.createdAt}</p>
+                          <p className="text-xs text-neutral-600 font-mono">{lead.createdTime}</p>
                         </div>
                       </td>
                     </tr>
