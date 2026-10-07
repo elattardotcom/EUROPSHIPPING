@@ -5,7 +5,7 @@ import Link from "next/link"
 import { Eye, EyeOff, ArrowRight, CheckCircle, ShieldCheck, Truck, PhoneCall, BarChart3, Globe2 } from "lucide-react"
 import { Logo } from "@/components/logo"
 import { useLang } from "@/hooks/useLang"
-import { NetworkMap } from "@/components/auth/network-map"
+import { ProductShowcase } from "@/components/auth/product-showcase"
 
 const T = {
   fr: {
@@ -192,11 +192,10 @@ export default function RegisterPage() {
       <div className="hidden lg:flex flex-col w-[44%] relative overflow-hidden"
         style={{ background: "#08080e", borderRight: "1px solid rgba(255,255,255,0.04)" }}>
 
-        <NetworkMap className="absolute inset-0 w-full h-full" />
-        <div className="absolute inset-0 pointer-events-none"
-          style={{ background: "linear-gradient(90deg, #08080e 18%, rgba(8,8,14,0.55) 55%, rgba(8,8,14,0.15) 100%)" }} />
-        <div className="absolute inset-0 pointer-events-none"
-          style={{ background: "linear-gradient(0deg, #08080e 0%, rgba(8,8,14,0) 35%, rgba(8,8,14,0) 70%, rgba(8,8,14,0.6) 100%)" }} />
+        <div className="absolute -top-24 -right-32 w-[420px] h-[420px] rounded-full pointer-events-none"
+          style={{ background: "radial-gradient(circle, rgba(249,115,22,0.16) 0%, transparent 70%)" }} />
+        <div className="absolute bottom-0 -left-24 w-72 h-72 rounded-full pointer-events-none"
+          style={{ background: "radial-gradient(circle, rgba(99,102,241,0.12) 0%, transparent 70%)" }} />
 
         <div className="relative z-10 flex flex-col h-full p-10">
           <div className="flex items-center gap-3">
@@ -223,7 +222,11 @@ export default function RegisterPage() {
             <p className="text-neutral-500 text-sm leading-relaxed max-w-xs">{t.heroSub}</p>
           </div>
 
-          <div className="mt-auto space-y-5">
+          <div className="relative flex-1 min-h-[260px] my-6">
+            <ProductShowcase className="absolute inset-0" />
+          </div>
+
+          <div className="space-y-5">
             <p className="text-neutral-500 text-[11px] tracking-wide">{t.netLine}</p>
 
             <div className="flex items-center gap-5">
