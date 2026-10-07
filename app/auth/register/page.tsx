@@ -5,6 +5,7 @@ import Link from "next/link"
 import { Eye, EyeOff, ArrowRight, CheckCircle, ShieldCheck, Truck, PhoneCall, BarChart3, Globe2 } from "lucide-react"
 import { Logo } from "@/components/logo"
 import { useLang } from "@/hooks/useLang"
+import { NetworkMap } from "@/components/auth/network-map"
 
 const T = {
   fr: {
@@ -188,54 +189,14 @@ export default function RegisterPage() {
     <div className="min-h-screen bg-[#070709] flex">
 
       {/* ── Left panel ────────────────────────────────────────────── */}
-      <div className="hidden lg:flex flex-col w-[42%] relative overflow-hidden"
+      <div className="hidden lg:flex flex-col w-[44%] relative overflow-hidden"
         style={{ background: "#08080e", borderRight: "1px solid rgba(255,255,255,0.04)" }}>
-        <style>{`
-          @keyframes regNodePulse { 0% { transform: scale(1); opacity: 0.9 } 70% { transform: scale(2.6); opacity: 0 } 100% { opacity: 0 } }
-          .reg-node-pulse { transform-origin: center; transform-box: fill-box; animation: regNodePulse 2.6s ease-out infinite; }
-          @keyframes regDashFlow { to { stroke-dashoffset: -60; } }
-          .reg-dash { animation: regDashFlow 3.5s linear infinite; }
-        `}</style>
-        <div className="absolute -bottom-40 -right-40 w-[500px] h-[500px] rounded-full pointer-events-none"
-          style={{ background: "radial-gradient(circle, rgba(249,115,22,0.16) 0%, transparent 70%)" }} />
-        <div className="absolute top-1/3 -left-20 w-64 h-64 rounded-full pointer-events-none"
-          style={{ background: "radial-gradient(circle, rgba(99,102,241,0.1) 0%, transparent 70%)" }} />
 
-        {/* Animated COD network map */}
-        <svg viewBox="0 0 400 190" className="absolute top-20 left-8 right-8 h-[170px] pointer-events-none" fill="none">
-          <defs>
-            <linearGradient id="regArc" x1="0" y1="1" x2="1" y2="0">
-              <stop offset="0%" stopColor="#f97316" stopOpacity="0.75" />
-              <stop offset="100%" stopColor="#f97316" stopOpacity="0.05" />
-            </linearGradient>
-          </defs>
-          {[
-            { x: 30,  y: 160, label: t.cities[0] },
-            { x: 85,  y: 140, label: t.cities[1] },
-            { x: 230, y: 120, label: t.cities[2] },
-            { x: 320, y: 95,  label: t.cities[3] },
-          ].map((c, i) => (
-            <path key={`arc-${c.label}`} d={`M${c.x},${c.y} Q${(c.x+365)/2},10 365,30`}
-              stroke="url(#regArc)" strokeWidth="1.25" strokeDasharray="3 7" className="reg-dash"
-              style={{ animationDelay: `${i * 0.35}s` }} />
-          ))}
-          {[
-            { x: 30,  y: 160, label: t.cities[0] },
-            { x: 85,  y: 140, label: t.cities[1] },
-            { x: 230, y: 120, label: t.cities[2] },
-            { x: 320, y: 95,  label: t.cities[3] },
-          ].map((c, i) => (
-            <g key={c.label}>
-              <circle cx={c.x} cy={c.y} r="2.5" fill="#f97316" />
-              <circle cx={c.x} cy={c.y} r="2.5" fill="#f97316" className="reg-node-pulse" style={{ animationDelay: `${i * 0.3}s` }} />
-              <text x={c.x} y={c.y - 9} fontSize="8.5" fill="rgba(255,255,255,0.5)" textAnchor="middle" fontWeight={600} letterSpacing="0.4">
-                {c.label.toUpperCase()}
-              </text>
-            </g>
-          ))}
-          <circle cx="365" cy="30" r="4.5" fill="#fff" />
-          <circle cx="365" cy="30" r="4.5" fill="#f97316" className="reg-node-pulse" />
-        </svg>
+        <NetworkMap className="absolute inset-0 w-full h-full" />
+        <div className="absolute inset-0 pointer-events-none"
+          style={{ background: "linear-gradient(90deg, #08080e 18%, rgba(8,8,14,0.55) 55%, rgba(8,8,14,0.15) 100%)" }} />
+        <div className="absolute inset-0 pointer-events-none"
+          style={{ background: "linear-gradient(0deg, #08080e 0%, rgba(8,8,14,0) 35%, rgba(8,8,14,0) 70%, rgba(8,8,14,0.6) 100%)" }} />
 
         <div className="relative z-10 flex flex-col h-full p-10">
           <div className="flex items-center gap-3">
@@ -246,49 +207,48 @@ export default function RegisterPage() {
             </div>
           </div>
 
-          <div className="h-[150px] flex-shrink-0" />
-
-          <div className="mt-auto mb-auto">
-            <div className="inline-flex items-center gap-2 rounded-full px-3 py-1 mb-3"
+          <div className="mt-10">
+            <div className="inline-flex items-center gap-2 rounded-full px-3 py-1 mb-4"
               style={{ background: "rgba(16,185,129,0.1)", border: "1px solid rgba(16,185,129,0.2)" }}>
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
               <span className="text-emerald-400 text-xs font-semibold">{t.badge}</span>
             </div>
-            <p className="text-neutral-600 text-[11px] mb-6 tracking-wide">{t.netLine}</p>
 
-            <h2 className="text-[2rem] font-black text-white leading-[1.15] mb-4">
-              {t.hero[0]}<br />{t.hero[1]}<br />
+            <h2 className="text-[2.1rem] font-black text-white leading-[1.15] mb-3">
+              {t.hero[0]} {t.hero[1]}<br />
               <span style={{ background: "linear-gradient(90deg,#f97316,#fb923c)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
                 {t.hero[2]}
               </span>
             </h2>
-            <p className="text-neutral-500 text-sm leading-relaxed mb-10">{t.heroSub}</p>
+            <p className="text-neutral-500 text-sm leading-relaxed max-w-xs">{t.heroSub}</p>
+          </div>
 
-            <div className="space-y-4">
+          <div className="mt-auto space-y-5">
+            <p className="text-neutral-500 text-[11px] tracking-wide">{t.netLine}</p>
+
+            <div className="flex items-center gap-5">
               {t.benefits.map((b, i) => (
-                <div key={i} className="flex items-start gap-3.5">
-                  <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5"
-                    style={{ background: `${BENEFIT_COLORS[i]}12`, border: `1px solid ${BENEFIT_COLORS[i]}22` }}>
-                    {(() => { const Icon = BENEFIT_ICONS[i]; return <Icon className="w-4 h-4" style={{ color: BENEFIT_COLORS[i] }} /> })()}
+                <div key={i} className="flex items-center gap-2" title={b.desc}>
+                  <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
+                    style={{ background: `${BENEFIT_COLORS[i]}14`, border: `1px solid ${BENEFIT_COLORS[i]}28` }}>
+                    {(() => { const Icon = BENEFIT_ICONS[i]; return <Icon className="w-3.5 h-3.5" style={{ color: BENEFIT_COLORS[i] }} /> })()}
                   </div>
-                  <div>
-                    <p className="text-white text-sm font-semibold">{b.title}</p>
-                    <p className="text-neutral-600 text-xs mt-0.5">{b.desc}</p>
-                  </div>
+                  <span className="text-neutral-400 text-[11px] font-medium leading-tight max-w-[70px]">{b.title}</span>
                 </div>
               ))}
             </div>
-          </div>
 
-          <div className="rounded-2xl p-5" style={{ background: "rgba(249,115,22,0.06)", border: "1px solid rgba(249,115,22,0.15)" }}>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-neutral-400 text-xs mb-0.5">{t.pricingLabel}</p>
-                <p className="text-white font-black text-lg">€31.99 <span className="text-neutral-500 text-sm font-normal">/mois</span></p>
-                <p className="text-neutral-600 text-xs mt-0.5">{t.pricingAccess}</p>
-              </div>
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "rgba(249,115,22,0.15)" }}>
-                <ShieldCheck className="w-5 h-5 text-orange-400" />
+            <div className="rounded-2xl p-5 backdrop-blur-sm"
+              style={{ background: "rgba(249,115,22,0.08)", border: "1px solid rgba(249,115,22,0.18)" }}>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-neutral-400 text-xs mb-0.5">{t.pricingLabel}</p>
+                  <p className="text-white font-black text-lg">€31.99 <span className="text-neutral-500 text-sm font-normal">/mois</span></p>
+                  <p className="text-neutral-600 text-xs mt-0.5">{t.pricingAccess}</p>
+                </div>
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "rgba(249,115,22,0.15)" }}>
+                  <ShieldCheck className="w-5 h-5 text-orange-400" />
+                </div>
               </div>
             </div>
           </div>
