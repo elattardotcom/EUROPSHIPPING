@@ -12,8 +12,13 @@ import {
 import { Button } from "@/components/ui/button"
 import { AdminI18nProvider, useI18n } from "@/lib/admin-i18n"
 import { Logo } from "@/components/logo"
+import { GridBackground } from "@/components/dashboard/hud-accents"
+import { useRealtime, type RealtimeEvent } from "@/hooks/useSse"
 
 interface Counts { clients: number; orders: number; leads: number; withdrawals: number; requests: number }
+
+interface NavItem { href: string; icon: React.ElementType; label: string; badge: number }
+interface NavGroup { label: string; items: NavItem[] }
 
 const TIMEOUT_MS  = 30 * 60 * 1000  // 30 min
 const WARNING_MS  = 25 * 60 * 1000  // warn at 25 min (5 min left)
@@ -21,7 +26,7 @@ const WARNING_MS  = 25 * 60 * 1000  // warn at 25 min (5 min left)
 function AdminLayoutInner({ children }: { children: React.ReactNode }) {
   const pathname  = usePathname()
   const router    = useRouter()
-  const { t, lang, toggle } = useI18n()
+  const { t } = useI18n()
   const [collapsed,    setCollapsed]    = useState(false)
   const [drawerOpen,   setDrawerOpen]   = useState(false)
   const [showNotifs,   setShowNotifs]   = useState(false)
@@ -32,22 +37,36 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
   })
   const [showWarning,  setShowWarning]  = useState(false)
   const [countdown,    setCountdown]    = useState(300) // seconds remaining when warning shows
+  const [navSearch,    setNavSearch]    = useState("")
+  const [live,         setLive]         = useState(false)
   const drawerRef      = useRef<HTMLDivElement>(null)
   const notifRef       = useRef<HTMLDivElement>(null)
   const idleTimer      = useRef<ReturnType<typeof setTimeout> | null>(null)
   const warningTimer   = useRef<ReturnType<typeof setTimeout> | null>(null)
   const countdownRef   = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  useEffect(() => {
-    const load = () =>
-      fetch("/api/admin/counts")
-        .then(r => r.json())
-        .then(d => setCounts(d))
-        .catch(() => {})
-    load()
-    const interval = setInterval(load, 5_000)
-    return () => clearInterval(interval)
+  const loadCounts = useCallback(() => {
+    fetch("/api/admin/counts")
+      .then(r => r.json())
+      .then(d => setCounts(d))
+      .catch(() => {})
   }, [])
+
+  useEffect(() => {
+    loadCounts()
+    // Fallback poll in case a realtime event is ever missed
+    const interval = setInterval(loadCounts, 30_000)
+    return () => clearInterval(interval)
+  }, [loadCounts])
+
+  // ── Live sync with client dashboards ───────────────────────────
+  const onRealtimeEvent = useCallback((_e: RealtimeEvent) => {
+    setLive(true)
+    setTimeout(() => setLive(false), 2000)
+    loadCounts()
+  }, [loadCounts])
+
+  useRealtime(onRealtimeEvent)
 
   // ── Inactivity auto-logout ────────────────────────────────────
   const doLogout = useCallback(async () => {
@@ -132,34 +151,67 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
   const isActive = (href: string) =>
     href === "/admin" ? pathname === "/admin" : pathname.startsWith(href)
 
-  const NAV = [
-    { href: "/admin",             icon: LayoutDashboard, label: t("nav_overview"),    badge: 0 },
-    { href: "/admin/clients",     icon: Users,           label: t("nav_clients"),     badge: counts.clients },
-    { href: "/admin/leads",       icon: UserCheck,       label: t("nav_leads"),       badge: counts.leads },
-    { href: "/admin/orders",      icon: ShoppingCart,    label: t("nav_orders"),      badge: counts.orders },
-    { href: "/admin/stores",      icon: Store,           label: t("nav_stores"),      badge: 0 },
-    { href: "/admin/withdrawals",      icon: ArrowDownLeft, label: t("nav_withdrawals"),    badge: counts.withdrawals },
-    { href: "/admin/payment-methods",  icon: Wallet,        label: "Méthodes paiement",     badge: 0 },
-    { href: "/admin/fee-rates",        icon: Percent,       label: "Frais de service",       badge: 0 },
-    { href: "/admin/requests",    icon: ClipboardList,   label: t("nav_requests"),    badge: counts.requests },
-    { href: "/admin/sourcing",          icon: Search,          label: "Sourcing",       badge: 0 },
-    { href: "/admin/cod-products",      icon: Package,         label: "COD Drop",       badge: 0 },
-    { href: "/admin/affiliate-offers",  icon: Gift,            label: "Affiliés",       badge: 0 },
-    { href: "/admin/analytics",         icon: BarChart3,       label: t("nav_analytics"), badge: 0 },
+  const NAV_GROUPS: NavGroup[] = [
+    {
+      label: "Overview",
+      items: [
+        { href: "/admin", icon: LayoutDashboard, label: t("nav_overview"), badge: 0 },
+      ],
+    },
+    {
+      label: "Operations",
+      items: [
+        { href: "/admin/clients",   icon: Users,         label: t("nav_clients"),  badge: counts.clients },
+        { href: "/admin/leads",     icon: UserCheck,     label: t("nav_leads"),    badge: counts.leads },
+        { href: "/admin/orders",    icon: ShoppingCart,  label: t("nav_orders"),   badge: counts.orders },
+        { href: "/admin/stores",    icon: Store,         label: t("nav_stores"),   badge: 0 },
+        { href: "/admin/requests",  icon: ClipboardList, label: t("nav_requests"), badge: counts.requests },
+      ],
+    },
+    {
+      label: "Finance",
+      items: [
+        { href: "/admin/withdrawals",     icon: ArrowDownLeft, label: t("nav_withdrawals"), badge: counts.withdrawals },
+        { href: "/admin/payment-methods", icon: Wallet,        label: "Payment Methods",    badge: 0 },
+        { href: "/admin/fee-rates",       icon: Percent,       label: "Fee Rates",          badge: 0 },
+      ],
+    },
+    {
+      label: "Catalog",
+      items: [
+        { href: "/admin/sourcing",         icon: Search, label: "Sourcing",   badge: 0 },
+        { href: "/admin/cod-products",     icon: Package, label: "COD Drop",  badge: 0 },
+        { href: "/admin/affiliate-offers", icon: Gift,    label: "Affiliates", badge: 0 },
+      ],
+    },
+    {
+      label: "Insights",
+      items: [
+        { href: "/admin/analytics", icon: BarChart3, label: t("nav_analytics"), badge: 0 },
+      ],
+    },
   ]
+
+  const NAV = NAV_GROUPS.flatMap(g => g.items)
+
+  const filteredNavGroups = navSearch.trim()
+    ? NAV_GROUPS
+        .map(g => ({ ...g, items: g.items.filter(i => i.label.toLowerCase().includes(navSearch.trim().toLowerCase())) }))
+        .filter(g => g.items.length > 0)
+    : NAV_GROUPS
 
   // Bottom tabs: 4 main + more
   const BOTTOM_TABS = [
-    { href: "/admin",          icon: LayoutDashboard, label: "Accueil",   badge: 0 },
-    { href: "/admin/clients",  icon: Users,           label: "Clients",   badge: 0 },
-    { href: "/admin/orders",   icon: ShoppingCart,    label: "Commandes", badge: counts.orders },
-    { href: "/admin/requests", icon: ClipboardList,   label: t("nav_requests"),  badge: counts.requests },
+    { href: "/admin",          icon: LayoutDashboard, label: "Home",     badge: 0 },
+    { href: "/admin/clients",  icon: Users,           label: "Clients",  badge: 0 },
+    { href: "/admin/orders",   icon: ShoppingCart,    label: "Orders",   badge: counts.orders },
+    { href: "/admin/requests", icon: ClipboardList,   label: t("nav_requests"), badge: counts.requests },
   ]
 
   const currentPage = NAV.find(n => isActive(n.href))?.label
     ?? (pathname.startsWith("/admin/settings") ? t("nav_settings") : "Panel")
 
-  const NavLink = ({ item, onClick }: { item: typeof NAV[0]; onClick?: () => void }) => {
+  const NavLink = ({ item, onClick }: { item: NavItem; onClick?: () => void }) => {
     const active = isActive(item.href)
     return (
       <Link href={item.href} onClick={onClick}
@@ -194,21 +246,21 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
           <div className="w-14 h-14 rounded-full bg-orange-500/15 border border-orange-500/30 flex items-center justify-center mx-auto mb-4">
             <LogOut className="w-6 h-6 text-orange-400" />
           </div>
-          <h2 className="text-white font-bold text-lg mb-2">Session sur le point d'expirer</h2>
-          <p className="text-neutral-400 text-sm mb-1">Vous serez déconnecté dans</p>
+          <h2 className="text-white font-bold text-lg mb-2">Session about to expire</h2>
+          <p className="text-neutral-400 text-sm mb-1">You will be signed out in</p>
           <p className="text-4xl font-black text-orange-400 mb-5 tabular-nums">{fmtCountdown(countdown)}</p>
           <div className="flex gap-3">
             <button
               onClick={doLogout}
               className="flex-1 py-2.5 rounded-xl border border-neutral-700 text-neutral-400 hover:text-white text-sm font-medium transition-colors"
             >
-              Se déconnecter
+              Sign out
             </button>
             <button
               onClick={resetTimers}
               className="flex-1 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-400 text-white text-sm font-bold transition-colors"
             >
-              Rester connecté
+              Stay signed in
             </button>
           </div>
         </div>
@@ -237,30 +289,55 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
           </Button>
         </div>
 
+        {/* Search */}
+        {!collapsed && (
+          <div className="px-3 pt-3">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-neutral-500" />
+              <input
+                value={navSearch}
+                onChange={e => setNavSearch(e.target.value)}
+                placeholder="Search"
+                className="w-full bg-neutral-800 border border-neutral-700 rounded-lg pl-9 pr-3 py-2 text-sm text-white placeholder:text-neutral-500 focus:outline-none focus:border-orange-500/60 transition-colors"
+              />
+            </div>
+          </div>
+        )}
+
         {/* Nav */}
-        <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
-          {NAV.map(item => {
-            const active = isActive(item.href)
-            return (
-              <Link key={item.href} href={item.href}
-                className={`flex items-center justify-between px-3 py-2.5 rounded-xl transition-all text-sm group ${
-                  active
-                    ? "bg-orange-500/15 text-orange-400 border border-orange-500/20"
-                    : "text-neutral-500 hover:text-white hover:bg-neutral-800 border border-transparent"
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <item.icon className={`w-4 h-4 flex-shrink-0 ${active ? "text-orange-400" : ""}`} />
-                  {!collapsed && <span>{item.label}</span>}
-                </div>
-                {!collapsed && item.badge > 0 && (
-                  <span className="bg-orange-500/20 text-orange-400 text-[10px] px-1.5 py-0.5 rounded-full font-medium min-w-[18px] text-center">
-                    {item.badge}
-                  </span>
-                )}
-              </Link>
-            )
-          })}
+        <nav className="flex-1 p-3 space-y-3 overflow-y-auto">
+          {filteredNavGroups.map(group => (
+            <div key={group.label} className="space-y-0.5">
+              {!collapsed && (
+                <p className="text-neutral-600 text-[10px] uppercase tracking-widest px-3 py-1">{group.label}</p>
+              )}
+              {group.items.map(item => {
+                const active = isActive(item.href)
+                return (
+                  <Link key={item.href} href={item.href}
+                    className={`flex items-center justify-between px-3 py-2.5 rounded-xl transition-all text-sm group ${
+                      active
+                        ? "bg-orange-500/15 text-orange-400 border border-orange-500/20"
+                        : "text-neutral-500 hover:text-white hover:bg-neutral-800 border border-transparent"
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <item.icon className={`w-4 h-4 flex-shrink-0 ${active ? "text-orange-400" : ""}`} />
+                      {!collapsed && <span>{item.label}</span>}
+                    </div>
+                    {!collapsed && item.badge > 0 && (
+                      <span className="bg-orange-500/20 text-orange-400 text-[10px] px-1.5 py-0.5 rounded-full font-medium min-w-[18px] text-center">
+                        {item.badge}
+                      </span>
+                    )}
+                  </Link>
+                )
+              })}
+            </div>
+          ))}
+          {filteredNavGroups.length === 0 && (
+            <p className="text-neutral-600 text-sm text-center py-6">No results</p>
+          )}
         </nav>
 
         {/* Bottom */}
@@ -304,9 +381,30 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
               </button>
             </div>
 
+            {/* Drawer search */}
+            <div className="px-3 pt-3">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-neutral-500" />
+                <input
+                  value={navSearch}
+                  onChange={e => setNavSearch(e.target.value)}
+                  placeholder="Search"
+                  className="w-full bg-neutral-800 border border-neutral-700 rounded-lg pl-9 pr-3 py-2 text-sm text-white placeholder:text-neutral-500 focus:outline-none focus:border-orange-500/60 transition-colors"
+                />
+              </div>
+            </div>
+
             {/* Drawer nav */}
-            <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
-              {NAV.map(item => <NavLink key={item.href} item={item} />)}
+            <nav className="flex-1 p-3 space-y-3 overflow-y-auto">
+              {filteredNavGroups.map(group => (
+                <div key={group.label} className="space-y-0.5">
+                  <p className="text-neutral-600 text-[10px] uppercase tracking-widest px-3 py-1">{group.label}</p>
+                  {group.items.map(item => <NavLink key={item.href} item={item} />)}
+                </div>
+              ))}
+              {filteredNavGroups.length === 0 && (
+                <p className="text-neutral-600 text-sm text-center py-6">No results</p>
+              )}
             </nav>
 
             {/* Drawer bottom */}
@@ -316,13 +414,6 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
                 className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-red-500/70 hover:text-red-400 hover:bg-red-500/10 transition-all text-sm">
                 <LogOut className="w-4 h-4 flex-shrink-0" />
                 <span>{t("nav_logout")}</span>
-              </button>
-
-              {/* Language toggle in drawer */}
-              <button onClick={toggle}
-                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-neutral-500 hover:text-white hover:bg-neutral-800 transition-all text-sm">
-                <span className="text-base leading-none">{lang === "en" ? "🇫🇷" : "🇬🇧"}</span>
-                <span>{lang === "en" ? "Passer en Français" : "Switch to English"}</span>
               </button>
             </div>
           </div>
@@ -349,16 +440,11 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
 
           {/* Right */}
           <div className="flex items-center gap-2 md:gap-3 flex-shrink-0">
-            <span className="hidden sm:flex items-center gap-1.5 text-xs text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-full">
-              <Radio className="w-3 h-3 animate-pulse" />{t("live")}
+            <span className={`hidden sm:flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full border transition-all duration-500 ${
+              live ? "text-emerald-400 bg-emerald-500/20 border-emerald-500/30" : "text-emerald-400/70 bg-emerald-500/10 border-emerald-500/20"
+            }`}>
+              <Radio className="w-3 h-3 animate-pulse" />{live ? "Synced" : t("live")}
             </span>
-
-            {/* Language toggle — desktop only */}
-            <button onClick={toggle}
-              className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-neutral-700 bg-neutral-800 hover:bg-neutral-700 transition-colors text-xs font-bold text-neutral-300 hover:text-white">
-              <span className="text-base leading-none">{lang === "en" ? "🇫🇷" : "🇬🇧"}</span>
-              {lang === "en" ? "FR" : "EN"}
-            </button>
 
             <div className="relative" ref={notifRef}>
               <Button variant="ghost" size="icon"
@@ -383,7 +469,7 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
                     </div>
                     {totalUnread > 0 && (
                       <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400 border border-orange-500/30">
-                        {totalUnread} nouvelle{totalUnread > 1 ? "s" : ""}
+                        {totalUnread} new
                       </span>
                     )}
                   </div>
@@ -391,10 +477,10 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
                   {/* Items */}
                   <div className="py-1">
                     {[
-                      { key: "requests",    label: "Demandes d'inscription", count: counts.requests,    unreadCount: unread.requests,    href: "/admin/requests",    color: "#8b5cf6", dot: "rgba(139,92,246,0.15)", desc: "En attente d'approbation" },
-                      { key: "withdrawals", label: "Retraits en attente",     count: counts.withdrawals, unreadCount: unread.withdrawals, href: "/admin/withdrawals", color: "#f59e0b", dot: "rgba(245,158,11,0.15)", desc: "À traiter" },
-                      { key: "orders",      label: "Nouvelles commandes",     count: counts.orders,      unreadCount: unread.orders,      href: "/admin/orders",      color: "#f97316", dot: "rgba(249,115,22,0.15)", desc: "Commandes récentes" },
-                      { key: "leads",       label: "Leads en attente",        count: counts.leads,       unreadCount: unread.leads,       href: "/admin/leads",       color: "#3b82f6", dot: "rgba(59,130,246,0.15)", desc: "À confirmer" },
+                      { key: "requests",    label: "Signup requests", count: counts.requests,    unreadCount: unread.requests,    href: "/admin/requests",    color: "#8b5cf6", dot: "rgba(139,92,246,0.15)", desc: "Awaiting approval" },
+                      { key: "withdrawals", label: "Pending withdrawals", count: counts.withdrawals, unreadCount: unread.withdrawals, href: "/admin/withdrawals", color: "#f59e0b", dot: "rgba(245,158,11,0.15)", desc: "To process" },
+                      { key: "orders",      label: "New orders",     count: counts.orders,      unreadCount: unread.orders,      href: "/admin/orders",      color: "#f97316", dot: "rgba(249,115,22,0.15)", desc: "Recent orders" },
+                      { key: "leads",       label: "Pending leads",        count: counts.leads,       unreadCount: unread.leads,       href: "/admin/leads",       color: "#3b82f6", dot: "rgba(59,130,246,0.15)", desc: "To confirm" },
                     ].map(item => (
                       <Link key={item.href} href={item.href}
                         onClick={() => { markSeen(item.key); setShowNotifs(false) }}
@@ -412,11 +498,11 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
                           <p className={`text-sm font-medium transition-colors group-hover:text-orange-400 ${item.unreadCount > 0 ? "text-white" : "text-neutral-500"}`}>
                             {item.label}
                           </p>
-                          <p className="text-[10px] text-neutral-600">{item.unreadCount > 0 ? `${item.unreadCount} non lu${item.unreadCount > 1 ? "s" : ""}` : item.desc}</p>
+                          <p className="text-[10px] text-neutral-600">{item.unreadCount > 0 ? `${item.unreadCount} unread` : item.desc}</p>
                         </div>
                         {item.unreadCount > 0
                           ? <span className="text-[10px] font-black px-1.5 py-0.5 rounded-full" style={{ background: item.dot, color: item.color }}>{item.unreadCount}</span>
-                          : <span className="text-[10px] text-neutral-700">✓ Lu</span>
+                          : <span className="text-[10px] text-neutral-700">✓ Read</span>
                         }
                       </Link>
                     ))}
@@ -425,10 +511,10 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
                   {/* Footer */}
                   <div className="px-4 py-2.5" style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
                     {totalUnread === 0
-                      ? <p className="text-xs text-neutral-600 text-center py-1">Tout est à jour ✓</p>
+                      ? <p className="text-xs text-neutral-600 text-center py-1">All caught up ✓</p>
                       : <button onClick={() => { ["requests","withdrawals","orders","leads"].forEach(markSeen); setShowNotifs(false) }}
                           className="block w-full text-center text-xs font-bold text-neutral-500 hover:text-neutral-300 py-1 transition-colors">
-                          Tout marquer comme lu
+                          Mark all as read
                         </button>
                     }
                   </div>
@@ -448,6 +534,7 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
 
         {/* Page content */}
         <main className="flex-1 overflow-auto bg-neutral-950 relative pb-16 md:pb-0">
+          <GridBackground />
           {children}
         </main>
       </div>
