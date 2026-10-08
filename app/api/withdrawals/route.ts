@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getWithdrawals, createWithdrawal } from "@/lib/db"
 import { getSupabaseAdmin } from "@/lib/supabase"
 import { requireAdmin } from "@/lib/admin-auth"
+import { MOCK_CLIENT } from "@/lib/mock-data"
 
 async function sendRequestConfirmationEmail(w: {
   id: string
@@ -163,15 +164,26 @@ export async function POST(req: NextRequest) {
   const clientId = req.cookies.get("client_id")?.value
   if (!clientId) return NextResponse.json({ error: "Non authentifié" }, { status: 401 })
 
-  const sb = getSupabaseAdmin()
-  if (!sb) return NextResponse.json({ error: "Base de données non configurée" }, { status: 500 })
+  // Demo account has no row in `clients` (withdrawals.client_id has an FK
+  // constraint to it) — use its known mock identity instead of a DB lookup.
+  let clientName: string
+  let clientEmail: string
+  if (clientId === MOCK_CLIENT.id) {
+    clientName  = `${MOCK_CLIENT.firstName} ${MOCK_CLIENT.lastName}`.trim()
+    clientEmail = MOCK_CLIENT.email
+  } else {
+    const sb = getSupabaseAdmin()
+    if (!sb) return NextResponse.json({ error: "Base de données non configurée" }, { status: 500 })
 
-  const { data: client } = await sb
-    .from("clients")
-    .select("id, first_name, last_name, email")
-    .eq("id", clientId)
-    .single()
-  if (!client) return NextResponse.json({ error: "Client introuvable" }, { status: 404 })
+    const { data: client } = await sb
+      .from("clients")
+      .select("id, first_name, last_name, email")
+      .eq("id", clientId)
+      .single()
+    if (!client) return NextResponse.json({ error: "Client introuvable" }, { status: 404 })
+    clientName  = `${client.first_name ?? ""} ${client.last_name ?? ""}`.trim()
+    clientEmail = client.email
+  }
 
   const body = await req.json()
   const amount = parseFloat(body.amount)
@@ -179,8 +191,8 @@ export async function POST(req: NextRequest) {
 
   const w = await createWithdrawal({
     clientId,
-    clientName:        `${client.first_name ?? ""} ${client.last_name ?? ""}`.trim(),
-    clientEmail:       client.email,
+    clientName,
+    clientEmail,
     amount,
     currency:          body.currency ?? "EUR",
     iban:              body.iban,
