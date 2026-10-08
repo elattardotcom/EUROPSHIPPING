@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react"
 import { createPortal } from "react-dom"
+import Link from "next/link"
 import { getClientIdFromCookie } from "@/lib/client-cookie"
 import {
   ArrowDownLeft, Clock, CheckCircle, CheckCircle2, XCircle, Plus, RefreshCw,
@@ -14,7 +15,6 @@ import { useRealtime, type RealtimeEvent } from "@/hooks/useSse"
 import { useCurrency } from "@/hooks/useCurrency"
 import { GridBackground, CornerBrackets, GLOW_COLOR, SectionDot } from "@/components/dashboard/hud-accents"
 import { STATUS_CFG, CURRENCIES, getWithdrawalLabel, WiseLogo, BinanceLogo, PaymentMethodIcon } from "@/components/wallet/shared"
-import { PaymentMethodsManager } from "@/components/wallet/payment-methods-manager"
 import { exportToCSV } from "@/lib/mock-data"
 
 const fmt = (n: number) => n.toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -290,24 +290,19 @@ export default function WithdrawalsPage() {
                     {m.id === selectedMethod && <CheckCircle2 className="w-4 h-4 text-orange-400 flex-shrink-0" />}
                   </button>
                 ))}
-                <a href="#payment-methods" onClick={() => setMethodMenuOpen(false)}
+                <Link href="/dashboard/payment-methods" onClick={() => setMethodMenuOpen(false)}
                   className="flex items-center gap-1.5 px-3 py-2.5 text-xs text-neutral-400 hover:text-orange-400 hover:bg-neutral-800 border-t border-neutral-800 transition-colors">
                   <Plus className="w-3 h-3" />Add a method
-                </a>
+                </Link>
               </div>,
               document.body
             )}
 
-            <a href="#payment-methods" className="ml-auto text-orange-400 text-xs hover:text-orange-300 transition-colors flex-shrink-0">
+            <Link href="/dashboard/payment-methods" className="ml-auto text-orange-400 text-xs hover:text-orange-300 transition-colors flex-shrink-0">
               Payout accounts
-            </a>
+            </Link>
           </div>
         )}
-      </div>
-
-      {/* Payment method */}
-      <div id="payment-methods" className="scroll-mt-6">
-        <PaymentMethodsManager onChanged={loadPayMethods} />
       </div>
 
       {/* Withdrawal form */}
@@ -405,9 +400,9 @@ export default function WithdrawalsPage() {
                     <AlertCircle className="w-4 h-4 text-amber-400 flex-shrink-0" />
                     <p className="text-neutral-400 text-sm">No payment method saved</p>
                   </div>
-                  <a href="#payment-methods" className="text-orange-400 text-sm flex items-center gap-1 hover:text-orange-300">
+                  <Link href="/dashboard/payment-methods" className="text-orange-400 text-sm flex items-center gap-1 hover:text-orange-300">
                     Add <ArrowRight className="w-3.5 h-3.5" />
-                  </a>
+                  </Link>
                 </div>
               ) : (
                 <div className="space-y-2">
@@ -432,9 +427,9 @@ export default function WithdrawalsPage() {
                       {selectedMethod === m.id && <CheckCircle2 className="w-4 h-4 text-orange-400 flex-shrink-0" />}
                     </button>
                   ))}
-                  <a href="#payment-methods" className="flex items-center gap-1.5 text-xs text-neutral-500 hover:text-orange-400 transition-colors pt-1">
+                  <Link href="/dashboard/payment-methods" className="flex items-center gap-1.5 text-xs text-neutral-500 hover:text-orange-400 transition-colors pt-1">
                     <Plus className="w-3 h-3" />Add a method
-                  </a>
+                  </Link>
                 </div>
               )}
             </div>

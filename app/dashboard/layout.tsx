@@ -6,7 +6,7 @@ import { usePathname, useRouter } from "next/navigation"
 import {
   ChevronRight, LayoutDashboard, Settings, Package,
   Users, ShoppingCart, Wallet, HelpCircle, Bell, RefreshCw,
-  Link2, Gift, Boxes, X, Menu, Search, ArrowUpRight,
+  Link2, Gift, Boxes, X, Menu, Search, ArrowUpRight, CreditCard,
   CheckCircle2, UserPlus, Truck, DollarSign, AlertTriangle, Info,
   Moon, Sun,
 } from "lucide-react"
@@ -58,6 +58,7 @@ function buildNavGroups(leadsCount: number, ordersCount: number): NavGroup[] {
       items: [
         { href: "/dashboard/wallet",      icon: Wallet,       label: "Wallet" },
         { href: "/dashboard/withdrawals", icon: ArrowUpRight, label: "Withdrawals" },
+        { href: "/dashboard/payment-methods", icon: CreditCard, label: "Payment methods" },
       ],
     },
   ]
