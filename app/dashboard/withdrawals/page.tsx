@@ -1,6 +1,7 @@
 "use client"
 
-import { useState, useEffect, useCallback, useMemo } from "react"
+import { useState, useEffect, useCallback, useMemo, useRef } from "react"
+import { createPortal } from "react-dom"
 import { getClientIdFromCookie } from "@/lib/client-cookie"
 import {
   ArrowDownLeft, Clock, CheckCircle, CheckCircle2, XCircle, Plus, RefreshCw,
@@ -18,6 +19,20 @@ import { exportToCSV } from "@/lib/mock-data"
 
 const fmt = (n: number) => n.toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
+// "Wise •••• 4643" style — method name + a masked identifier.
+function methodDetail(m: PaymentMethod): string {
+  if (m.type === "wise") {
+    const email = m.wiseEmail ?? ""
+    const [local, domain] = email.split("@")
+    const maskedLocal = local ? `${local[0]}${"•".repeat(Math.max(1, local.length - 1))}` : "----"
+    return `Wise ${maskedLocal}${domain ? `@${domain}` : ""}`
+  }
+  const raw = m.type === "bank" ? m.iban : m.cryptoAddress
+  const last4 = raw ? raw.replace(/\s/g, "").slice(-4) : "----"
+  const name  = m.type === "bank" ? "Bank" : "Crypto"
+  return `${name} •••• ${last4}`
+}
+
 export default function WithdrawalsPage() {
   const [data,        setData]        = useState<{ balance: number; approved: number; pending: number; withdrawals: Withdrawal[] } | null>(null)
   const [loading,     setLoading]     = useState(true)
@@ -29,6 +44,10 @@ export default function WithdrawalsPage() {
   const [form,        setForm]        = useState({ amount: "", currency: "EUR" })
   const [payMethods,     setPayMethods]     = useState<PaymentMethod[]>([])
   const [selectedMethod, setSelectedMethod] = useState<string>("")
+  const [methodMenuOpen, setMethodMenuOpen] = useState(false)
+  const [methodMenuPos, setMethodMenuPos]   = useState({ top: 0, left: 0, width: 288 })
+  const methodTriggerRef = useRef<HTMLButtonElement>(null)
+  const methodMenuRef    = useRef<HTMLDivElement>(null)
   const [preview,        setPreview]        = useState<InvoicePreview | null>(null)
   const [previewLoading, setPreviewLoading] = useState(false)
 
@@ -97,6 +116,26 @@ export default function WithdrawalsPage() {
   }, [load, clientId])
 
   useRealtime(onEvent)
+
+  useEffect(() => {
+    if (!methodMenuOpen) return
+    const onClickAway = (e: MouseEvent) => {
+      const target = e.target as Node
+      if (methodTriggerRef.current?.contains(target)) return
+      if (methodMenuRef.current?.contains(target)) return
+      setMethodMenuOpen(false)
+    }
+    document.addEventListener("mousedown", onClickAway)
+    return () => document.removeEventListener("mousedown", onClickAway)
+  }, [methodMenuOpen])
+
+  const toggleMethodMenu = useCallback(() => {
+    if (!methodMenuOpen && methodTriggerRef.current) {
+      const r = methodTriggerRef.current.getBoundingClientRect()
+      setMethodMenuPos({ top: r.bottom + 8, left: r.left, width: Math.max(288, r.width) })
+    }
+    setMethodMenuOpen(o => !o)
+  }, [methodMenuOpen])
 
   const openWithdrawalForm = useCallback(async () => {
     setShowForm(true)
@@ -218,16 +257,48 @@ export default function WithdrawalsPage() {
 
         {defaultMethod && (
           <div className="flex items-center gap-3 mt-5 pt-5 border-t border-neutral-800">
-            <span className="text-neutral-500 text-xs">Paid to</span>
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-neutral-800">
+            <span className="text-neutral-500 text-xs flex-shrink-0">Paid to</span>
+
+            <button type="button" ref={methodTriggerRef} onClick={toggleMethodMenu}
+              className="flex items-center gap-2 px-2 py-1 -mx-2 -my-1 rounded-lg hover:bg-neutral-800 transition-colors">
+              <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-neutral-800 flex-shrink-0">
                 {defaultMethod.type === "bank"
                   ? <Building2 className="w-3.5 h-3.5 text-blue-400" />
                   : <PaymentMethodIcon type={defaultMethod.type} size={22} />}
               </div>
               <span className="text-white text-sm font-medium">{defaultMethod.label}</span>
-            </div>
-            <a href="#payment-methods" className="ml-auto text-orange-400 text-xs hover:text-orange-300 transition-colors">
+              <span className="text-neutral-500 text-xs font-mono">{methodDetail(defaultMethod)}</span>
+              {payMethods.length > 1 && <ChevronDown className={`w-3.5 h-3.5 text-neutral-500 transition-transform ${methodMenuOpen ? "rotate-180" : ""}`} />}
+            </button>
+
+            {methodMenuOpen && payMethods.length > 1 && typeof document !== "undefined" && createPortal(
+              <div ref={methodMenuRef} style={{ position: "fixed", top: methodMenuPos.top, left: methodMenuPos.left, width: methodMenuPos.width }}
+                className="bg-neutral-900 border border-neutral-700 rounded-xl shadow-2xl z-50 overflow-hidden">
+                {payMethods.map(m => (
+                  <button key={m.id} type="button"
+                    onClick={() => { setSelectedMethod(m.id); setMethodMenuOpen(false) }}
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 text-left transition-colors ${
+                      m.id === selectedMethod ? "bg-orange-500/10" : "hover:bg-neutral-800"
+                    }`}>
+                    <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-neutral-800 flex-shrink-0">
+                      {m.type === "bank" ? <Building2 className="w-3.5 h-3.5 text-blue-400" /> : <PaymentMethodIcon type={m.type} size={22} />}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-white text-sm font-medium truncate">{m.label}</p>
+                      <p className="text-neutral-500 text-xs font-mono">{methodDetail(m)}</p>
+                    </div>
+                    {m.id === selectedMethod && <CheckCircle2 className="w-4 h-4 text-orange-400 flex-shrink-0" />}
+                  </button>
+                ))}
+                <a href="#payment-methods" onClick={() => setMethodMenuOpen(false)}
+                  className="flex items-center gap-1.5 px-3 py-2.5 text-xs text-neutral-400 hover:text-orange-400 hover:bg-neutral-800 border-t border-neutral-800 transition-colors">
+                  <Plus className="w-3 h-3" />Add a method
+                </a>
+              </div>,
+              document.body
+            )}
+
+            <a href="#payment-methods" className="ml-auto text-orange-400 text-xs hover:text-orange-300 transition-colors flex-shrink-0">
               Payout accounts
             </a>
           </div>
