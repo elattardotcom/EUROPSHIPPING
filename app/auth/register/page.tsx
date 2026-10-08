@@ -10,12 +10,12 @@ import { ProductShowcase } from "@/components/auth/product-showcase"
 const T = {
   fr: {
     badge:       "Programme fondateurs — places limitées",
-    netLine:     "10 marchés ciblés · Paiement à la livraison · Suivi en direct",
+    netLine:     "9 marchés ciblés · Paiement à la livraison · Suivi en direct",
     cities:      ["Madrid", "Lisbonne", "Rome", "Bucarest"],
     hero:        ["Lancez votre", "business COD", "dès aujourd'hui"],
     heroSub:     "Accès complet à la plateforme en 24-48h après validation de votre demande.",
     benefits:    [
-      { title: "Livraison COD clé en main", desc: "Expédition vers 8+ pays européens" },
+      { title: "Livraison COD clé en main", desc: "Expédition vers 9 pays européens" },
       { title: "Call center intégré",       desc: "Confirmation des commandes automatisée" },
       { title: "Analytics en temps réel",   desc: "Dashboard de performance complet" },
       { title: "Paiements sécurisés",       desc: "Wise, crypto ou virement bancaire" },
@@ -57,12 +57,12 @@ const T = {
   },
   en: {
     badge:       "Founding program — limited spots",
-    netLine:     "10 target markets · Cash on delivery · Live order tracking",
+    netLine:     "9 target markets · Cash on delivery · Live order tracking",
     cities:      ["Madrid", "Lisbon", "Rome", "Bucharest"],
     hero:        ["Launch your", "COD business", "today"],
     heroSub:     "Full platform access within 24-48h after your request is approved.",
     benefits:    [
-      { title: "Turnkey COD delivery",    desc: "Shipping to 8+ European countries" },
+      { title: "Turnkey COD delivery",    desc: "Shipping to 9 European countries" },
       { title: "Integrated call center",  desc: "Automated order confirmation" },
       { title: "Real-time analytics",     desc: "Complete performance dashboard" },
       { title: "Secure payments",         desc: "Wise, crypto or bank transfer" },

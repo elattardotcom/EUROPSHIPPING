@@ -932,7 +932,7 @@ export default function LandingPage() {
                 { v:"500+", label: lang === "fr" ? "Fournisseurs partenaires" : "Partner suppliers",       color:"#14b8a6" },
                 { v:"98%",  label: lang === "fr" ? "Taux conformité qualité" : "Quality pass rate",        color:"#f97316" },
                 { v:"15j",  label: lang === "fr" ? "Délai moyen livraison" : "Avg. delivery time",         color:"#8b5cf6" },
-                { v:"10",   label: lang === "fr" ? "Pays de livraison COD" : "COD delivery countries",     color:"#10b981" },
+                { v:"9",    label: lang === "fr" ? "Pays de livraison COD" : "COD delivery countries",     color:"#10b981" },
               ] as { v:string; label:string; color:string }[]).map((s, i) => (
                 <div key={s.label} className={`flex flex-col items-center justify-center py-7 px-4 text-center ${i < 3 ? "border-r border-teal-500/10" : ""}`}>
                   <p className="text-2xl font-black mb-1" style={{ color: s.color }}>{s.v}</p>
@@ -1107,10 +1107,10 @@ export default function LandingPage() {
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
             {[
-              { flag: "🇫🇷🇧🇪",     markets: "France · Belgium",      langs: "French" },
-              { flag: "🇪🇸🇵🇹",     markets: "Spain · Portugal",      langs: "Spanish · Portuguese" },
-              { flag: "🇮🇹",       markets: "Italy",                 langs: "Italian" },
-              { flag: "🇷🇴🇧🇬🇬🇷🇭🇺🇨🇿🇸🇰", markets: "Romania · Balkans · CEE", langs: "Romanian · Bulgarian · Greek" },
+              { flag: "🇪🇸🇵🇹",     markets: "Spain · Portugal",  langs: "Spanish · Portuguese" },
+              { flag: "🇮🇹",       markets: "Italy",             langs: "Italian" },
+              { flag: "🇷🇴🇧🇬🇬🇷",   markets: "Romania · Bulgaria · Greece", langs: "Romanian · Bulgarian · Greek" },
+              { flag: "🇭🇺🇨🇿🇸🇰",   markets: "Hungary · Czechia · Slovakia", langs: "Hungarian · Czech · Slovak" },
             ].map(m => (
               <div key={m.markets} className="bento-card relative rounded-2xl p-5 border border-white/[0.05] hover:border-indigo-500/20 transition-all group overflow-hidden"
                 style={{ background: "rgba(10,10,10,0.9)" }}>

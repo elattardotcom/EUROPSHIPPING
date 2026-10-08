@@ -12,11 +12,11 @@ const FAQS = {
     },
     {
       q: "How many Shopify stores can I connect?",
-      a: "With the Starter plan: 1 store. Pro: up to 3 stores. Enterprise: unlimited. Connection takes less than 2 minutes via our Shopify app — each new order appears instantly in your CODShipEurope dashboard.",
+      a: "Unlimited. The Pro plan (€31.99/month) includes unlimited Shopify stores. Connection takes less than 2 minutes via our Shopify app — each new order appears instantly in your CODShipEurope dashboard.",
     },
     {
       q: "Which countries are covered?",
-      a: "CODShipEurope currently covers 10 European countries: 🇪🇸 Spain, 🇵🇹 Portugal, 🇮🇹 Italy, 🇷🇴 Romania, 🇧🇬 Bulgaria, 🇭🇺 Hungary, 🇬🇷 Greece, 🇸🇰 Slovakia, 🇸🇮 Slovenia and 🇨🇿 Czech Republic. More markets are being integrated.",
+      a: "CODShipEurope currently covers 9 European countries: 🇪🇸 Spain, 🇵🇹 Portugal, 🇮🇹 Italy, 🇷🇴 Romania, 🇧🇬 Bulgaria, 🇭🇺 Hungary, 🇬🇷 Greece, 🇸🇰 Slovakia and 🇨🇿 Czech Republic. More markets are being integrated.",
     },
     {
       q: "Is the 14-day trial really free?",
@@ -28,7 +28,7 @@ const FAQS = {
     },
     {
       q: "Can I use CODShipEurope with multiple team members?",
-      a: "Pro and Enterprise plans support multiple users with different access levels (admin, confirmation agent, accountant). You can invite your team and manage permissions from settings.",
+      a: "Yes. The Pro plan supports multiple users with different access levels (admin, confirmation agent, accountant). You can invite your team and manage permissions from settings.",
     },
   ],
   fr: [
@@ -38,11 +38,11 @@ const FAQS = {
     },
     {
       q: "Combien de boutiques Shopify puis-je connecter ?",
-      a: "Avec le plan Starter : 1 boutique. Pro : jusqu'à 3 boutiques. Enterprise : illimité. La connexion se fait en moins de 2 minutes via notre app Shopify — chaque nouvelle commande arrive instantanément dans votre dashboard CODShipEurope.",
+      a: "Illimité. Le plan Pro (€31.99/mois) inclut des boutiques Shopify illimitées. La connexion se fait en moins de 2 minutes via notre app Shopify — chaque nouvelle commande arrive instantanément dans votre dashboard CODShipEurope.",
     },
     {
       q: "Quels pays sont couverts ?",
-      a: "CODShipEurope couvre actuellement 10 pays européens : 🇪🇸 Espagne, 🇵🇹 Portugal, 🇮🇹 Italie, 🇷🇴 Roumanie, 🇧🇬 Bulgarie, 🇭🇺 Hongrie, 🇬🇷 Grèce, 🇸🇰 Slovaquie, 🇸🇮 Slovénie et 🇨🇿 République Tchèque. D'autres marchés sont en cours d'intégration.",
+      a: "CODShipEurope couvre actuellement 9 pays européens : 🇪🇸 Espagne, 🇵🇹 Portugal, 🇮🇹 Italie, 🇷🇴 Roumanie, 🇧🇬 Bulgarie, 🇭🇺 Hongrie, 🇬🇷 Grèce, 🇸🇰 Slovaquie et 🇨🇿 République Tchèque. D'autres marchés sont en cours d'intégration.",
     },
     {
       q: "Est-ce que les essais de 14 jours sont vraiment gratuits ?",
@@ -54,7 +54,7 @@ const FAQS = {
     },
     {
       q: "Puis-je utiliser CODShipEurope avec plusieurs membres d'équipe ?",
-      a: "Les plans Pro et Enterprise permettent plusieurs utilisateurs avec des niveaux d'accès différents (admin, agent de confirmation, comptable). Vous pouvez inviter votre équipe et gérer les permissions depuis les paramètres.",
+      a: "Oui. Le plan Pro permet plusieurs utilisateurs avec des niveaux d'accès différents (admin, agent de confirmation, comptable). Vous pouvez inviter votre équipe et gérer les permissions depuis les paramètres.",
     },
   ],
 }

@@ -18,7 +18,7 @@ const FAQS = [
   },
   {
     q: "Quels pays couvrez-vous ?",
-    a: "Nous couvrons actuellement l'Espagne, l'Italie, le Portugal, la France, la Roumanie, la Bulgarie, la Hongrie, la Grèce, la Slovaquie et la République Tchèque.",
+    a: "Nous couvrons actuellement l'Espagne, l'Italie, le Portugal, la Roumanie, la Bulgarie, la Hongrie, la Grèce, la Slovaquie et la République Tchèque.",
   },
   {
     q: "Comment modifier mon mode de paiement ?",

@@ -9,7 +9,6 @@ const SHIPPING: Record<string, { ship: number; ret: number; fr: string; en: stri
   IT: { ship: 5.50, ret: 3.20, fr: "Italie",    en: "Italy",    flag: "🇮🇹" },
   ES: { ship: 5.20, ret: 3.50, fr: "Espagne",   en: "Spain",    flag: "🇪🇸" },
   PT: { ship: 6.20, ret: 4.00, fr: "Portugal",  en: "Portugal", flag: "🇵🇹" },
-  FR: { ship: 5.80, ret: 3.80, fr: "France",    en: "France",   flag: "🇫🇷" },
   RO: { ship: 4.20, ret: 2.80, fr: "Roumanie",  en: "Romania",  flag: "🇷🇴" },
   BG: { ship: 3.80, ret: 2.50, fr: "Bulgarie",  en: "Bulgaria", flag: "🇧🇬" },
   GR: { ship: 6.00, ret: 4.20, fr: "Grèce",     en: "Greece",   flag: "🇬🇷" },

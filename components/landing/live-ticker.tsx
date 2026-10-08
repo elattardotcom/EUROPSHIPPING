@@ -3,7 +3,7 @@
 import type { Lang } from "@/lib/landing-translations"
 
 const FACTS = [
-  "🇪🇺 10 European markets covered",
+  "🇪🇺 9 European markets covered",
   "📞 Native-language call confirmation",
   "🚚 24–48h COD delivery",
   "💰 Weekly payout — every Monday",

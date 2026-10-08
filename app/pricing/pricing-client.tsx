@@ -33,14 +33,14 @@ const T = {
       "Boutiques Shopify illimitées", "Leads & commandes illimités", "Programme affiliés inclus",
       "COD payé chaque lundi, retrait sous 48h", "COD Drop catalog", "Analytics avancées",
       "Support prioritaire 7j/7", "SLA 99.9% garanti", "Suivi livraisons en temps réel",
-      "10 pays couverts en Europe", "Agents natifs multilingues", "Intégration Shopify en 5 min",
+      "9 pays couverts en Europe", "Agents natifs multilingues", "Intégration Shopify en 5 min",
     ],
     why: [
       { icon: "💸", title: "ROI immédiat", desc: "1 seule commande livrée à 60€ couvre déjà l'abonnement mensuel. Le reste, c'est du profit." },
       { icon: "⏱️", title: "10h/semaine économisées", desc: "Fini la gestion manuelle des confirmations et des livraisons. Concentrez-vous sur les publicités." },
       { icon: "📈", title: "Scale sans limite", desc: "Boutiques illimitées, commandes illimitées. Le prix reste le même que vous fassiez 10 ou 1 000 commandes/jour." },
     ],
-    countries: [["🇪🇸","Espagne"],["🇵🇹","Portugal"],["🇮🇹","Italie"],["🇫🇷","France"],["🇷🇴","Roumanie"],["🇧🇬","Bulgarie"],["🇬🇷","Grèce"],["🇭🇺","Hongrie"],["🇨🇿","Tchéquie"],["🇸🇰","Slovaquie"]],
+    countries: [["🇪🇸","Espagne"],["🇵🇹","Portugal"],["🇮🇹","Italie"],["🇷🇴","Roumanie"],["🇧🇬","Bulgarie"],["🇬🇷","Grèce"],["🇭🇺","Hongrie"],["🇨🇿","Tchéquie"],["🇸🇰","Slovaquie"]],
     faq: [
       { q: "Y a-t-il un engagement minimum ?", a: "Non. L'abonnement est mensuel, sans engagement. Vous pouvez annuler à tout moment depuis votre espace client." },
       { q: "Est-ce que les frais de livraison sont inclus ?", a: "Non. Les frais de livraison COD sont facturés séparément selon le pays et le transporteur. L'abonnement à €31.99/mois couvre l'accès à la plateforme et toutes ses fonctionnalités." },
@@ -77,14 +77,14 @@ const T = {
       "Unlimited Shopify stores", "Unlimited leads & orders", "Affiliate program included",
       "COD paid every Monday, withdraw within 48h", "COD Drop catalog", "Advanced analytics",
       "Priority support 7/7", "99.9% SLA guaranteed", "Real-time delivery tracking",
-      "10 countries covered in Europe", "Native multilingual agents", "Shopify integration in 5 min",
+      "9 countries covered in Europe", "Native multilingual agents", "Shopify integration in 5 min",
     ],
     why: [
       { icon: "💸", title: "Immediate ROI", desc: "A single delivered order at €60 already covers the monthly subscription. The rest is profit." },
       { icon: "⏱️", title: "10h/week saved", desc: "No more manual confirmation and delivery management. Focus on your ads." },
       { icon: "📈", title: "Scale without limits", desc: "Unlimited stores, unlimited orders. The price stays the same whether you process 10 or 1,000 orders/day." },
     ],
-    countries: [["🇪🇸","Spain"],["🇵🇹","Portugal"],["🇮🇹","Italy"],["🇫🇷","France"],["🇷🇴","Romania"],["🇧🇬","Bulgaria"],["🇬🇷","Greece"],["🇭🇺","Hungary"],["🇨🇿","Czechia"],["🇸🇰","Slovakia"]],
+    countries: [["🇪🇸","Spain"],["🇵🇹","Portugal"],["🇮🇹","Italy"],["🇷🇴","Romania"],["🇧🇬","Bulgaria"],["🇬🇷","Greece"],["🇭🇺","Hungary"],["🇨🇿","Czechia"],["🇸🇰","Slovakia"]],
     faq: [
       { q: "Is there a minimum commitment?", a: "No. The subscription is monthly with no commitment. You can cancel at any time from your account." },
       { q: "Are delivery fees included?", a: "No. COD delivery fees are billed separately depending on the country and carrier. The €31.99/month subscription covers platform access and all its features." },

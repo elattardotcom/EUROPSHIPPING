@@ -9,7 +9,7 @@ export const T = {
     nav_testimonials: "Reviews",
     live: "Live",
     // Hero
-    hero_badge: "Cash on Delivery · Europe · 10 countries",
+    hero_badge: "Cash on Delivery · Europe · 9 countries",
     hero_line1: "Every",
     hero_line2: "delivery,",
     hero_highlight: "cash",
@@ -119,7 +119,7 @@ export const T = {
     nav_testimonials: "Avis",
     live: "Live",
     // Hero
-    hero_badge: "Cash on Delivery · Europe · 10 pays",
+    hero_badge: "Cash on Delivery · Europe · 9 pays",
     hero_line1: "Chaque",
     hero_line2: "livraison,",
     hero_highlight: "du cash",
