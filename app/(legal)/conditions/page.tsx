@@ -58,7 +58,7 @@ export default function Conditions() {
           </Section>
           <Section title="4. Plans and Pricing">
             <p>
-              CODShipEurope offers three subscription plans (Starter, Pro, Enterprise) whose prices and features are detailed
+              CODShipEurope offers a single subscription plan (Pro, €31.99/month) whose price and features are detailed
               on the Pricing page. All prices are in euros (EUR) excluding taxes.
             </p>
             <p>
@@ -89,7 +89,7 @@ export default function Conditions() {
           </Section>
           <Section title="7. Limitation of Liability">
             <p>
-              CODShipEurope is committed to maintaining optimal availability (99.9% SLA for the Enterprise plan) but cannot be
+              CODShipEurope is committed to maintaining optimal availability (99.9% SLA) but cannot be
               held responsible for service interruptions due to events beyond its control (force majeure, network outages,
               scheduled maintenance).
             </p>
@@ -158,7 +158,7 @@ export default function Conditions() {
           </Section>
           <Section title="4. Offres et tarification">
             <p>
-              CODShipEurope propose trois formules d'abonnement (Starter, Pro, Enterprise) dont les prix et fonctionnalités sont
+              CODShipEurope propose une seule formule d'abonnement (Pro, €31.99/mois) dont le prix et les fonctionnalités sont
               détaillés sur la page Tarifs du site. Tous les prix sont exprimés en euros (EUR) hors taxes.
             </p>
             <p>
@@ -189,7 +189,7 @@ export default function Conditions() {
           </Section>
           <Section title="7. Limitation de responsabilité">
             <p>
-              CODShipEurope s'engage à maintenir un niveau de disponibilité optimal (SLA 99,9 % pour le plan Enterprise) mais ne
+              CODShipEurope s'engage à maintenir un niveau de disponibilité optimal (SLA 99,9 %) mais ne
               saurait être tenu responsable des interruptions de service liées à des événements hors de son contrôle (force
               majeure, pannes réseau, maintenances planifiées).
             </p>
