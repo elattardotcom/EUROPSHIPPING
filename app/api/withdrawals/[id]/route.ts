@@ -100,7 +100,7 @@ async function sendPayoutEmail(w: {
 
         <!-- Header -->
         <tr>
-          <td style="background:linear-gradient(135deg,#f97316,#dc2626);padding:28px 36px">
+          <td style="background:#0a0a0a;padding:28px 36px">
             <table cellpadding="0" cellspacing="0"><tr>
               <td style="vertical-align:middle">
                 <img src="https://www.codshipeurope.com/logo.png" width="48" height="48" alt="CODShipEurope" style="display:block;border-radius:10px" />
