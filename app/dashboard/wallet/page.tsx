@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback, useMemo } from "react"
+import { useState, useEffect, useCallback, useMemo, useRef } from "react"
 import { getClientIdFromCookie } from "@/lib/client-cookie"
 import {
   Wallet, ArrowDownLeft, ArrowUpRight, Clock, CheckCircle2,
@@ -376,9 +376,12 @@ export default function WalletPage() {
   const [clientName,   setClientName]   = useState("")
   const [clientEmail,  setClientEmail]  = useState("")
   const [adjustments,  setAdjustments]  = useState<BalanceAdjustment[]>([])
+  const hasLoadedRef = useRef(false)
 
   const load = useCallback(async () => {
-    setLoading(true)
+    // Only show the loading placeholder on the very first fetch — background
+    // refreshes (polling, realtime) should update data in place, not flicker.
+    if (!hasLoadedRef.current) setLoading(true)
     const [walletRes, adjRes] = await Promise.all([
       fetch(`/api/wallet/${clientId}`),
       fetch("/api/client/balance"),
@@ -394,6 +397,7 @@ export default function WalletPage() {
     })
     setAdjustments(Array.isArray(adjData) ? adjData : [])
     setLoading(false)
+    hasLoadedRef.current = true
   }, [clientId])
 
   useEffect(() => { load() }, [load])

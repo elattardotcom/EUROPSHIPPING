@@ -59,8 +59,12 @@ export default function WithdrawalsPage() {
   const [clientName,  setClientName]  = useState("")
   const [clientEmail, setClientEmail] = useState("")
 
+  const hasLoadedRef = useRef(false)
+
   const load = useCallback(async () => {
-    setLoading(true)
+    // Only show the loading placeholder on the very first fetch — background
+    // refreshes (polling, realtime) should update data in place, not flicker.
+    if (!hasLoadedRef.current) setLoading(true)
     const res  = await fetch(`/api/wallet/${clientId}`)
     const json = await res.json()
     setData({
@@ -70,6 +74,7 @@ export default function WithdrawalsPage() {
       withdrawals: json.withdrawals ?? [],
     })
     setLoading(false)
+    hasLoadedRef.current = true
   }, [clientId])
 
   useEffect(() => { load() }, [load])

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import {
   Clock, CheckCircle, XCircle, DollarSign,
   RefreshCw, ChevronDown, Search, AlertCircle, Zap,
@@ -28,12 +28,17 @@ export default function AdminWithdrawals() {
     rejected: { label: t("with_rejected"), color: "text-red-400",     bg: "bg-red-500/15 border-red-500/25",         Icon: XCircle     },
   }
 
+  const hasLoadedRef = useRef(false)
+
   const load = useCallback(async () => {
-    setLoading(true)
+    // Only show the loading placeholder on the very first fetch — background
+    // refreshes (polling, realtime) should update data in place, not flicker.
+    if (!hasLoadedRef.current) setLoading(true)
     const res = await fetch("/api/withdrawals")
     const data = await res.json()
     setWithdrawals(data)
     setLoading(false)
+    hasLoadedRef.current = true
   }, [])
 
   useEffect(() => { load() }, [load])
