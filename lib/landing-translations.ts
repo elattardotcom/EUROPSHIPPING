@@ -95,10 +95,10 @@ export const T = {
       { title: "Markets",   links: [{ label: "COD Spain", href: "/dropshipping-cod-espagne" }, { label: "COD Portugal", href: "/dropshipping-cod-portugal" }, { label: "COD Italy", href: "/dropshipping-cod-italie" }, { label: "Blog", href: "/blog" }] },
       { title: "Legal",     links: [{ label: "Terms of Service", href: "/conditions" }, { label: "Privacy Policy", href: "/confidentialite" }, { label: "GDPR", href: "/rgpd" }, { label: "Legal Notice", href: "/mentions-legales" }] },
     ],
-    // Live order feed
-    feed_title: "Live feed",
+    // Example order feed
+    feed_title: "Example feed",
     feed_sub: "COD Orders",
-    feed_label: "+€48 collected 2 min ago",
+    feed_label: "+€48 collected on delivery",
     // Ticker
     ticker_confirmed: (n: number) => `✅ ${n} orders confirmed today`,
     ticker_collected: (n: string) => `💰 €${n} collected this month`,

@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useLang } from "@/hooks/useLang"
 import {
   CheckCircle, ArrowRight, Users, Truck, BarChart3, Zap, Shield,
   Star, Wallet, Link2, Gift, Phone, Mail, MapPin,
@@ -54,17 +53,18 @@ const FLOATING = {
   en: {
     confirms_label: "Confirmations",
     confirms_value: "Example",
-    revenue_label:  "Revenue / month",
+    revenue_label:  "Revenue / month (example)",
   },
   fr: {
     confirms_label: "Confirmations",
     confirms_value: "Exemple",
-    revenue_label:  "Revenus / mois",
+    revenue_label:  "Revenus / mois (exemple)",
   },
 }
 
+const lang: Lang = "en"
+
 export default function LandingPage() {
-  const [lang, setLang] = useLang()
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const t      = T[lang]
@@ -151,11 +151,6 @@ export default function LandingPage() {
             <a href="/blog" className="hover:text-white transition-colors">Blog</a>
           </nav>
           <div className="flex items-center gap-2 flex-shrink-0">
-            <button
-              onClick={() => setLang(l => l === "en" ? "fr" : "en")}
-              className="hidden sm:flex items-center gap-1 text-xs font-bold px-2.5 py-1.5 rounded-lg border border-white/10 text-neutral-400 hover:text-white hover:border-white/20 transition-all">
-              {lang === "en" ? "🇫🇷 FR" : "🇬🇧 EN"}
-            </button>
             <OpenModalButton step="login"
               className="hidden sm:block text-sm text-neutral-400 hover:text-white px-4 py-2 rounded-lg border border-transparent hover:border-white/10 transition-all">
               {t.sign_in}
@@ -189,13 +184,6 @@ export default function LandingPage() {
             <a href="/blog" onClick={() => setMenuOpen(false)} className="text-xl font-bold text-white">Blog</a>
           </div>
           <div className="flex flex-col items-center gap-3 pb-14 px-6">
-            <button
-              onClick={() => setLang(l => l === "en" ? "fr" : "en")}
-              className="w-full flex items-center justify-center gap-2 text-sm font-bold px-4 py-3 rounded-xl border border-white/15 text-neutral-300"
-              style={{ background: "rgba(255,255,255,0.05)" }}
-            >
-              {lang === "en" ? "🇫🇷 Passer en français" : "🇬🇧 Switch to English"}
-            </button>
             <OpenModalButton step="signup" className="w-full flex items-center justify-center gap-2 text-sm font-bold text-white py-3.5 rounded-xl btn-primary">
               {t.get_started} <ArrowRight className="w-4 h-4" />
             </OpenModalButton>
@@ -265,7 +253,7 @@ export default function LandingPage() {
                   </div>
                   <div className="flex items-center gap-1.5 text-[10px] font-bold text-emerald-400 border border-emerald-500/25 bg-emerald-500/8 px-2.5 py-1 rounded-full">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-dot" />
-                    LIVE
+                    EXAMPLE
                   </div>
                 </div>
                 <div className="absolute inset-x-0 bottom-0 top-[57px] overflow-hidden">
@@ -1101,54 +1089,39 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── Account Managers ───────────────────────────────────── */}
+      {/* ── Multilingual Support ─────────────────────────────────── */}
       <section className="py-16 sm:py-24 px-4 sm:px-6" style={{ background: "linear-gradient(180deg,#080808 0%,#060606 100%)" }}>
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-10 sm:mb-14">
             <div className="inline-flex items-center gap-2 text-indigo-400 text-xs font-bold border border-indigo-500/20 bg-indigo-500/8 px-3 py-1.5 rounded-full mb-4 uppercase tracking-widest">
               <Users className="w-3.5 h-3.5" />
-              {lang === "fr" ? "Équipe dédiée" : "Dedicated team"}
+              Native-language support
             </div>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-white mb-3">
-              {lang === "fr"
-                ? <>Un <span className="text-indigo-400">account manager</span> pour chaque marché</>
-                : <>An <span className="text-indigo-400">account manager</span> for every market</>}
+              Confirmation calls, <span className="text-indigo-400">in your customers&apos; language</span>
             </h2>
             <p className="text-neutral-500 text-sm max-w-xl mx-auto">
-              {lang === "fr"
-                ? "Notre équipe parle votre langue et connaît le COD local. Vous n'êtes jamais seul."
-                : "Our team speaks your language and knows local COD. You're never alone."}
+              Our call center confirms every COD lead in the local language — higher pickup rates, higher confirmation rates.
             </p>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
             {[
-              { name: "Youssef B.", flag: "🇲🇦🇩🇿🇹🇳", markets: lang === "fr" ? "Maghreb & Europe" : "Maghreb & Europe", color: "from-orange-500 to-red-600", response: "< 2h", langs: lang === "fr" ? "Arabe · Français" : "Arabic · French" },
-              { name: "María G.",   flag: "🇪🇸🇵🇹",    markets: lang === "fr" ? "Espagne · Portugal" : "Spain · Portugal", color: "from-rose-500 to-pink-600",   response: "< 1h", langs: lang === "fr" ? "Espagnol · Anglais" : "Spanish · English" },
-              { name: "Andrei I.", flag: "🇷🇴🇧🇬🇬🇷",   markets: lang === "fr" ? "Balkans & Est" : "Balkans & East",       color: "from-violet-500 to-purple-600", response: "< 2h", langs: lang === "fr" ? "Roumain · Anglais" : "Romanian · English" },
-              { name: "Luca M.",   flag: "🇮🇹🇩🇪🇫🇷",   markets: lang === "fr" ? "Italie · Europe Ouest" : "Italy · West EU", color: "from-blue-500 to-indigo-600", response: "< 1h", langs: lang === "fr" ? "Italien · Français" : "Italian · French" },
+              { flag: "🇫🇷🇧🇪",     markets: "France · Belgium",      langs: "French" },
+              { flag: "🇪🇸🇵🇹",     markets: "Spain · Portugal",      langs: "Spanish · Portuguese" },
+              { flag: "🇮🇹",       markets: "Italy",                 langs: "Italian" },
+              { flag: "🇷🇴🇧🇬🇬🇷🇭🇺🇨🇿🇸🇰", markets: "Romania · Balkans · CEE", langs: "Romanian · Bulgarian · Greek" },
             ].map(m => (
-              <div key={m.name} className="bento-card relative rounded-2xl p-5 border border-white/[0.05] hover:border-indigo-500/20 transition-all group overflow-hidden"
+              <div key={m.markets} className="bento-card relative rounded-2xl p-5 border border-white/[0.05] hover:border-indigo-500/20 transition-all group overflow-hidden"
                 style={{ background: "rgba(10,10,10,0.9)" }}>
                 <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
                   style={{ background: "radial-gradient(ellipse at top, rgba(99,102,241,0.05), transparent 70%)" }} />
                 <div className="relative">
-                  <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${m.color} flex items-center justify-center text-white font-black text-lg mb-3 relative`}>
-                    {m.name.charAt(0)}
-                    <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full bg-emerald-400 border-2 border-[#0a0a0a]" />
-                  </div>
-                  <p className="text-white font-black text-sm mb-0.5">{m.name}</p>
-                  <p className="text-lg mb-1.5">{m.flag}</p>
-                  <p className="text-neutral-500 text-[11px] mb-3 leading-snug">{m.markets}</p>
-                  <div className="space-y-1.5">
-                    <div className="flex items-center gap-1.5 text-[10px] text-neutral-600">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 flex-shrink-0" />
-                      {lang === "fr" ? `Répond en ${m.response}` : `Responds ${m.response}`}
-                    </div>
-                    <div className="flex items-center gap-1.5 text-[10px] text-neutral-600">
-                      <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 flex-shrink-0" />
-                      {m.langs}
-                    </div>
+                  <p className="text-2xl mb-3">{m.flag}</p>
+                  <p className="text-white font-black text-sm mb-1.5 leading-snug">{m.markets}</p>
+                  <div className="flex items-center gap-1.5 text-[10px] text-neutral-500">
+                    <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 flex-shrink-0" />
+                    {m.langs}
                   </div>
                 </div>
               </div>
@@ -1164,15 +1137,15 @@ export default function LandingPage() {
                 <PhoneCall className="w-5 h-5 text-indigo-400" />
               </div>
               <div>
-                <p className="text-white font-bold text-sm">{lang === "fr" ? "Appel hebdomadaire inclus" : "Weekly call included"}</p>
-                <p className="text-neutral-500 text-xs">{lang === "fr" ? "Revue de vos stats, optimisation campagnes, conseils marché local" : "Stats review, campaign optimization, local market advice"}</p>
+                <p className="text-white font-bold text-sm">Questions about a market?</p>
+                <p className="text-neutral-500 text-xs">Talk to our team before you launch — no commitment.</p>
               </div>
             </div>
             <div className="sm:ml-auto flex-shrink-0">
               <OpenModalButton step="signup"
                 className="inline-flex items-center gap-2 text-sm font-bold text-white px-5 py-2.5 rounded-xl"
                 style={{ background: "linear-gradient(135deg,#6366f1,#8b5cf6)", boxShadow: "0 8px 24px rgba(99,102,241,0.3)" }}>
-                {lang === "fr" ? "Parler à mon manager" : "Talk to my manager"}
+                Talk to the team
                 <ArrowRight className="w-3.5 h-3.5" />
               </OpenModalButton>
             </div>

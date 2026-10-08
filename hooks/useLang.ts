@@ -5,7 +5,7 @@ import { useState, useEffect } from "react"
 export type Lang = "fr" | "en"
 
 export function useLang(): [Lang, (l: Lang | ((prev: Lang) => Lang)) => void] {
-  const [lang, setLangState] = useState<Lang>("fr")
+  const [lang, setLangState] = useState<Lang>("en")
 
   useEffect(() => {
     const saved = localStorage.getItem("site-lang") as Lang | null
