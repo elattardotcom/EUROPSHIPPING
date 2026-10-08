@@ -345,7 +345,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {(!collapsed || inDrawer) && (
           <Link href="/dashboard" className="flex items-center gap-2.5 min-w-0">
             <Logo size={40} showBg={false} />
-            <p className="text-white font-bold text-base leading-none truncate">CODShipEurope</p>
+            <p className="text-white font-bold text-[11px] uppercase tracking-wide leading-none truncate">CODShipEurope</p>
           </Link>
         )}
         {inDrawer ? (
@@ -509,7 +509,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             {/* Mobile logo */}
             <Link href="/dashboard" className="md:hidden flex items-center gap-2">
               <Logo size={40} showBg={false} />
-              <span className="text-white font-bold text-sm">CODShipEurope</span>
+              <span className="text-white font-bold text-[11px] uppercase tracking-wide">CODShipEurope</span>
             </Link>
           </div>
 

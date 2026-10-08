@@ -163,7 +163,8 @@ async function downloadInvoice(inv: Invoice, clientWithdrawals: Withdrawal[], in
 .page{width:${W}px;height:${H}px;display:flex;flex-direction:column;background:#fff;overflow:hidden}
 .hdr{background:linear-gradient(135deg,#f97316,#dc2626);padding:26px 36px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
 .hdr-logo{display:flex;align-items:center;gap:14px}
-.hdr-icon{width:48px;height:48px;background:rgba(255,255,255,.22);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:#fff}
+.hdr-icon{height:48px;background:#fff;border-radius:12px;display:flex;align-items:center;justify-content:center;padding:7px 10px}
+.hdr-icon img{height:100%;width:auto;display:block}
 .hdr-name{font-size:22px;font-weight:800;color:#fff;line-height:1}
 .hdr-sub{font-size:11px;color:rgba(255,255,255,.65);letter-spacing:.5px;margin-top:3px}
 .hdr-badge{font-size:10px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,.75);text-transform:uppercase;text-align:right;margin-bottom:4px}
@@ -207,7 +208,7 @@ async function downloadInvoice(inv: Invoice, clientWithdrawals: Withdrawal[], in
 <div class="page">
   <div class="hdr">
     <div class="hdr-logo">
-      <div class="hdr-icon">CS</div>
+      <div class="hdr-icon"><img src="${window.location.origin}/logo.png" alt="CODShipEurope" /></div>
       <div>
         <div class="hdr-name">CODShipEurope</div>
         <div class="hdr-sub">PRO PLATFORM</div>
