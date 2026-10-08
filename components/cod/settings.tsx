@@ -386,9 +386,9 @@ export default function SettingsPage() {
             <div className="space-y-4">
               <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-6">
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-lg font-medium text-white">Abonnement</h2>
+                  <h2 className="text-lg font-medium text-white">Subscription</h2>
                   <span className="px-3 py-1 bg-orange-500/20 text-orange-400 border border-orange-500/30 rounded-full text-sm font-black">
-                    Pro · €31.99/mois
+                    Pro
                   </span>
                 </div>
 
@@ -399,15 +399,12 @@ export default function SettingsPage() {
                   <div className="flex items-start justify-between mb-4">
                     <div>
                       <p className="text-white font-black text-lg">CODShipEurope Pro</p>
-                      <p className="text-neutral-500 text-xs mt-0.5">Accès complet à toutes les fonctionnalités</p>
+                      <p className="text-neutral-500 text-xs mt-0.5">Full access to every feature</p>
                     </div>
-                    <div className="text-right">
-                      <p className="text-orange-400 font-black text-2xl">€31.99</p>
-                      <p className="text-neutral-600 text-xs">/mois</p>
-                    </div>
+                    <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/25">Active</span>
                   </div>
                   <div className="grid grid-cols-2 gap-2">
-                    {["Boutiques illimitées","Leads & commandes illimités","Wallet & virements 48h","Support prioritaire 7j/7"].map(f => (
+                    {["Unlimited stores","Unlimited leads & orders","Wallet & 48h withdrawals","Priority support 7/7"].map(f => (
                       <div key={f} className="flex items-center gap-1.5 text-xs text-neutral-400">
                         <div className="w-3.5 h-3.5 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
                           <Check className="w-2 h-2 text-emerald-400" />
@@ -422,7 +419,7 @@ export default function SettingsPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="bg-neutral-800/50 rounded-xl p-4">
                     <div className="flex items-center justify-between mb-1">
-                      <p className="text-xs text-neutral-400">Boutiques connectées</p>
+                      <p className="text-xs text-neutral-400">Connected stores</p>
                       <p className="text-xs font-bold text-white">{storesUsed} / ∞</p>
                     </div>
                     <div className="h-1.5 rounded-full bg-neutral-700 overflow-hidden">
@@ -431,7 +428,7 @@ export default function SettingsPage() {
                   </div>
                   <div className="bg-neutral-800/50 rounded-xl p-4">
                     <div className="flex items-center justify-between mb-1">
-                      <p className="text-xs text-neutral-400">Commandes ce mois</p>
+                      <p className="text-xs text-neutral-400">Orders this month</p>
                       <p className="text-xs font-bold text-white">{ordersUsed} / ∞</p>
                     </div>
                     <div className="h-1.5 rounded-full bg-neutral-700 overflow-hidden">
@@ -442,8 +439,8 @@ export default function SettingsPage() {
               </div>
 
               <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-6">
-                <h2 className="text-lg font-medium text-white mb-4">Historique de facturation</h2>
-                <p className="text-neutral-500 text-sm py-8 text-center">Aucune facture pour le moment.</p>
+                <h2 className="text-lg font-medium text-white mb-4">Billing history</h2>
+                <p className="text-neutral-500 text-sm py-8 text-center">No invoices yet.</p>
               </div>
             </div>
           )}
