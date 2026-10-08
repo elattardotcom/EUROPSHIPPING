@@ -116,7 +116,7 @@ export async function POST(req: NextRequest) {
     <tr><td align="center">
       <table width="520" cellpadding="0" cellspacing="0" style="background:#111;border:1px solid rgba(255,255,255,0.08);border-radius:16px;overflow:hidden;max-width:520px;width:100%">
         <tr>
-          <td style="background:linear-gradient(135deg,#f97316,#dc2626);padding:22px 32px">
+          <td style="background:#0a0a0a;padding:22px 32px">
             <p style="margin:0;color:#fff;font-size:18px;font-weight:800">CODShipEurope — Admin</p>
             <p style="margin:4px 0 0;color:rgba(255,255,255,0.65);font-size:12px">Nouvelle demande d'inscription</p>
           </td>

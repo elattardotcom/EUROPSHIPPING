@@ -114,7 +114,7 @@ export async function PATCH(
         html: `<!DOCTYPE html><html><body style="margin:0;padding:0;background:#0a0a0a;font-family:Arial,sans-serif">
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#0a0a0a;padding:40px 20px"><tr><td align="center">
 <table width="560" cellpadding="0" cellspacing="0" style="background:#111;border:1px solid rgba(255,255,255,0.08);border-radius:16px;overflow:hidden;max-width:560px;width:100%">
-  <tr><td style="background:linear-gradient(135deg,#f97316,#dc2626);padding:28px 36px">
+  <tr><td style="background:#0a0a0a;padding:28px 36px">
     <p style="margin:0;color:#fff;font-size:20px;font-weight:800">CODShipEurope</p>
     <p style="margin:4px 0 0;color:rgba(255,255,255,0.65);font-size:11px;text-transform:uppercase;letter-spacing:1px">COD Platform Europe</p>
   </td></tr>
