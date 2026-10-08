@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { ChevronDown, HelpCircle } from "lucide-react"
 import { Lang } from "@/lib/landing-translations"
+import { Reveal } from "./reveal"
 
 const FAQS = {
   en: [
@@ -12,7 +13,7 @@ const FAQS = {
     },
     {
       q: "How many Shopify stores can I connect?",
-      a: "Unlimited. The Pro plan (€31.99/month) includes unlimited Shopify stores. Connection takes less than 2 minutes via our Shopify app — each new order appears instantly in your CODShipEurope dashboard.",
+      a: "Unlimited. Your plan includes unlimited Shopify stores. Connection takes less than 2 minutes via our Shopify app — each new order appears instantly in your CODShipEurope dashboard.",
     },
     {
       q: "Which countries are covered?",
@@ -38,7 +39,7 @@ const FAQS = {
     },
     {
       q: "Combien de boutiques Shopify puis-je connecter ?",
-      a: "Illimité. Le plan Pro (€31.99/mois) inclut des boutiques Shopify illimitées. La connexion se fait en moins de 2 minutes via notre app Shopify — chaque nouvelle commande arrive instantanément dans votre dashboard CODShipEurope.",
+      a: "Illimité. Votre plan inclut des boutiques Shopify illimitées. La connexion se fait en moins de 2 minutes via notre app Shopify — chaque nouvelle commande arrive instantanément dans votre dashboard CODShipEurope.",
     },
     {
       q: "Quels pays sont couverts ?",
@@ -69,20 +70,22 @@ export function FaqSection({ lang = "en" }: { lang?: Lang }) {
   const label = FAQ_LABELS[lang]
 
   return (
-    <section className="py-28 px-6" style={{ background: "#080808" }}>
+    <section className="py-28 px-6" style={{ background: "#f7f6f4" }}>
       <div className="max-w-3xl mx-auto">
-        <div className="text-center mb-14">
-          <div className="inline-flex items-center gap-2 text-sky-400 text-xs font-bold border border-sky-500/20 bg-sky-500/8 px-3 py-1.5 rounded-full mb-5 uppercase tracking-widest">
+        <Reveal className="text-center mb-14">
+          <div className="inline-flex items-center gap-2 text-sky-700 text-xs font-bold border border-sky-500/25 bg-sky-500/10 px-3 py-1.5 rounded-full mb-5 uppercase tracking-widest">
             <HelpCircle className="w-3.5 h-3.5" />
             {label.badge}
           </div>
-          <h2 className="text-4xl md:text-5xl font-black text-white mb-3">{label.h2}</h2>
-          <p className="text-neutral-500 text-sm">{label.sub}</p>
-        </div>
+          <h2 className="text-4xl md:text-5xl font-black text-neutral-900 mb-3">{label.h2}</h2>
+          <p className="text-neutral-600 text-sm">{label.sub}</p>
+        </Reveal>
 
         <div className="space-y-2">
           {faqs.map((item, i) => (
-            <FaqItem key={i} q={item.q} a={item.a} />
+            <Reveal key={i} delay={Math.min(i * 50, 200)}>
+              <FaqItem q={item.q} a={item.a} />
+            </Reveal>
           ))}
         </div>
       </div>
@@ -96,8 +99,8 @@ function FaqItem({ q, a }: { q: string; a: string }) {
     <div
       className="rounded-2xl overflow-hidden transition-all duration-200"
       style={{
-        border: open ? "1px solid rgba(249,115,22,0.25)" : "1px solid rgba(255,255,255,0.05)",
-        background: open ? "rgba(249,115,22,0.04)" : "rgba(12,12,12,0.8)",
+        border: open ? "1px solid rgba(249,115,22,0.3)" : "1px solid rgba(0,0,0,0.07)",
+        background: open ? "rgba(249,115,22,0.05)" : "#ffffff",
       }}
     >
       <button
@@ -105,7 +108,7 @@ function FaqItem({ q, a }: { q: string; a: string }) {
         className="w-full flex items-center justify-between gap-4 px-6 py-5 text-left"
         onClick={() => setOpen(o => !o)}
       >
-        <span className="text-sm font-semibold text-white">{q}</span>
+        <span className="text-sm font-semibold text-neutral-900">{q}</span>
         <ChevronDown
           className="w-4 h-4 text-neutral-500 flex-shrink-0 transition-transform duration-300"
           style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)" }}
@@ -115,7 +118,7 @@ function FaqItem({ q, a }: { q: string; a: string }) {
         className="overflow-hidden transition-all duration-300"
         style={{ maxHeight: open ? "300px" : "0px" }}
       >
-        <p className="px-6 pb-5 text-sm text-neutral-500 leading-relaxed">{a}</p>
+        <p className="px-6 pb-5 text-sm text-neutral-600 leading-relaxed">{a}</p>
       </div>
     </div>
   )

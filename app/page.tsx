@@ -14,6 +14,7 @@ import { OpenModalButton }  from "@/components/landing/open-modal-button"
 import { LiveTicker }       from "@/components/landing/live-ticker"
 import { LiveHeroStats }    from "@/components/landing/live-hero-stats"
 import { FaqSection }       from "@/components/landing/faq-section"
+import { Reveal }           from "@/components/landing/reveal"
 import {
   ShopifyLogo, DpdLogo, GlsLogo, ColissimoLogo, BrtLogo,
   WiseLogo, BinanceLogo, BankLogo,
@@ -312,17 +313,52 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ── What is COD? (newcomer explainer) ─────────────────── */}
+      <section className="py-16 sm:py-24 px-4 sm:px-6" style={{ background: "#f7f6f4" }}>
+        <div className="max-w-5xl mx-auto">
+          <Reveal className="text-center mb-10 sm:mb-14">
+            <div className="inline-flex items-center gap-2 text-neutral-500 text-xs font-bold border border-black/10 bg-black/[0.03] px-3 py-1.5 rounded-full mb-4 sm:mb-5 uppercase tracking-widest">
+              <Banknote className="w-3.5 h-3.5" />
+              New to Cash on Delivery?
+            </div>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-neutral-900 mb-3 sm:mb-4">
+              No card. No prepayment. <span className="text-orange-600">Just cash at the door.</span>
+            </h2>
+            <p className="text-neutral-600 text-sm max-w-xl mx-auto">
+              Cash on Delivery (COD) is an e-commerce model where customers order online without paying upfront, and
+              pay in cash — or by card — only when the parcel reaches their door. In markets where online card payment
+              is less trusted, it means far more completed orders.
+            </p>
+          </Reveal>
+
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {[
+              { icon: "🛍️", title: "Customer orders", desc: "No card, no prepayment — they place the order straight from your Shopify store." },
+              { icon: "📞", title: "We confirm it",    desc: "A native-language agent calls to confirm the order before it ships." },
+              { icon: "🚚", title: "We deliver it",    desc: "The parcel ships and the courier collects payment at the customer's door." },
+              { icon: "💰", title: "You get paid",     desc: "The cash collected is credited to your wallet, ready to withdraw." },
+            ].map((s, i) => (
+              <Reveal key={s.title} delay={i * 80} className="rounded-2xl p-5 bg-white border border-black/[0.06] text-center">
+                <div className="text-2xl mb-3">{s.icon}</div>
+                <h3 className="text-neutral-900 font-bold text-sm mb-1.5">{s.title}</h3>
+                <p className="text-neutral-600 text-xs leading-relaxed">{s.desc}</p>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ── COD Flow ───────────────────────────────────────────── */}
       <section id="how" className="py-16 sm:py-24 px-4 sm:px-6 diag-mid" style={{ background: "linear-gradient(180deg,#0d1a12 0%,#0a1410 100%)" }}>
         <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-10 sm:mb-16">
+          <Reveal className="text-center mb-10 sm:mb-16">
             <div className="inline-flex items-center gap-2 text-emerald-400 text-xs font-bold border border-emerald-500/20 bg-emerald-500/8 px-3 py-1.5 rounded-full mb-4 sm:mb-5 uppercase tracking-widest">
               <Truck className="w-3.5 h-3.5" />
               {t.flow_badge}
             </div>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-white mb-3 sm:mb-4">{t.flow_h2}</h2>
             <p className="text-neutral-500 text-sm max-w-lg mx-auto">{t.flow_sub}</p>
-          </div>
+          </Reveal>
           <div className="relative">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {([
@@ -356,7 +392,7 @@ export default function LandingPage() {
       {/* ── Visual Delivery Network ────────────────────────────── */}
       <section className="py-16 sm:py-24 px-4 sm:px-6 overflow-hidden" style={{ background: "#060606" }}>
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-10 sm:mb-14">
+          <Reveal className="text-center mb-10 sm:mb-14">
             <div className="inline-flex items-center gap-2 text-orange-400 text-xs font-bold border border-orange-500/20 bg-orange-500/8 px-3 py-1.5 rounded-full mb-4 uppercase tracking-widest">
               <Globe2 className="w-3.5 h-3.5" />
               {lang === "fr" ? "Notre réseau" : "Our network"}
@@ -369,7 +405,7 @@ export default function LandingPage() {
                 ? "Des entrepôts stratégiques, des transporteurs de confiance et une technologie de suivi temps réel pour chaque colis."
                 : "Strategic warehouses, trusted carriers and real-time tracking technology for every parcel."}
             </p>
-          </div>
+          </Reveal>
 
           {/* Animated map */}
           <div className="mb-6 rounded-2xl overflow-hidden border border-neutral-800">
@@ -699,13 +735,13 @@ export default function LandingPage() {
       {/* ── Bento Features ─────────────────────────────────────── */}
       <section id="features" className="py-16 sm:py-24 px-4 sm:px-6" style={{ background: "#080808" }}>
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-10 sm:mb-16">
+          <Reveal className="text-center mb-10 sm:mb-16">
             <div className="inline-flex items-center gap-2 text-orange-400 text-xs font-bold border border-orange-500/20 bg-orange-500/8 px-3 py-1.5 rounded-full mb-4 sm:mb-5 uppercase tracking-widest">
               <Layers className="w-3.5 h-3.5" />{t.feat_badge}
             </div>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-white mb-3 sm:mb-4">{t.feat_h2}</h2>
             <p className="text-neutral-500 text-sm max-w-xl mx-auto">{t.feat_sub}</p>
-          </div>
+          </Reveal>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
             {/* Shopify — wide */}
             <div className="bento-card sm:col-span-2 relative overflow-hidden rounded-2xl p-6 sm:p-8 border border-white/[0.05]"
@@ -824,7 +860,7 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto">
 
           {/* Header */}
-          <div className="text-center mb-10 sm:mb-14">
+          <Reveal className="text-center mb-10 sm:mb-14">
             <div className="inline-flex items-center gap-2 text-teal-400 text-xs font-bold border border-teal-500/20 bg-teal-500/8 px-3 py-1.5 rounded-full mb-4 sm:mb-5 uppercase tracking-widest">
               <Globe2 className="w-3.5 h-3.5" />{lang === "fr" ? "Sourcing produit" : "Product sourcing"}
             </div>
@@ -838,7 +874,7 @@ export default function LandingPage() {
                 ? "Notre équipe sourcing négocie, inspecte et expédie vos produits directement dans nos entrepôts européens."
                 : "Our sourcing team negotiates, inspects and ships your products directly to our European warehouses."}
             </p>
-          </div>
+          </Reveal>
 
           {/* Photo grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-14">
@@ -966,99 +1002,49 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── Pricing ────────────────────────────────────────────── */}
-      <section id="pricing" className="py-16 sm:py-28 px-4 sm:px-6 diag-mid relative overflow-hidden" style={{ background: "linear-gradient(180deg,#0c0c0c 0%,#080808 100%)" }}>
-        {/* Background glow orbs */}
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full opacity-10" style={{ background: "radial-gradient(circle,#f97316 0%,transparent 70%)" }} />
-          <div className="absolute top-1/4 right-1/4 w-64 h-64 rounded-full opacity-5" style={{ background: "radial-gradient(circle,#dc2626 0%,transparent 70%)" }} />
-        </div>
-        <div className="max-w-3xl mx-auto relative">
-          <div className="text-center mb-10 sm:mb-16">
-            <div className="inline-flex items-center gap-2 text-violet-400 text-xs font-bold border border-violet-500/20 bg-violet-500/8 px-3 py-1.5 rounded-full mb-4 sm:mb-5 uppercase tracking-widest">
-              <Globe2 className="w-3.5 h-3.5" />{t.pricing_badge}
+      {/* ── Platform capabilities ──────────────────────────────── */}
+      <section id="pricing" className="py-16 sm:py-28 px-4 sm:px-6 relative overflow-hidden" style={{ background: "#f7f6f4" }}>
+        <div className="max-w-5xl mx-auto relative">
+          <Reveal className="text-center mb-10 sm:mb-16">
+            <div className="inline-flex items-center gap-2 text-orange-600 text-xs font-bold border border-orange-500/25 bg-orange-500/10 px-3 py-1.5 rounded-full mb-4 sm:mb-5 uppercase tracking-widest">
+              <Globe2 className="w-3.5 h-3.5" />{t.platform_badge}
             </div>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-white mb-3 sm:mb-4">{t.pricing_h2}</h2>
-            <p className="text-neutral-500 text-sm max-w-md mx-auto">{t.pricing_sub}</p>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-neutral-900 mb-3 sm:mb-4">{t.platform_h2}</h2>
+            <p className="text-neutral-600 text-sm max-w-lg mx-auto">{t.platform_sub}</p>
+          </Reveal>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {(t.platform_features as readonly { icon: string; title: string; desc: string }[]).map((f, i) => (
+              <Reveal key={f.title} delay={i * 60} className="rounded-2xl p-6 border border-black/[0.06] bg-white hover:border-orange-500/30 hover:shadow-lg transition-all">
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4 text-xl"
+                  style={{ background: "rgba(249,115,22,0.1)" }}>
+                  {f.icon}
+                </div>
+                <h3 className="text-neutral-900 font-bold text-sm mb-1.5">{f.title}</h3>
+                <p className="text-neutral-600 text-xs leading-relaxed">{f.desc}</p>
+              </Reveal>
+            ))}
           </div>
 
-          {(() => {
-            const p = (t.pricing_plans as readonly { name: string; price: string; desc: string; features: readonly string[] }[])[0]
-            return (
-              <div className="relative rounded-3xl overflow-hidden" style={{ background: "linear-gradient(160deg,rgba(249,115,22,0.07),rgba(8,8,8,0.98) 55%)", border: "1px solid rgba(249,115,22,0.25)", boxShadow: "0 0 80px rgba(249,115,22,0.12), 0 40px 80px rgba(0,0,0,0.6)" }}>
-                {/* Top badge */}
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-px">
-                  <div className="text-[10px] font-black text-white px-6 py-1.5 rounded-b-xl uppercase tracking-widest" style={{ background: "linear-gradient(90deg,#f97316,#dc2626)", boxShadow: "0 4px 24px rgba(249,115,22,0.5)" }}>
-                    {t.pricing_popular}
-                  </div>
-                </div>
-
-                {/* Shimmer line at top */}
-                <div className="h-px w-full" style={{ background: "linear-gradient(90deg,transparent,rgba(249,115,22,0.6),transparent)" }} />
-
-                <div className="p-8 sm:p-12">
-                  <div className="flex flex-col sm:flex-row items-center sm:items-start gap-8 sm:gap-12">
-                    {/* Left: price block */}
-                    <div className="text-center sm:text-left flex-shrink-0">
-                      <div className="inline-flex items-center gap-2 bg-orange-500/10 border border-orange-500/20 rounded-full px-3 py-1 mb-4">
-                        <span className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse" />
-                        <span className="text-orange-400 text-xs font-bold uppercase tracking-wider">{p.name}</span>
-                      </div>
-                      <div className="flex items-end gap-1 justify-center sm:justify-start mb-1">
-                        <span className="text-6xl sm:text-7xl font-black text-white leading-none">{p.price}</span>
-                      </div>
-                      <p className="text-neutral-500 text-sm mb-2">{t.pricing_period}</p>
-                      <p className="text-neutral-600 text-xs max-w-[180px]">{p.desc}</p>
-                    </div>
-
-                    {/* Divider */}
-                    <div className="hidden sm:block w-px self-stretch bg-white/[0.06]" />
-                    <div className="block sm:hidden h-px w-full bg-white/[0.06]" />
-
-                    {/* Right: features grid */}
-                    <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                      {p.features.map(f => (
-                        <div key={f} className="flex items-center gap-2.5 group">
-                          <div className="w-5 h-5 rounded-full bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center flex-shrink-0">
-                            <CheckCircle className="w-3 h-3 text-emerald-400" />
-                          </div>
-                          <span className="text-sm text-neutral-300">{f}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* CTA */}
-                  <div className="mt-10 flex flex-col sm:flex-row items-center gap-4">
-                    <OpenModalButton step="signup" plan={p.name}
-                      className="flex-1 sm:flex-none sm:min-w-[260px] py-4 rounded-xl text-base font-black text-white transition-all hover:-translate-y-0.5 text-center"
-                      style={{ background: "linear-gradient(135deg,#f97316,#dc2626)", boxShadow: "0 8px 32px rgba(249,115,22,0.4)" }}>
-                      {t.pricing_cta}
-                    </OpenModalButton>
-                    <div className="flex items-center gap-4 text-xs text-neutral-600">
-                      <span className="flex items-center gap-1.5"><CheckCircle className="w-3 h-3 text-neutral-700" />{lang === "fr" ? "Sans carte" : "No card"}</span>
-                      <span className="flex items-center gap-1.5"><CheckCircle className="w-3 h-3 text-neutral-700" />{lang === "fr" ? "Annulation facile" : "Cancel anytime"}</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Bottom shimmer */}
-                <div className="h-px w-full" style={{ background: "linear-gradient(90deg,transparent,rgba(249,115,22,0.3),transparent)" }} />
-              </div>
-            )
-          })()}
+          <Reveal className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
+            <OpenModalButton step="signup"
+              className="flex items-center justify-center gap-2 font-bold text-sm text-white px-8 py-3.5 rounded-xl btn-primary">
+              {t.get_started}
+              <ArrowRight className="w-4 h-4" />
+            </OpenModalButton>
+          </Reveal>
         </div>
       </section>
 
       {/* ── Testimonials ───────────────────────────────────────── */}
       <section id="testimonials" className="py-16 sm:py-24 px-4 sm:px-6" style={{ background: "#080808" }}>
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-10 sm:mb-16">
+          <Reveal className="text-center mb-10 sm:mb-16">
             <div className="inline-flex items-center gap-2 text-yellow-400 text-xs font-bold border border-yellow-500/20 bg-yellow-500/8 px-3 py-1.5 rounded-full mb-4 sm:mb-5 uppercase tracking-widest">
               <Star className="w-3.5 h-3.5 fill-yellow-400" />{t.testi_badge}
             </div>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-white mb-3 sm:mb-4">{t.testi_h2}</h2>
-          </div>
+          </Reveal>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-5">
             {(t.testimonials as readonly { name: string; country: string; role: string; text: string; revenue: string; color: string }[]).map(ts => (
               <div key={ts.name} className="relative rounded-2xl p-6 sm:p-7 border border-white/[0.05] hover:border-white/[0.1] transition-all group overflow-hidden"
@@ -1092,7 +1078,7 @@ export default function LandingPage() {
       {/* ── Multilingual Support ─────────────────────────────────── */}
       <section className="py-16 sm:py-24 px-4 sm:px-6" style={{ background: "linear-gradient(180deg,#080808 0%,#060606 100%)" }}>
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-10 sm:mb-14">
+          <Reveal className="text-center mb-10 sm:mb-14">
             <div className="inline-flex items-center gap-2 text-indigo-400 text-xs font-bold border border-indigo-500/20 bg-indigo-500/8 px-3 py-1.5 rounded-full mb-4 uppercase tracking-widest">
               <Users className="w-3.5 h-3.5" />
               Native-language support
@@ -1103,7 +1089,7 @@ export default function LandingPage() {
             <p className="text-neutral-500 text-sm max-w-xl mx-auto">
               Our call center confirms every COD lead in the local language — higher pickup rates, higher confirmation rates.
             </p>
-          </div>
+          </Reveal>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
             {[
@@ -1154,17 +1140,17 @@ export default function LandingPage() {
       </section>
 
       {/* ── Global Stats ───────────────────────────────────────── */}
-      <section className="py-16 sm:py-20 px-4 sm:px-6 border-y border-white/[0.04]" style={{ background: "linear-gradient(180deg,#0c0c0c,#090909)" }}>
+      <section className="py-16 sm:py-20 px-4 sm:px-6 border-y border-black/[0.06]" style={{ background: "#f7f6f4" }}>
         <div className="max-w-5xl mx-auto">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8">
-            {(t.stats as readonly { display: string; label: string; sub: string }[]).map(s => (
-              <div key={s.label} className="text-center">
-                <div className="text-3xl sm:text-4xl md:text-5xl font-black mb-1 text-white">
+            {(t.stats as readonly { display: string; label: string; sub: string }[]).map((s, i) => (
+              <Reveal key={s.label} delay={i * 60} className="text-center">
+                <div className="text-3xl sm:text-4xl md:text-5xl font-black mb-1 text-neutral-900">
                   {s.display}
                 </div>
-                <p className="text-white text-xs sm:text-sm font-semibold mb-0.5">{s.label}</p>
-                <p className="text-neutral-600 text-[10px] sm:text-xs">{s.sub}</p>
-              </div>
+                <p className="text-neutral-900 text-xs sm:text-sm font-semibold mb-0.5">{s.label}</p>
+                <p className="text-neutral-500 text-[10px] sm:text-xs">{s.sub}</p>
+              </Reveal>
             ))}
           </div>
         </div>
@@ -1223,7 +1209,7 @@ export default function LandingPage() {
         <div className="absolute inset-0 pointer-events-none"
           style={{ background: "radial-gradient(ellipse at center, rgba(249,115,22,0.06) 0%, transparent 65%)" }} />
         <div className="absolute top-0 inset-x-0 h-px" style={{ background: "linear-gradient(90deg,transparent,rgba(249,115,22,0.3),transparent)" }} />
-        <div className="max-w-3xl mx-auto text-center relative">
+        <Reveal className="max-w-3xl mx-auto text-center relative">
           <div className="inline-flex items-center gap-2 text-emerald-400 text-xs font-bold border border-emerald-500/20 bg-emerald-500/8 px-3 py-1.5 rounded-full mb-6 sm:mb-8 uppercase tracking-widest">
             <Zap className="w-3.5 h-3.5 fill-emerald-400" />{t.cta_badge}
           </div>
@@ -1245,7 +1231,7 @@ export default function LandingPage() {
               </span>
             ))}
           </div>
-        </div>
+        </Reveal>
       </section>
 
       {/* ── Footer ─────────────────────────────────────────────── */}

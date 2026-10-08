@@ -5,7 +5,7 @@ export const T = {
     get_started: "Get started",
     nav_features: "Features",
     nav_how: "How it works",
-    nav_pricing: "Pricing",
+    nav_pricing: "Platform",
     nav_testimonials: "Reviews",
     live: "Live",
     // Hero
@@ -50,7 +50,7 @@ export const T = {
     feat_orders_desc: "Real-time: pending, in transit, delivered, returned.",
     feat_security_title: "Secure & Reliable",
     feat_security_desc: "Your data and transactions protected.",
-    // Pricing
+    // Pricing (legacy, unused on homepage — kept for reference)
     pricing_badge: "Pricing",
     pricing_h2: "One price. Everything included.",
     pricing_sub: "No hidden fees. No limits. The tool pays for itself within the first week.",
@@ -60,6 +60,18 @@ export const T = {
       { name: "Pro", price: "€31.99", desc: "Full access to every feature — for serious COD merchants", features: ["Unlimited Shopify stores", "Unlimited leads & orders", "Affiliate program", "Wallet & withdrawals", "COD Drop catalog", "Advanced analytics"] },
     ],
     pricing_period: "/month",
+    // Platform capabilities
+    platform_badge: "What you get",
+    platform_h2: "Everything you need, in one platform",
+    platform_sub: "No spreadsheets, no separate tools. Shopify sync, call confirmation, delivery tracking and payouts — all in one dashboard.",
+    platform_features: [
+      { icon: "🛒", title: "Shopify sync", desc: "Every order lands in your dashboard the moment it's placed — no manual entry, ever." },
+      { icon: "📞", title: "Call confirmation", desc: "Native-language agents confirm each COD lead before it ships, to cut failed deliveries." },
+      { icon: "📦", title: "European warehousing", desc: "Store and fulfill from local hubs across your markets, with no storage fees." },
+      { icon: "🚚", title: "Delivery tracking", desc: "Real-time status from pickup to cash collected at the customer's door." },
+      { icon: "💰", title: "Wallet & payouts", desc: "COD cash lands in your wallet automatically — withdraw to bank, Wise or crypto." },
+      { icon: "📊", title: "Analytics dashboard", desc: "Confirmation rate, delivery rate, revenue by market — all in one place." },
+    ],
     // Testimonials
     testi_badge: "Testimonials",
     testi_h2: "They cash out every day",
@@ -91,7 +103,7 @@ export const T = {
     footer_desc: "The all-in-one platform to manage your Cash on Delivery business, from order to weekly payout.",
     footer_rights: "© 2025 CODShipEurope. All rights reserved.",
     footer_cols: [
-      { title: "Product",   links: [{ label: "Features", href: "/#features" }, { label: "Pricing", href: "/#pricing" }, { label: "How it works", href: "/#how" }, { label: "Testimonials", href: "/#testimonials" }] },
+      { title: "Product",   links: [{ label: "Features", href: "/#features" }, { label: "Platform", href: "/#pricing" }, { label: "How it works", href: "/#how" }, { label: "Testimonials", href: "/#testimonials" }] },
       { title: "Markets",   links: [{ label: "COD Spain", href: "/dropshipping-cod-espagne" }, { label: "COD Portugal", href: "/dropshipping-cod-portugal" }, { label: "COD Italy", href: "/dropshipping-cod-italie" }, { label: "Blog", href: "/blog" }] },
       { title: "Legal",     links: [{ label: "Terms of Service", href: "/conditions" }, { label: "Privacy Policy", href: "/confidentialite" }, { label: "GDPR", href: "/rgpd" }, { label: "Legal Notice", href: "/mentions-legales" }] },
     ],
@@ -115,7 +127,7 @@ export const T = {
     get_started: "Devenir client",
     nav_features: "Fonctionnalités",
     nav_how: "Comment ça marche",
-    nav_pricing: "Tarifs",
+    nav_pricing: "Plateforme",
     nav_testimonials: "Avis",
     live: "Live",
     // Hero
@@ -160,7 +172,7 @@ export const T = {
     feat_orders_desc: "Temps réel : en attente, en route, livrée, retournée.",
     feat_security_title: "Sécurisé & Fiable",
     feat_security_desc: "Vos données et transactions protégées.",
-    // Pricing
+    // Pricing (legacy, unused on homepage — kept for reference)
     pricing_badge: "Tarifs",
     pricing_h2: "Un prix. Tout inclus.",
     pricing_sub: "Aucun frais caché. Aucune limite. L'outil se rentabilise dès la première semaine.",
@@ -170,6 +182,18 @@ export const T = {
       { name: "Pro", price: "€31.99", desc: "Accès complet à toutes les fonctionnalités — pour les marchands COD sérieux", features: ["Boutiques Shopify illimitées", "Leads & commandes illimités", "Programme affiliés", "Wallet & retraits", "COD Drop catalog", "Analytics avancées"] },
     ],
     pricing_period: "/mois",
+    // Platform capabilities
+    platform_badge: "Ce que vous obtenez",
+    platform_h2: "Tout ce qu'il faut, dans une seule plateforme",
+    platform_sub: "Plus de tableurs ni d'outils séparés. Synchronisation Shopify, confirmation d'appels, suivi de livraison et paiements — tout dans un seul dashboard.",
+    platform_features: [
+      { icon: "🛒", title: "Synchronisation Shopify", desc: "Chaque commande arrive dans votre dashboard dès sa création — aucune saisie manuelle." },
+      { icon: "📞", title: "Confirmation d'appels", desc: "Des agents natifs confirment chaque lead COD avant expédition, pour réduire les échecs." },
+      { icon: "📦", title: "Entrepôts européens", desc: "Stockez et expédiez depuis des hubs locaux sur vos marchés, sans frais de stockage." },
+      { icon: "🚚", title: "Suivi de livraison", desc: "Statut en temps réel, de la collecte jusqu'à l'encaissement à la porte du client." },
+      { icon: "💰", title: "Wallet & paiements", desc: "Le cash COD arrive automatiquement sur votre wallet — retrait vers banque, Wise ou crypto." },
+      { icon: "📊", title: "Dashboard analytics", desc: "Taux de confirmation, taux de livraison, revenus par marché — tout au même endroit." },
+    ],
     // Testimonials
     testi_badge: "Témoignages",
     testi_h2: "Ils encaissent tous les jours",
@@ -201,7 +225,7 @@ export const T = {
     footer_desc: "La plateforme tout-en-un pour gérer votre activité Cash on Delivery, de la commande au paiement hebdomadaire.",
     footer_rights: "© 2025 CODShipEurope. Tous droits réservés.",
     footer_cols: [
-      { title: "Produit",     links: [{ label: "Fonctionnalités", href: "/#features" }, { label: "Tarifs", href: "/#pricing" }, { label: "Comment ça marche", href: "/#how" }, { label: "Témoignages", href: "/#testimonials" }] },
+      { title: "Produit",     links: [{ label: "Fonctionnalités", href: "/#features" }, { label: "Plateforme", href: "/#pricing" }, { label: "Comment ça marche", href: "/#how" }, { label: "Témoignages", href: "/#testimonials" }] },
       { title: "Marchés",     links: [{ label: "COD Espagne", href: "/dropshipping-cod-espagne" }, { label: "COD Portugal", href: "/dropshipping-cod-portugal" }, { label: "COD Italie", href: "/dropshipping-cod-italie" }, { label: "Blog", href: "/blog" }] },
       { title: "Légal",       links: [{ label: "Conditions d'utilisation", href: "/conditions" }, { label: "Politique de confidentialité", href: "/confidentialite" }, { label: "RGPD", href: "/rgpd" }, { label: "Mentions légales", href: "/mentions-legales" }] },
     ],
