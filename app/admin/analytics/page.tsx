@@ -150,25 +150,25 @@ export default function AdminAnalytics() {
       {/* ── Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-black text-white">Analytique</h1>
-          <p className="text-sm text-neutral-500 mt-0.5">Vue en temps réel — toutes les métriques de la plateforme</p>
+          <h1 className="text-2xl font-black text-white">Analytics</h1>
+          <p className="text-sm text-neutral-500 mt-0.5">Real-time view — every metric on the platform</p>
         </div>
         <button onClick={load}
           className="flex items-center gap-2 px-4 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-400 hover:text-white text-sm transition-colors border border-neutral-700">
-          <RefreshCw className="w-3.5 h-3.5" />Actualiser
+          <RefreshCw className="w-3.5 h-3.5" />Refresh
         </button>
       </div>
 
       {/* ── Section 1: Revenue KPIs */}
       <div>
         <p className="text-[11px] font-bold text-neutral-600 uppercase tracking-widest mb-3 flex items-center gap-2">
-          <DollarSign className="w-3 h-3" />Revenus
+          <DollarSign className="w-3 h-3" />Revenue
         </p>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <KpiCard icon={DollarSign}  label="MRR"              value={`€${mrr.toFixed(2)}`}  sub="Revenu mensuel récurrent"    gradient="linear-gradient(135deg,#f97316,#dc2626)" border="rgba(249,115,22,0.25)"  glow="linear-gradient(135deg,#f97316,#dc2626)" />
-          <KpiCard icon={TrendingUp}  label="ARR"              value={`€${arr.toFixed(2)}`}  sub="Revenu annuel récurrent"     gradient="linear-gradient(135deg,#10b981,#0d9488)" border="rgba(16,185,129,0.25)"  glow="linear-gradient(135deg,#10b981,#0d9488)" />
-          <KpiCard icon={BarChart3}   label="Rev. moy / client" value={`€${avgRev}`}          sub="Parmi les clients actifs"    gradient="linear-gradient(135deg,#8b5cf6,#6366f1)" border="rgba(139,92,246,0.25)"  glow="linear-gradient(135deg,#8b5cf6,#6366f1)" />
-          <KpiCard icon={UserX}       label="Taux de churn"    value={`${churnRate}%`}        sub={`${cancelled.length} annulés`} gradient="linear-gradient(135deg,#f43f5e,#e11d48)" border="rgba(244,63,94,0.25)"   glow="linear-gradient(135deg,#f43f5e,#e11d48)" />
+          <KpiCard icon={DollarSign}  label="MRR"              value={`€${mrr.toFixed(2)}`}  sub="Monthly recurring revenue"    gradient="linear-gradient(135deg,#f97316,#dc2626)" border="rgba(249,115,22,0.25)"  glow="linear-gradient(135deg,#f97316,#dc2626)" />
+          <KpiCard icon={TrendingUp}  label="ARR"              value={`€${arr.toFixed(2)}`}  sub="Annual recurring revenue"     gradient="linear-gradient(135deg,#10b981,#0d9488)" border="rgba(16,185,129,0.25)"  glow="linear-gradient(135deg,#10b981,#0d9488)" />
+          <KpiCard icon={BarChart3}   label="Avg. rev / client" value={`€${avgRev}`}          sub="Among active clients"    gradient="linear-gradient(135deg,#8b5cf6,#6366f1)" border="rgba(139,92,246,0.25)"  glow="linear-gradient(135deg,#8b5cf6,#6366f1)" />
+          <KpiCard icon={UserX}       label="Churn rate"    value={`${churnRate}%`}        sub={`${cancelled.length} cancelled`} gradient="linear-gradient(135deg,#f43f5e,#e11d48)" border="rgba(244,63,94,0.25)"   glow="linear-gradient(135deg,#f43f5e,#e11d48)" />
         </div>
       </div>
 
@@ -178,23 +178,23 @@ export default function AdminAnalytics() {
           <Users className="w-3 h-3" />Clients
         </p>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <KpiCard icon={Users}      label="Total clients"  value={clients.length}      sub="Tous statuts confondus"       gradient="linear-gradient(135deg,#3b82f6,#2563eb)" border="rgba(59,130,246,0.25)"  glow="linear-gradient(135deg,#3b82f6,#2563eb)" />
-          <KpiCard icon={UserCheck}  label="Actifs"         value={active.length}        sub="Abonnés actifs ce mois"      gradient="linear-gradient(135deg,#10b981,#059669)" border="rgba(16,185,129,0.25)"  glow="linear-gradient(135deg,#10b981,#059669)" />
-          <KpiCard icon={Clock}      label="En période d'essai" value={trial.length}     sub="14j gratuits en cours"       gradient="linear-gradient(135deg,#f59e0b,#d97706)" border="rgba(245,158,11,0.25)"  glow="linear-gradient(135deg,#f59e0b,#d97706)" />
-          <KpiCard icon={Globe}      label="Pays couverts"  value={byCountry.length}     sub="Pays avec clients actifs"    gradient="linear-gradient(135deg,#06b6d4,#0891b2)" border="rgba(6,182,212,0.25)"   glow="linear-gradient(135deg,#06b6d4,#0891b2)" />
+          <KpiCard icon={Users}      label="Total clients"  value={clients.length}      sub="All statuses combined"       gradient="linear-gradient(135deg,#3b82f6,#2563eb)" border="rgba(59,130,246,0.25)"  glow="linear-gradient(135deg,#3b82f6,#2563eb)" />
+          <KpiCard icon={UserCheck}  label="Active"         value={active.length}        sub="Active subscribers this month"      gradient="linear-gradient(135deg,#10b981,#059669)" border="rgba(16,185,129,0.25)"  glow="linear-gradient(135deg,#10b981,#059669)" />
+          <KpiCard icon={Clock}      label="On trial" value={trial.length}     sub="14-day free trial in progress"       gradient="linear-gradient(135deg,#f59e0b,#d97706)" border="rgba(245,158,11,0.25)"  glow="linear-gradient(135deg,#f59e0b,#d97706)" />
+          <KpiCard icon={Globe}      label="Countries covered"  value={byCountry.length}     sub="Countries with active clients"    gradient="linear-gradient(135deg,#06b6d4,#0891b2)" border="rgba(6,182,212,0.25)"   glow="linear-gradient(135deg,#06b6d4,#0891b2)" />
         </div>
       </div>
 
       {/* ── Section 3: Orders KPIs */}
       <div>
         <p className="text-[11px] font-bold text-neutral-600 uppercase tracking-widest mb-3 flex items-center gap-2">
-          <Package className="w-3 h-3" />Commandes & Livraisons
+          <Package className="w-3 h-3" />Orders & Delivery
         </p>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <KpiCard icon={ShoppingCart} label="Total commandes"  value={orders.length}        sub="Toutes périodes"            gradient="linear-gradient(135deg,#a78bfa,#7c3aed)" border="rgba(167,139,250,0.25)" glow="linear-gradient(135deg,#a78bfa,#7c3aed)" />
-          <KpiCard icon={Truck}        label="Taux livraison"   value={`${deliveryRate}%`}   sub={`${delivered.length} livrées`}  gradient="linear-gradient(135deg,#10b981,#059669)" border="rgba(16,185,129,0.25)"  glow="linear-gradient(135deg,#10b981,#059669)" />
-          <KpiCard icon={RotateCcw}    label="Taux de retour"   value={`${returnRate}%`}     sub={`${returned.length} retours`}   gradient="linear-gradient(135deg,#f43f5e,#be123c)" border="rgba(244,63,94,0.25)"   glow="linear-gradient(135deg,#f43f5e,#be123c)" />
-          <KpiCard icon={Truck}        label="En transit"       value={inTransit.length}     sub={`${pending.length} en attente`} gradient="linear-gradient(135deg,#06b6d4,#0284c7)" border="rgba(6,182,212,0.25)"   glow="linear-gradient(135deg,#06b6d4,#0284c7)" />
+          <KpiCard icon={ShoppingCart} label="Total orders"  value={orders.length}        sub="All time"            gradient="linear-gradient(135deg,#a78bfa,#7c3aed)" border="rgba(167,139,250,0.25)" glow="linear-gradient(135deg,#a78bfa,#7c3aed)" />
+          <KpiCard icon={Truck}        label="Delivery rate"   value={`${deliveryRate}%`}   sub={`${delivered.length} delivered`}  gradient="linear-gradient(135deg,#10b981,#059669)" border="rgba(16,185,129,0.25)"  glow="linear-gradient(135deg,#10b981,#059669)" />
+          <KpiCard icon={RotateCcw}    label="Return rate"   value={`${returnRate}%`}     sub={`${returned.length} returns`}   gradient="linear-gradient(135deg,#f43f5e,#be123c)" border="rgba(244,63,94,0.25)"   glow="linear-gradient(135deg,#f43f5e,#be123c)" />
+          <KpiCard icon={Truck}        label="In transit"       value={inTransit.length}     sub={`${pending.length} pending`} gradient="linear-gradient(135deg,#06b6d4,#0284c7)" border="rgba(6,182,212,0.25)"   glow="linear-gradient(135deg,#06b6d4,#0284c7)" />
         </div>
       </div>
 
@@ -204,11 +204,11 @@ export default function AdminAnalytics() {
           <PhoneCall className="w-3 h-3" />Leads
         </p>
         <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
-          <KpiCard icon={Target}    label="Total leads"      value={leads.length}         sub="Tous les leads"              gradient="linear-gradient(135deg,#f97316,#dc2626)" border="rgba(249,115,22,0.2)"   glow="linear-gradient(135deg,#f97316,#dc2626)" />
-          <KpiCard icon={UserCheck} label="Confirmés"        value={confirmedL.length}    sub={`${confirmRate}% du total`}  gradient="linear-gradient(135deg,#10b981,#059669)" border="rgba(16,185,129,0.2)"   glow="linear-gradient(135deg,#10b981,#059669)" />
-          <KpiCard icon={Clock}     label="En attente"       value={pendingL.length}      sub="À traiter"                   gradient="linear-gradient(135deg,#f59e0b,#d97706)" border="rgba(245,158,11,0.2)"   glow="linear-gradient(135deg,#f59e0b,#d97706)" />
-          <KpiCard icon={PhoneCall} label="Non joignables"   value={unreachedL.length}    sub="À rappeler"                  gradient="linear-gradient(135deg,#3b82f6,#2563eb)" border="rgba(59,130,246,0.2)"   glow="linear-gradient(135deg,#3b82f6,#2563eb)" />
-          <KpiCard icon={Ban}       label="Refusés"          value={refusedL.length}      sub="Leads perdus"                gradient="linear-gradient(135deg,#f43f5e,#be123c)" border="rgba(244,63,94,0.2)"    glow="linear-gradient(135deg,#f43f5e,#be123c)" />
+          <KpiCard icon={Target}    label="Total leads"      value={leads.length}         sub="All leads"              gradient="linear-gradient(135deg,#f97316,#dc2626)" border="rgba(249,115,22,0.2)"   glow="linear-gradient(135deg,#f97316,#dc2626)" />
+          <KpiCard icon={UserCheck} label="Confirmed"        value={confirmedL.length}    sub={`${confirmRate}% of total`}  gradient="linear-gradient(135deg,#10b981,#059669)" border="rgba(16,185,129,0.2)"   glow="linear-gradient(135deg,#10b981,#059669)" />
+          <KpiCard icon={Clock}     label="Pending"       value={pendingL.length}      sub="To process"                   gradient="linear-gradient(135deg,#f59e0b,#d97706)" border="rgba(245,158,11,0.2)"   glow="linear-gradient(135deg,#f59e0b,#d97706)" />
+          <KpiCard icon={PhoneCall} label="Unreachable"   value={unreachedL.length}    sub="To call back"                  gradient="linear-gradient(135deg,#3b82f6,#2563eb)" border="rgba(59,130,246,0.2)"   glow="linear-gradient(135deg,#3b82f6,#2563eb)" />
+          <KpiCard icon={Ban}       label="Rejected"          value={refusedL.length}      sub="Lost leads"                gradient="linear-gradient(135deg,#f43f5e,#be123c)" border="rgba(244,63,94,0.2)"    glow="linear-gradient(135deg,#f43f5e,#be123c)" />
         </div>
       </div>
 
@@ -217,8 +217,8 @@ export default function AdminAnalytics() {
         <div className="rounded-2xl p-5 border border-white/[0.06]" style={{ background: "#111" }}>
           <div className="flex items-center justify-between mb-4">
             <div>
-              <p className="text-white font-bold">Taux de confirmation leads</p>
-              <p className="text-neutral-500 text-xs mt-0.5">{confirmedL.length} confirmés sur {leads.length} leads au total</p>
+              <p className="text-white font-bold">Lead confirmation rate</p>
+              <p className="text-neutral-500 text-xs mt-0.5">{confirmedL.length} confirmed out of {leads.length} leads total</p>
             </div>
             <span className="text-3xl font-black" style={{ background: "linear-gradient(90deg,#f97316,#10b981)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
               {confirmRate}%
@@ -229,7 +229,7 @@ export default function AdminAnalytics() {
               style={{ width: `${confirmRate}%`, background: "linear-gradient(90deg,#f97316,#10b981)" }} />
           </div>
           <div className="flex items-center justify-between mt-2 text-[10px] text-neutral-600">
-            <span>0%</span><span>Objectif 70%</span><span>100%</span>
+            <span>0%</span><span>Target 70%</span><span>100%</span>
           </div>
         </div>
       )}
@@ -240,10 +240,10 @@ export default function AdminAnalytics() {
         <div className="rounded-2xl p-6 border border-white/[0.06]" style={{ background: "#111" }}>
           <div className="flex items-center justify-between mb-6">
             <div>
-              <p className="text-white font-bold">Évolution MRR</p>
-              <p className="text-neutral-500 text-xs mt-0.5">6 derniers mois</p>
+              <p className="text-white font-bold">MRR trend</p>
+              <p className="text-neutral-500 text-xs mt-0.5">Last 6 months</p>
             </div>
-            <span className="text-xs font-bold px-2.5 py-1 rounded-full border border-orange-500/20 bg-orange-500/10 text-orange-400">€/mois</span>
+            <span className="text-xs font-bold px-2.5 py-1 rounded-full border border-orange-500/20 bg-orange-500/10 text-orange-400">€/month</span>
           </div>
           <div className="flex items-end gap-2 h-44">
             {mrrByMonth.map((v, i) => {
@@ -266,8 +266,8 @@ export default function AdminAnalytics() {
         <div className="rounded-2xl p-6 border border-white/[0.06]" style={{ background: "#111" }}>
           <div className="flex items-center justify-between mb-6">
             <div>
-              <p className="text-white font-bold">Croissance clients</p>
-              <p className="text-neutral-500 text-xs mt-0.5">6 derniers mois</p>
+              <p className="text-white font-bold">Client growth</p>
+              <p className="text-neutral-500 text-xs mt-0.5">Last 6 months</p>
             </div>
             <span className="text-xs font-bold px-2.5 py-1 rounded-full border border-violet-500/20 bg-violet-500/10 text-violet-400">clients</span>
           </div>
@@ -296,10 +296,10 @@ export default function AdminAnalytics() {
         <div className="rounded-2xl p-6 border border-white/[0.06]" style={{ background: "#111" }}>
           <div className="flex items-center gap-2 mb-5">
             <Globe className="w-4 h-4 text-cyan-400" />
-            <p className="text-white font-bold">Top pays</p>
+            <p className="text-white font-bold">Top countries</p>
           </div>
           {byCountry.length === 0
-            ? <p className="text-neutral-600 text-sm">Aucune donnée</p>
+            ? <p className="text-neutral-600 text-sm">No data</p>
             : <div className="space-y-3.5">
                 {byCountry.map(([country, data]) => {
                   const pct = maxCountryMrr > 0 ? Math.round((data.mrr / maxCountryMrr) * 100) : 0
@@ -329,10 +329,10 @@ export default function AdminAnalytics() {
         <div className="rounded-2xl p-6 border border-white/[0.06]" style={{ background: "#111" }}>
           <div className="flex items-center gap-2 mb-5">
             <Trophy className="w-4 h-4 text-amber-400" />
-            <p className="text-white font-bold">Top clients actifs</p>
+            <p className="text-white font-bold">Top active clients</p>
           </div>
           {topClients.length === 0
-            ? <p className="text-neutral-600 text-sm">Aucun client actif</p>
+            ? <p className="text-neutral-600 text-sm">No active clients</p>
             : <div className="space-y-3.5">
                 {topClients.map((c, i) => (
                   <div key={c.id} className="flex items-center gap-3">
@@ -345,7 +345,7 @@ export default function AdminAnalytics() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm text-white font-medium truncate">{c.firstName} {c.lastName}</p>
-                      <p className="text-[10px] text-neutral-500">{c.ordersCount} commandes · {c.country}</p>
+                      <p className="text-[10px] text-neutral-500">{c.ordersCount} orders · {c.country}</p>
                     </div>
                     <span className="text-xs font-bold text-emerald-400 flex-shrink-0">€{c.monthlyRevenue}/m</span>
                   </div>
@@ -358,16 +358,16 @@ export default function AdminAnalytics() {
         <div className="rounded-2xl p-6 border border-white/[0.06]" style={{ background: "#111" }}>
           <div className="flex items-center gap-2 mb-5">
             <PhoneCall className="w-4 h-4 text-orange-400" />
-            <p className="text-white font-bold">Répartition leads</p>
+            <p className="text-white font-bold">Lead breakdown</p>
           </div>
           {leads.length === 0
-            ? <p className="text-neutral-600 text-sm">Aucun lead</p>
+            ? <p className="text-neutral-600 text-sm">No leads</p>
             : <div className="space-y-3">
                 {[
-                  { label: "Confirmés",     count: confirmedL.length,  color: "#10b981", bg: "rgba(16,185,129,0.15)" },
-                  { label: "En attente",    count: pendingL.length,    color: "#f59e0b", bg: "rgba(245,158,11,0.15)"  },
-                  { label: "Non joignables",count: unreachedL.length,  color: "#3b82f6", bg: "rgba(59,130,246,0.15)"  },
-                  { label: "Annulés",       count: refusedL.length,    color: "#f43f5e", bg: "rgba(244,63,94,0.15)"   },
+                  { label: "Confirmed",     count: confirmedL.length,  color: "#10b981", bg: "rgba(16,185,129,0.15)" },
+                  { label: "Pending",       count: pendingL.length,    color: "#f59e0b", bg: "rgba(245,158,11,0.15)"  },
+                  { label: "Unreachable",   count: unreachedL.length,  color: "#3b82f6", bg: "rgba(59,130,246,0.15)"  },
+                  { label: "Canceled",      count: refusedL.length,    color: "#f43f5e", bg: "rgba(244,63,94,0.15)"   },
                 ].map(s => {
                   const pct = leads.length ? Math.round(s.count / leads.length * 100) : 0
                   return (
@@ -386,7 +386,7 @@ export default function AdminAnalytics() {
                   )
                 })}
                 <div className="pt-3 border-t border-white/[0.05] flex items-center justify-between">
-                  <span className="text-xs text-neutral-500">Taux de confirmation</span>
+                  <span className="text-xs text-neutral-500">Confirmation rate</span>
                   <span className="text-sm font-black text-orange-400">{confirmRate}%</span>
                 </div>
               </div>
