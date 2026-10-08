@@ -1,40 +1,58 @@
 import { NextRequest, NextResponse } from "next/server"
 import crypto from "crypto"
+import { createAdminSession, ADMIN_SESSION_COOKIE, ADMIN_SESSION_TTL_SECONDS } from "@/lib/admin-auth"
+import { checkRateLimit } from "@/lib/rate-limit"
 
-const SALT         = "admin_key"
-const EMAIL_HASH   = "9697b395208864ad2355ac569ad452a1a26de5f93b0a3f7b565b02fbff1195c8"
-const PASS_HASH    = "892b482860da2944c6f1b4c32e5b643b6d0331f686678c36d25a3ec213380862"
+const RATE_LIMIT_MAX        = 8
+const RATE_LIMIT_WINDOW_MS  = 10 * 60 * 1000 // 10 minutes
 
-function h(s: string) {
-  return crypto.createHash("sha256").update(s + SALT).digest("hex")
+// Constant-time string comparison that also hides the input length —
+// both sides are first hashed to a fixed 32-byte digest before comparing,
+// so a shorter/longer guess can't be distinguished by timing.
+function safeEqual(a: string, b: string): boolean {
+  const ah = crypto.createHash("sha256").update(a).digest()
+  const bh = crypto.createHash("sha256").update(b).digest()
+  return crypto.timingSafeEqual(ah, bh)
 }
 
 export async function POST(req: NextRequest) {
-  const { email, password } = await req.json()
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown"
+  const { allowed, retryAfterSeconds } = checkRateLimit(`admin-login:${ip}`, RATE_LIMIT_MAX, RATE_LIMIT_WINDOW_MS)
+  if (!allowed) {
+    return NextResponse.json(
+      { error: "Too many attempts. Try again later." },
+      { status: 429, headers: { "Retry-After": String(retryAfterSeconds) } }
+    )
+  }
 
-  // Support env vars override (optional), fallback to embedded hashes
   const adminEmail    = process.env.ADMIN_EMAIL
   const adminPassword = process.env.ADMIN_PASSWORD
+  if (!adminEmail || !adminPassword) {
+    return NextResponse.json({ error: "Admin login not configured" }, { status: 500 })
+  }
 
-  const emailOk = adminEmail
-    ? email === adminEmail
-    : h(email) === EMAIL_HASH
+  const { email, password } = await req.json().catch(() => ({ email: "", password: "" }))
 
-  const passOk = adminPassword
-    ? password === adminPassword
-    : h(password) === PASS_HASH
+  const emailOk = typeof email === "string" && safeEqual(email, adminEmail)
+  const passOk  = typeof password === "string" && safeEqual(password, adminPassword)
 
+  // Same generic error for both cases — never reveal which field was wrong.
   if (!emailOk || !passOk) {
     return NextResponse.json({ error: "Email ou mot de passe incorrect" }, { status: 401 })
   }
 
+  const token = await createAdminSession(adminEmail)
+  if (!token) {
+    return NextResponse.json({ error: "Service unavailable" }, { status: 503 })
+  }
+
   const res = NextResponse.json({ success: true })
-  res.cookies.set("admin_session", "1", {
+  res.cookies.set(ADMIN_SESSION_COOKIE, token, {
     httpOnly: true,
     secure:   process.env.NODE_ENV === "production",
     sameSite: "lax",
     path:     "/",
-    maxAge:   60 * 30,
+    maxAge:   ADMIN_SESSION_TTL_SECONDS,
   })
   return res
 }
