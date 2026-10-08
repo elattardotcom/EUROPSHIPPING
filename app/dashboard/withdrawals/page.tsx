@@ -9,11 +9,11 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import type { Withdrawal, PaymentMethod, InvoicePreview } from "@/lib/db"
-import Link from "next/link"
 import { useRealtime, type RealtimeEvent } from "@/hooks/useSse"
 import { useCurrency } from "@/hooks/useCurrency"
 import { GridBackground, CornerBrackets, GLOW_COLOR, SectionDot } from "@/components/dashboard/hud-accents"
 import { STATUS_CFG, CURRENCIES, getWithdrawalLabel, WiseLogo, BinanceLogo, PaymentMethodIcon } from "@/components/wallet/shared"
+import { PaymentMethodsManager } from "@/components/wallet/payment-methods-manager"
 import { exportToCSV } from "@/lib/mock-data"
 
 const fmt = (n: number) => n.toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -55,6 +55,19 @@ export default function WithdrawalsPage() {
 
   useEffect(() => { load() }, [load])
 
+  const loadPayMethods = useCallback(async () => {
+    try {
+      const methods: PaymentMethod[] = await fetch("/api/client/payment-methods").then(r => r.json())
+      if (Array.isArray(methods)) {
+        setPayMethods(methods)
+        const def = methods.find(m => m.isDefault)
+        if (def) setSelectedMethod(def.id)
+        else if (methods.length > 0) setSelectedMethod(methods[0].id)
+        else setSelectedMethod("")
+      }
+    } catch {}
+  }, [])
+
   useEffect(() => {
     fetch("/api/auth/me").then(r => r.json()).then(c => {
       if (!c?.id) return
@@ -63,15 +76,8 @@ export default function WithdrawalsPage() {
       setClientEmail(c.email ?? "")
     }).catch(() => {})
 
-    fetch("/api/client/payment-methods").then(r => r.json()).then((methods: PaymentMethod[]) => {
-      if (Array.isArray(methods)) {
-        setPayMethods(methods)
-        const def = methods.find(m => m.isDefault)
-        if (def) setSelectedMethod(def.id)
-        else if (methods.length > 0) setSelectedMethod(methods[0].id)
-      }
-    }).catch(() => {})
-  }, [])
+    loadPayMethods()
+  }, [loadPayMethods])
 
   const onEvent = useCallback((e: RealtimeEvent) => {
     setLive(true)
@@ -214,11 +220,16 @@ export default function WithdrawalsPage() {
               </div>
               <span className="text-white text-sm font-medium">{defaultMethod.label}</span>
             </div>
-            <Link href="/dashboard/settings?tab=payment" className="ml-auto text-orange-400 text-xs hover:text-orange-300 transition-colors">
+            <a href="#payment-methods" className="ml-auto text-orange-400 text-xs hover:text-orange-300 transition-colors">
               Payout accounts
-            </Link>
+            </a>
           </div>
         )}
+      </div>
+
+      {/* Payment method */}
+      <div id="payment-methods" className="scroll-mt-6">
+        <PaymentMethodsManager onChanged={loadPayMethods} />
       </div>
 
       {/* Withdrawal form */}
@@ -316,9 +327,9 @@ export default function WithdrawalsPage() {
                     <AlertCircle className="w-4 h-4 text-amber-400 flex-shrink-0" />
                     <p className="text-neutral-400 text-sm">No payment method saved</p>
                   </div>
-                  <Link href="/dashboard/settings?tab=payment" className="text-orange-400 text-sm flex items-center gap-1 hover:text-orange-300">
+                  <a href="#payment-methods" className="text-orange-400 text-sm flex items-center gap-1 hover:text-orange-300">
                     Add <ArrowRight className="w-3.5 h-3.5" />
-                  </Link>
+                  </a>
                 </div>
               ) : (
                 <div className="space-y-2">
@@ -343,9 +354,9 @@ export default function WithdrawalsPage() {
                       {selectedMethod === m.id && <CheckCircle2 className="w-4 h-4 text-orange-400 flex-shrink-0" />}
                     </button>
                   ))}
-                  <Link href="/dashboard/settings?tab=payment" className="flex items-center gap-1.5 text-xs text-neutral-500 hover:text-orange-400 transition-colors pt-1">
+                  <a href="#payment-methods" className="flex items-center gap-1.5 text-xs text-neutral-500 hover:text-orange-400 transition-colors pt-1">
                     <Plus className="w-3 h-3" />Add a method
-                  </Link>
+                  </a>
                 </div>
               )}
             </div>
