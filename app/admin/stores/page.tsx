@@ -49,19 +49,24 @@ export default function AdminStores() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
-          { label: t("stores_total"),     value: stores.length, color: "from-orange-500 to-red-600",    icon: Store       },
-          { label: t("stores_connected"), value: connected,     color: "from-emerald-500 to-teal-600",  icon: CheckCircle },
-          { label: t("stores_today"),     value: todayOrders,   color: "from-blue-500 to-cyan-600",     icon: Clock       },
-          { label: t("stores_total_ord"), value: totalOrders,   color: "from-purple-500 to-violet-600", icon: AlertCircle },
+          { label: t("stores_total"),     value: stores.length, icon: Store,       grad: "linear-gradient(135deg,#f97316,#dc2626)", border: "rgba(249,115,22,0.25)", glow: "rgba(249,115,22,0.08)" },
+          { label: t("stores_connected"), value: connected,     icon: CheckCircle, grad: "linear-gradient(135deg,#10b981,#059669)", border: "rgba(16,185,129,0.25)", glow: "rgba(16,185,129,0.08)" },
+          { label: t("stores_today"),     value: todayOrders,   icon: Clock,       grad: "linear-gradient(135deg,#3b82f6,#2563eb)", border: "rgba(59,130,246,0.25)", glow: "rgba(59,130,246,0.08)" },
+          { label: t("stores_total_ord"), value: totalOrders,   icon: AlertCircle, grad: "linear-gradient(135deg,#8b5cf6,#7c3aed)", border: "rgba(139,92,246,0.25)", glow: "rgba(139,92,246,0.08)" },
         ].map(k => (
-          <div key={k.label} className="bg-neutral-900 border border-neutral-800 rounded-2xl p-5">
-            <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${k.color} flex items-center justify-center mb-3`}>
-              <k.icon className="w-5 h-5 text-white" />
+          <div key={k.label} className="relative rounded-2xl p-5 overflow-hidden transition-all hover:-translate-y-0.5"
+            style={{ background: "#111", border: `1px solid ${k.border}` }}>
+            <div className="absolute inset-0 opacity-[0.04]" style={{ background: k.grad }} />
+            <div className="absolute bottom-0 left-0 right-0 h-0.5" style={{ background: k.grad, opacity: 0.7 }} />
+            <div className="relative">
+              <div className="w-10 h-10 rounded-xl mb-4 flex items-center justify-center" style={{ background: k.glow, border: `1px solid ${k.border}` }}>
+                <k.icon className="w-5 h-5 text-white" />
+              </div>
+              <div className="text-2xl font-black text-white mb-0.5">{loading ? "…" : k.value}</div>
+              <p className="text-xs text-neutral-400 font-medium">{k.label}</p>
             </div>
-            <div className="text-2xl font-bold text-white">{loading ? "…" : k.value}</div>
-            <p className="text-xs text-neutral-500 mt-0.5">{k.label}</p>
           </div>
         ))}
       </div>

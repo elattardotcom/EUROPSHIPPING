@@ -10,21 +10,21 @@ function countryFlag(code: string): string {
 }
 
 const COUNTRY_PRESETS: { code: string; name: string }[] = [
-  { code: "DEFAULT", name: "Par défaut (fallback)" },
-  { code: "ES", name: "Espagne" },
-  { code: "IT", name: "Italie" },
+  { code: "DEFAULT", name: "Default (fallback)" },
+  { code: "ES", name: "Spain" },
+  { code: "IT", name: "Italy" },
   { code: "PT", name: "Portugal" },
   { code: "FR", name: "France" },
-  { code: "MA", name: "Maroc" },
-  { code: "BE", name: "Belgique" },
-  { code: "NL", name: "Pays-Bas" },
-  { code: "DE", name: "Allemagne" },
-  { code: "GB", name: "Royaume-Uni" },
-  { code: "DZ", name: "Algérie" },
-  { code: "TN", name: "Tunisie" },
-  { code: "PL", name: "Pologne" },
-  { code: "RO", name: "Roumanie" },
-  { code: "GR", name: "Grèce" },
+  { code: "MA", name: "Morocco" },
+  { code: "BE", name: "Belgium" },
+  { code: "NL", name: "Netherlands" },
+  { code: "DE", name: "Germany" },
+  { code: "GB", name: "United Kingdom" },
+  { code: "DZ", name: "Algeria" },
+  { code: "TN", name: "Tunisia" },
+  { code: "PL", name: "Poland" },
+  { code: "RO", name: "Romania" },
+  { code: "GR", name: "Greece" },
 ]
 
 interface EditRow {
@@ -98,9 +98,9 @@ export default function FeeRatesPage() {
     if (res.ok) {
       cancelEdit()
       await load()
-      showToast("Frais mis à jour !")
+      showToast("Fees updated!")
     } else {
-      showToast("Erreur lors de la sauvegarde", false)
+      showToast("Error while saving", false)
     }
   }
 
@@ -108,8 +108,8 @@ export default function FeeRatesPage() {
     setDeleting(code)
     const res = await fetch(`/api/admin/fee-rates?code=${encodeURIComponent(code)}`, { method: "DELETE" })
     setDeleting(null)
-    if (res.ok) { await load(); showToast(`Pays ${code} supprimé`) }
-    else showToast("Impossible de supprimer", false)
+    if (res.ok) { await load(); showToast(`Country ${code} removed`) }
+    else showToast("Unable to delete", false)
   }
 
   const saveNew = async () => {
@@ -131,9 +131,9 @@ export default function FeeRatesPage() {
       setShowAdd(false)
       setNewRow({ countryCode: "", countryName: "", deliveryFee: "3.00", returnFee: "2.00", callCenterFee: "0.50" })
       await load()
-      showToast("Nouveau pays ajouté !")
+      showToast("New country added!")
     } else {
-      showToast("Erreur lors de l'ajout", false)
+      showToast("Error while adding", false)
     }
   }
 
@@ -149,8 +149,8 @@ export default function FeeRatesPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Frais de service par pays</h1>
-          <p className="text-neutral-500 text-sm mt-0.5">Configurer les frais appliqués sur chaque commande lors du retrait</p>
+          <h1 className="text-2xl font-bold text-white">Service fees by country</h1>
+          <p className="text-neutral-500 text-sm mt-0.5">Configure the fees applied to each order at withdrawal time</p>
         </div>
         <div className="flex items-center gap-3">
           <button onClick={load} className="p-2 text-neutral-400 hover:text-white hover:bg-neutral-800 rounded-lg transition-colors">
@@ -158,7 +158,7 @@ export default function FeeRatesPage() {
           </button>
           <button onClick={() => { setShowAdd(true); setEditId(null); setEditRow(null) }}
             className="flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold rounded-xl transition-colors">
-            <Plus className="w-4 h-4" />Ajouter un pays
+            <Plus className="w-4 h-4" />Add a country
           </button>
         </div>
       </div>
@@ -167,8 +167,8 @@ export default function FeeRatesPage() {
       <div className="bg-blue-500/8 border border-blue-500/20 rounded-xl p-4 flex items-start gap-3">
         <Info className="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" />
         <div className="text-sm text-neutral-400 space-y-0.5">
-          <p><span className="text-white font-medium">DEFAULT</span> sert de taux de secours pour tout pays non listé.</p>
-          <p>Les frais sont calculés automatiquement à chaque demande de retrait, sur les commandes non encore facturées.</p>
+          <p><span className="text-white font-medium">DEFAULT</span> is used as a fallback rate for any country not listed.</p>
+          <p>Fees are calculated automatically on each withdrawal request, for orders not yet invoiced.</p>
         </div>
       </div>
 
@@ -176,16 +176,16 @@ export default function FeeRatesPage() {
       <div className="bg-neutral-900 border border-neutral-800 rounded-2xl overflow-hidden">
         <div className="px-5 py-4 border-b border-neutral-800 flex items-center gap-6 text-xs font-semibold text-neutral-500 uppercase tracking-wider">
           <span className="w-24">Code</span>
-          <span className="flex-1">Pays</span>
-          <span className="w-32 text-center flex items-center justify-center gap-1"><Truck className="w-3.5 h-3.5" />Livraison</span>
-          <span className="w-32 text-center flex items-center justify-center gap-1"><RotateCcw className="w-3.5 h-3.5" />Retour</span>
+          <span className="flex-1">Country</span>
+          <span className="w-32 text-center flex items-center justify-center gap-1"><Truck className="w-3.5 h-3.5" />Delivery</span>
+          <span className="w-32 text-center flex items-center justify-center gap-1"><RotateCcw className="w-3.5 h-3.5" />Return</span>
           <span className="w-32 text-center flex items-center justify-center gap-1"><Phone className="w-3.5 h-3.5" />Call center</span>
           <span className="w-20 text-center">Actions</span>
         </div>
 
         {loading ? (
           <div className="py-12 flex items-center justify-center gap-2 text-neutral-500">
-            <RefreshCw className="w-4 h-4 animate-spin" /><span className="text-sm">Chargement…</span>
+            <RefreshCw className="w-4 h-4 animate-spin" /><span className="text-sm">Loading…</span>
           </div>
         ) : (
           <div className="divide-y divide-neutral-800">
@@ -211,7 +211,7 @@ export default function FeeRatesPage() {
                   <input
                     value={newRow.countryName}
                     onChange={e => setNewRow(r => ({ ...r, countryName: e.target.value }))}
-                    placeholder="Nom du pays"
+                    placeholder="Country name"
                     className="w-full bg-neutral-800 border border-neutral-600 rounded-lg px-3 py-1.5 text-sm text-white placeholder:text-neutral-600 focus:outline-none focus:border-orange-500"
                   />
                 </div>
@@ -242,7 +242,7 @@ export default function FeeRatesPage() {
 
             {rates.length === 0 && !showAdd ? (
               <div className="py-14 text-center text-neutral-500 text-sm">
-                Aucun tarif configuré — cliquez sur "Ajouter un pays" ou exécutez la migration SQL.
+                No rates configured — click &quot;Add a country&quot; or run the SQL migration.
               </div>
             ) : (
               rates.map(rate => {
@@ -324,20 +324,23 @@ export default function FeeRatesPage() {
 
       {/* Summary card */}
       {rates.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {[
-            { label: "Frais livraison", icon: Truck, color: "text-orange-400", bg: "bg-orange-500/10", field: "deliveryFee" as const },
-            { label: "Frais retour",    icon: RotateCcw, color: "text-red-400",    bg: "bg-red-500/10",    field: "returnFee" as const },
-            { label: "Call center",     icon: Phone,  color: "text-blue-400",   bg: "bg-blue-500/10",   field: "callCenterFee" as const },
-          ].map(({ label, icon: Icon, color, bg, field }) => {
+            { label: "Delivery fee", icon: Truck,     color: "text-orange-400", bg: "bg-orange-500/10", field: "deliveryFee" as const,   grad: "linear-gradient(135deg,#f97316,#dc2626)", border: "rgba(249,115,22,0.25)" },
+            { label: "Return fee",   icon: RotateCcw, color: "text-red-400",    bg: "bg-red-500/10",    field: "returnFee" as const,     grad: "linear-gradient(135deg,#ef4444,#b91c1c)", border: "rgba(239,68,68,0.25)"  },
+            { label: "Call center",  icon: Phone,     color: "text-blue-400",   bg: "bg-blue-500/10",   field: "callCenterFee" as const, grad: "linear-gradient(135deg,#3b82f6,#2563eb)", border: "rgba(59,130,246,0.25)" },
+          ].map(({ label, icon: Icon, color, bg, field, grad, border }) => {
             const def = rates.find(r => r.countryCode === "DEFAULT")
             return (
-              <div key={field} className="bg-neutral-900 border border-neutral-800 rounded-xl p-4 flex items-center gap-4">
-                <div className={`w-10 h-10 rounded-xl ${bg} flex items-center justify-center flex-shrink-0`}>
+              <div key={field} className="relative rounded-2xl p-4 overflow-hidden flex items-center gap-4 transition-all hover:-translate-y-0.5"
+                style={{ background: "#111", border: `1px solid ${border}` }}>
+                <div className="absolute inset-0 opacity-[0.04]" style={{ background: grad }} />
+                <div className="absolute bottom-0 left-0 right-0 h-0.5" style={{ background: grad, opacity: 0.7 }} />
+                <div className={`relative w-10 h-10 rounded-xl ${bg} flex items-center justify-center flex-shrink-0`}>
                   <Icon className={`w-5 h-5 ${color}`} />
                 </div>
-                <div>
-                  <p className="text-neutral-400 text-xs">{label} (défaut)</p>
+                <div className="relative">
+                  <p className="text-neutral-400 text-xs">{label} (default)</p>
                   <p className={`text-xl font-bold ${color}`}>€ {def ? fmt(def[field]) : "—"}</p>
                 </div>
               </div>
