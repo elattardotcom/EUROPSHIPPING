@@ -4,11 +4,11 @@ import { useState, useEffect } from "react"
 import { Search, RefreshCw, ExternalLink, Loader2, ChevronDown, X, Send, MessageSquare } from "lucide-react"
 
 const STATUS_CFG = {
-  PENDING:    { label: "En attente",    color: "text-amber-400",   bg: "bg-amber-500/10 border-amber-500/20"   },
-  PROCESSING: { label: "En traitement", color: "text-blue-400",    bg: "bg-blue-500/10 border-blue-500/20"     },
-  SHIPPED:    { label: "Expédié",       color: "text-violet-400",  bg: "bg-violet-500/10 border-violet-500/20" },
-  RECEIVED:   { label: "Reçu",          color: "text-emerald-400", bg: "bg-emerald-500/10 border-emerald-500/20"},
-  CANCELED:   { label: "Annulé",        color: "text-red-400",     bg: "bg-red-500/10 border-red-500/20"       },
+  PENDING:    { label: "Pending",    color: "text-amber-400",   bg: "bg-amber-500/10 border-amber-500/20"   },
+  PROCESSING: { label: "Processing", color: "text-blue-400",    bg: "bg-blue-500/10 border-blue-500/20"     },
+  SHIPPED:    { label: "Shipped",    color: "text-violet-400",  bg: "bg-violet-500/10 border-violet-500/20" },
+  RECEIVED:   { label: "Received",   color: "text-emerald-400", bg: "bg-emerald-500/10 border-emerald-500/20"},
+  CANCELED:   { label: "Canceled",   color: "text-red-400",     bg: "bg-red-500/10 border-red-500/20"       },
 } as const
 
 type Status = keyof typeof STATUS_CFG
@@ -96,11 +96,11 @@ export default function AdminSourcingPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl md:text-2xl font-bold text-white">Demandes Sourcing</h1>
-          <p className="text-sm text-neutral-500 mt-0.5">Gérez les demandes de sourcing produit des clients</p>
+          <h1 className="text-xl md:text-2xl font-bold text-white">Sourcing Requests</h1>
+          <p className="text-sm text-neutral-500 mt-0.5">Manage clients&apos; product sourcing requests</p>
         </div>
         <button onClick={load} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-neutral-400 hover:text-white text-sm transition-colors">
-          <RefreshCw className="w-3.5 h-3.5" />Actualiser
+          <RefreshCw className="w-3.5 h-3.5" />Refresh
         </button>
       </div>
 
@@ -108,9 +108,10 @@ export default function AdminSourcingPage() {
       <div className="grid grid-cols-3 md:grid-cols-5 gap-3">
         {(Object.entries(STATUS_CFG) as [Status, typeof STATUS_CFG[Status]][]).map(([k, v]) => (
           <button key={k} onClick={() => setStatusF(statusF === k ? "ALL" : k)}
-            className={`bg-neutral-900 border rounded-xl p-3 text-left transition-colors ${statusF === k ? "border-orange-500/50" : "border-neutral-800 hover:border-neutral-700"}`}>
-            <div className={`text-xl font-bold ${v.color}`}>{loading ? "…" : counts[k]}</div>
-            <p className="text-xs text-neutral-500 mt-0.5">{v.label}</p>
+            className={`relative rounded-2xl p-4 text-left transition-all hover:-translate-y-0.5 ${statusF === k ? "border" : "border"}`}
+            style={{ background: "#111", borderColor: statusF === k ? "rgba(249,115,22,0.5)" : "rgba(255,255,255,0.08)" }}>
+            <div className={`text-xl font-black ${v.color}`}>{loading ? "…" : counts[k]}</div>
+            <p className="text-xs text-neutral-400 font-medium mt-0.5">{v.label}</p>
           </button>
         ))}
       </div>
@@ -119,13 +120,13 @@ export default function AdminSourcingPage() {
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1 sm:max-w-xs">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher…"
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search…"
             className="w-full bg-neutral-900 border border-neutral-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder:text-neutral-600 focus:outline-none focus:border-orange-500" />
         </div>
         <div className="relative">
           <select value={statusF} onChange={e => setStatusF(e.target.value as Status | "ALL")}
             className="appearance-none bg-neutral-900 border border-neutral-800 rounded-xl pl-4 pr-9 py-2.5 text-sm text-neutral-300 focus:outline-none focus:border-orange-500 cursor-pointer">
-            <option value="ALL">Tous les statuts</option>
+            <option value="ALL">All statuses</option>
             {(Object.entries(STATUS_CFG) as [Status, typeof STATUS_CFG[Status]][]).map(([k, v]) => (
               <option key={k} value={k}>{v.label}</option>
             ))}
@@ -138,22 +139,22 @@ export default function AdminSourcingPage() {
         {/* Table */}
         <div className={`bg-neutral-900 border border-neutral-800 rounded-2xl overflow-hidden ${selected ? "flex-1 min-w-0" : "w-full"}`}>
           <div className="px-5 py-3 border-b border-neutral-800">
-            <p className="text-sm text-neutral-500">{loading ? "Chargement…" : `${filtered.length} demande${filtered.length !== 1 ? "s" : ""}`}</p>
+            <p className="text-sm text-neutral-500">{loading ? "Loading…" : `${filtered.length} request${filtered.length !== 1 ? "s" : ""}`}</p>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="border-b border-neutral-800">
-                  {["Client", "Produit", "Qté", "Budget/u", "Statut", "Date", "Action"].map(h => (
+                  {["Client", "Product", "Qty", "Budget/u", "Status", "Date", "Action"].map(h => (
                     <th key={h} className="text-left p-4 text-xs font-semibold text-neutral-500 uppercase tracking-wider whitespace-nowrap">{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
-                  <tr><td colSpan={7} className="py-12 text-center text-neutral-500 text-sm">Chargement…</td></tr>
+                  <tr><td colSpan={7} className="py-12 text-center text-neutral-500 text-sm">Loading…</td></tr>
                 ) : filtered.length === 0 ? (
-                  <tr><td colSpan={7} className="py-12 text-center text-neutral-500 text-sm">Aucune demande</td></tr>
+                  <tr><td colSpan={7} className="py-12 text-center text-neutral-500 text-sm">No requests</td></tr>
                 ) : filtered.map(r => {
                   const cfg = STATUS_CFG[r.status]
                   const isSelected = selected?.id === r.id
@@ -167,7 +168,7 @@ export default function AdminSourcingPage() {
                       </td>
                       <td className="p-4">
                         <p className="text-white text-sm font-medium max-w-[140px] truncate">{r.product_name}</p>
-                        {r.admin_reply && <p className="text-teal-500 text-[10px] mt-0.5">Répondu ✓</p>}
+                        {r.admin_reply && <p className="text-teal-500 text-[10px] mt-0.5">Replied ✓</p>}
                       </td>
                       <td className="p-4 text-sm text-neutral-300">{r.quantity ?? "—"}</td>
                       <td className="p-4 text-sm text-neutral-300">{r.budget_eur != null ? `€${r.budget_eur}` : "—"}</td>
@@ -177,7 +178,7 @@ export default function AdminSourcingPage() {
                         </span>
                       </td>
                       <td className="p-4 text-sm text-neutral-500 whitespace-nowrap">
-                        {new Date(r.created_at).toLocaleDateString("fr-FR")}
+                        {new Date(r.created_at).toLocaleDateString("en-GB")}
                       </td>
                       <td className="p-4" onClick={e => e.stopPropagation()}>
                         {updating === r.id ? (
@@ -218,7 +219,7 @@ export default function AdminSourcingPage() {
               {/* Product image */}
               {selected.image_url && (
                 <div>
-                  <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-2">Photo produit</p>
+                  <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-2">Product photo</p>
                   <a href={selected.image_url} target="_blank" rel="noopener noreferrer">
                     <img
                       src={selected.image_url}
@@ -238,24 +239,24 @@ export default function AdminSourcingPage() {
 
               {/* Product details */}
               <div>
-                <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-2">Détails produit</p>
+                <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-2">Product details</p>
                 <div className="space-y-2 text-sm">
                   {selected.quantity && (
                     <div className="flex justify-between">
-                      <span className="text-neutral-500">Quantité</span>
-                      <span className="text-white font-medium">{selected.quantity} unités</span>
+                      <span className="text-neutral-500">Quantity</span>
+                      <span className="text-white font-medium">{selected.quantity} units</span>
                     </div>
                   )}
                   {selected.budget_eur != null && (
                     <div className="flex justify-between">
-                      <span className="text-neutral-500">Budget/unité</span>
+                      <span className="text-neutral-500">Budget/unit</span>
                       <span className="text-white font-medium">€{selected.budget_eur}</span>
                     </div>
                   )}
                   {selected.reference_url && (
                     <a href={selected.reference_url} target="_blank" rel="noopener noreferrer"
                       className="flex items-center gap-1.5 text-orange-400 hover:text-orange-300 transition-colors text-xs">
-                      <ExternalLink className="w-3.5 h-3.5" />Voir la référence produit
+                      <ExternalLink className="w-3.5 h-3.5" />View product reference
                     </a>
                   )}
                 </div>
@@ -264,7 +265,7 @@ export default function AdminSourcingPage() {
               {/* Full notes */}
               {selected.notes && (
                 <div>
-                  <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-2">Notes du client</p>
+                  <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-2">Client notes</p>
                   <div className="bg-neutral-800 rounded-xl p-3 text-sm text-neutral-300 leading-relaxed whitespace-pre-wrap">
                     {selected.notes}
                   </div>
@@ -274,7 +275,7 @@ export default function AdminSourcingPage() {
               {/* Previous reply */}
               {selected.admin_reply && (
                 <div>
-                  <p className="text-xs font-semibold text-teal-500 uppercase tracking-wider mb-2">Réponse envoyée</p>
+                  <p className="text-xs font-semibold text-teal-500 uppercase tracking-wider mb-2">Reply sent</p>
                   <div className="bg-teal-500/10 border border-teal-500/20 rounded-xl p-3 text-sm text-teal-300 leading-relaxed whitespace-pre-wrap">
                     {selected.admin_reply}
                   </div>
@@ -285,13 +286,13 @@ export default function AdminSourcingPage() {
               <div>
                 <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-2 flex items-center gap-1">
                   <MessageSquare className="w-3 h-3" />
-                  {selected.admin_reply ? "Modifier la réponse" : "Répondre au client"}
+                  {selected.admin_reply ? "Edit reply" : "Reply to client"}
                 </p>
                 <textarea
                   value={reply}
                   onChange={e => setReply(e.target.value)}
                   rows={5}
-                  placeholder="Écrivez votre réponse ici — prix trouvé, délai, informations complémentaires…"
+                  placeholder="Write your reply here — price found, lead time, additional info…"
                   className="w-full bg-neutral-800 border border-neutral-700 rounded-xl px-4 py-3 text-sm text-white placeholder:text-neutral-600 focus:outline-none focus:border-orange-500 transition-colors resize-none"
                 />
                 <button
@@ -301,7 +302,7 @@ export default function AdminSourcingPage() {
                   style={{ background: "linear-gradient(135deg,#f97316,#dc2626)" }}
                 >
                   {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-                  {sending ? "Envoi…" : "Envoyer la réponse"}
+                  {sending ? "Sending…" : "Send reply"}
                 </button>
               </div>
             </div>

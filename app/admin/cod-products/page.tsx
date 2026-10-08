@@ -24,9 +24,9 @@ const EMPTY: Omit<CodProduct, "id" | "created_at"> = {
 }
 
 const STATUS_CFG = {
-  active: { label: "Actif",   cls: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30" },
-  paused: { label: "Pausé",   cls: "bg-yellow-500/20  text-yellow-400  border-yellow-500/30"  },
-  ended:  { label: "Terminé", cls: "bg-neutral-500/20 text-neutral-400 border-neutral-500/30" },
+  active: { label: "Active",  cls: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30" },
+  paused: { label: "Paused",  cls: "bg-yellow-500/20  text-yellow-400  border-yellow-500/30"  },
+  ended:  { label: "Ended",   cls: "bg-neutral-500/20 text-neutral-400 border-neutral-500/30" },
 }
 
 export default function AdminCodProductsPage() {
@@ -76,7 +76,7 @@ export default function AdminCodProductsPage() {
   }
 
   async function del(id: string) {
-    if (!confirm("Supprimer ce produit ?")) return
+    if (!confirm("Delete this product?")) return
     setDeleting(id)
     await fetch(`/api/admin/cod-products/${id}`, { method: "DELETE" })
     setProducts(prev => prev.filter(p => p.id !== id))
@@ -91,8 +91,8 @@ export default function AdminCodProductsPage() {
     <div className="p-4 md:p-6 space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl md:text-2xl font-bold text-white">Produits COD Drop</h1>
-          <p className="text-sm text-neutral-500 mt-0.5">Gérez le catalogue produits visible par les clients</p>
+          <h1 className="text-xl md:text-2xl font-bold text-white">COD Drop Products</h1>
+          <p className="text-sm text-neutral-500 mt-0.5">Manage the product catalog visible to clients</p>
         </div>
         <div className="flex gap-2">
           <button onClick={load} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-neutral-400 hover:text-white text-sm transition-colors">
@@ -100,7 +100,7 @@ export default function AdminCodProductsPage() {
           </button>
           <button onClick={openAdd} className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white transition-colors"
             style={{ background: "linear-gradient(135deg,#f97316,#dc2626)" }}>
-            <Plus className="w-4 h-4" /> Ajouter produit
+            <Plus className="w-4 h-4" /> Add product
           </button>
         </div>
       </div>
@@ -108,13 +108,16 @@ export default function AdminCodProductsPage() {
       {/* Stats */}
       <div className="grid grid-cols-3 gap-3">
         {[
-          { label: "Total produits", val: products.length },
-          { label: "Actifs", val: products.filter(p => p.status === "active").length },
-          { label: "Stock total", val: products.reduce((a, p) => a + p.stock, 0) },
+          { label: "Total products", val: products.length,                                      grad: "linear-gradient(135deg,#f97316,#dc2626)", border: "rgba(249,115,22,0.25)" },
+          { label: "Active",         val: products.filter(p => p.status === "active").length,    grad: "linear-gradient(135deg,#10b981,#059669)", border: "rgba(16,185,129,0.25)" },
+          { label: "Total stock",    val: products.reduce((a, p) => a + p.stock, 0),              grad: "linear-gradient(135deg,#3b82f6,#2563eb)", border: "rgba(59,130,246,0.25)" },
         ].map(s => (
-          <div key={s.label} className="bg-neutral-900 border border-neutral-800 rounded-xl p-4">
-            <p className="text-2xl font-bold text-white">{s.val}</p>
-            <p className="text-xs text-neutral-500 mt-0.5">{s.label}</p>
+          <div key={s.label} className="relative rounded-2xl p-4 overflow-hidden transition-all hover:-translate-y-0.5"
+            style={{ background: "#111", border: `1px solid ${s.border}` }}>
+            <div className="absolute inset-0 opacity-[0.04]" style={{ background: s.grad }} />
+            <div className="absolute bottom-0 left-0 right-0 h-0.5" style={{ background: s.grad, opacity: 0.7 }} />
+            <p className="relative text-2xl font-black text-white">{s.val}</p>
+            <p className="relative text-xs text-neutral-400 font-medium mt-0.5">{s.label}</p>
           </div>
         ))}
       </div>
@@ -125,18 +128,18 @@ export default function AdminCodProductsPage() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-neutral-800">
-                {["Produit", "Fournisseur", "Prix coût", "Prix vente", "Marge", "Stock", "Livraison", "Statut", ""].map(h => (
+                {["Product", "Supplier", "Cost price", "Sell price", "Margin", "Stock", "Shipping", "Status", ""].map(h => (
                   <th key={h} className="text-left p-4 text-xs font-semibold text-neutral-500 uppercase tracking-wider whitespace-nowrap">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={9} className="py-12 text-center text-neutral-500 text-sm">Chargement…</td></tr>
+                <tr><td colSpan={9} className="py-12 text-center text-neutral-500 text-sm">Loading…</td></tr>
               ) : products.length === 0 ? (
                 <tr><td colSpan={9} className="py-16 text-center">
                   <Package className="w-10 h-10 text-neutral-700 mx-auto mb-3" />
-                  <p className="text-neutral-500 text-sm">Aucun produit. Cliquez sur "Ajouter produit".</p>
+                  <p className="text-neutral-500 text-sm">No products. Click &quot;Add product&quot;.</p>
                 </td></tr>
               ) : products.map(p => {
                 const m = p.selling_price > 0 ? (((p.selling_price - p.cost_price) / p.selling_price) * 100).toFixed(1) : "0"
@@ -196,18 +199,18 @@ export default function AdminCodProductsPage() {
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-neutral-900 border border-neutral-800 rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <div className="px-6 py-4 border-b border-neutral-800 flex items-center justify-between">
-              <h2 className="text-white font-semibold">{modal === "add" ? "Ajouter un produit" : "Modifier le produit"}</h2>
+              <h2 className="text-white font-semibold">{modal === "add" ? "Add a product" : "Edit product"}</h2>
               <button onClick={() => setModal(null)} className="text-neutral-500 hover:text-white transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
             <div className="p-6 space-y-4">
               {[
-                { label: "Nom du produit *", key: "name", type: "text", placeholder: "Ex: Fitness Tracker Pro" },
-                { label: "Fournisseur",      key: "supplier", type: "text", placeholder: "Ex: ShenzhenTech" },
-                { label: "Catégorie",        key: "category", type: "text", placeholder: "Ex: Fitness, Electronics…" },
-                { label: "Délai livraison",  key: "shipping_days", type: "text", placeholder: "Ex: 3-5 jours" },
-                { label: "URL image",        key: "image_url", type: "url", placeholder: "https://…" },
+                { label: "Product name *",   key: "name", type: "text", placeholder: "E.g. Fitness Tracker Pro" },
+                { label: "Supplier",         key: "supplier", type: "text", placeholder: "E.g. ShenzhenTech" },
+                { label: "Category",         key: "category", type: "text", placeholder: "E.g. Fitness, Electronics…" },
+                { label: "Shipping time",    key: "shipping_days", type: "text", placeholder: "E.g. 3-5 days" },
+                { label: "Image URL",        key: "image_url", type: "url", placeholder: "https://…" },
               ].map(f => (
                 <div key={f.key}>
                   <label className="block text-xs font-medium text-neutral-400 mb-1.5">{f.label}</label>
@@ -220,13 +223,13 @@ export default function AdminCodProductsPage() {
 
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-xs font-medium text-neutral-400 mb-1.5">Prix coût (€)</label>
+                  <label className="block text-xs font-medium text-neutral-400 mb-1.5">Cost price (€)</label>
                   <input type="number" step="0.01" min="0" value={form.cost_price}
                     onChange={e => setForm(prev => ({ ...prev, cost_price: parseFloat(e.target.value) || 0 }))}
                     className="w-full bg-neutral-800 border border-neutral-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-orange-500" />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-neutral-400 mb-1.5">Prix vente (€)</label>
+                  <label className="block text-xs font-medium text-neutral-400 mb-1.5">Sell price (€)</label>
                   <input type="number" step="0.01" min="0" value={form.selling_price}
                     onChange={e => setForm(prev => ({ ...prev, selling_price: parseFloat(e.target.value) || 0 }))}
                     className="w-full bg-neutral-800 border border-neutral-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-orange-500" />
@@ -241,7 +244,7 @@ export default function AdminCodProductsPage() {
 
               {form.selling_price > 0 && (
                 <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl px-4 py-2.5 text-sm text-emerald-400">
-                  Marge estimée : <span className="font-bold">{margin}%</span>
+                  Estimated margin: <span className="font-bold">{margin}%</span>
                 </div>
               )}
 
@@ -249,17 +252,17 @@ export default function AdminCodProductsPage() {
                 <label className="block text-xs font-medium text-neutral-400 mb-1.5">Description</label>
                 <textarea value={form.description ?? ""} rows={3}
                   onChange={e => setForm(prev => ({ ...prev, description: e.target.value }))}
-                  placeholder="Description courte du produit…"
+                  placeholder="Short product description…"
                   className="w-full bg-neutral-800 border border-neutral-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-neutral-600 focus:outline-none focus:border-orange-500 resize-none" />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-neutral-400 mb-1.5">Statut</label>
+                <label className="block text-xs font-medium text-neutral-400 mb-1.5">Status</label>
                 <select value={form.status} onChange={e => setForm(prev => ({ ...prev, status: e.target.value as CodProduct["status"] }))}
                   className="w-full bg-neutral-800 border border-neutral-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-orange-500">
-                  <option value="active">Actif</option>
-                  <option value="paused">Pausé</option>
-                  <option value="ended">Terminé</option>
+                  <option value="active">Active</option>
+                  <option value="paused">Paused</option>
+                  <option value="ended">Ended</option>
                 </select>
               </div>
 
@@ -267,7 +270,7 @@ export default function AdminCodProductsPage() {
                 className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold text-white transition-all disabled:opacity-50"
                 style={{ background: "linear-gradient(135deg,#f97316,#dc2626)" }}>
                 {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-                {saving ? "Enregistrement…" : modal === "add" ? "Ajouter le produit" : "Enregistrer"}
+                {saving ? "Saving…" : modal === "add" ? "Add product" : "Save"}
               </button>
             </div>
           </div>
