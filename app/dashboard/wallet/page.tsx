@@ -9,7 +9,7 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import type { Withdrawal, BalanceAdjustment } from "@/lib/db"
+import type { Withdrawal, BalanceAdjustment, CountryBreakdown } from "@/lib/db"
 import { useRealtime, type RealtimeEvent } from "@/hooks/useSse"
 import { useCurrency } from "@/hooks/useCurrency"
 import { GridBackground, CornerBrackets, GLOW_COLOR, SectionDot } from "@/components/dashboard/hud-accents"
@@ -41,6 +41,7 @@ interface Invoice {
   feeTotal?:       number
   deliveredCount?: number
   returnedCount?:  number
+  countryBreakdown?: CountryBreakdown[]
 }
 
 const MOCK_DEPOSITS: Transaction[] = [
@@ -78,6 +79,7 @@ function withdrawalToInvoice(w: Withdrawal): Invoice {
     feeTotal:       w.feeTotal,
     deliveredCount: w.deliveredCount,
     returnedCount:  w.returnedCount,
+    countryBreakdown: w.countryBreakdown,
   }
 }
 
@@ -153,6 +155,38 @@ async function downloadInvoice(inv: Invoice, clientWithdrawals: Withdrawal[], in
       <td style="text-align:right;padding:10px 14px;color:#6b7280">— ${f(delivCount ? feeCallCenter / delivCount : 0)} €</td>
       <td style="text-align:right;padding:10px 14px;font-weight:700;color:#dc2626">— ${f(feeCallCenter)} €</td>
     </tr>` : ""
+
+  // Per-country breakdown — compact table, capped to keep the invoice on
+  // one page (clients with many markets get a "+N other countries" note).
+  const countries   = inv.countryBreakdown ?? []
+  const MAX_COUNTRY_ROWS = 6
+  const shownCountries   = countries.slice(0, MAX_COUNTRY_ROWS)
+  const hiddenCountries  = countries.length - shownCountries.length
+
+  const countryRows = shownCountries.map(c => `
+    <tr>
+      <td style="padding:7px 12px;color:#374151;font-size:11px">${c.countryName}</td>
+      <td style="padding:7px 12px;text-align:right;color:#374151;font-size:11px">${c.deliveredCount}</td>
+      <td style="padding:7px 12px;text-align:right;color:#374151;font-size:11px">${c.returnedCount}</td>
+      <td style="padding:7px 12px;text-align:right;color:#6b7280;font-size:11px">— ${f(c.totalFee)} €</td>
+      <td style="padding:7px 12px;text-align:right;color:#111827;font-size:11px;font-weight:600">${f(c.netAmount)} €</td>
+    </tr>`).join("")
+
+  const countryTable = countries.length > 0 ? `
+    <div>
+      <div class="objet-label" style="color:#6b7280;margin-bottom:6px">Breakdown by country</div>
+      <table class="tbl" style="font-size:11px">
+        <thead><tr>
+          <th style="padding:7px 12px">Country</th>
+          <th class="r" style="padding:7px 12px">Delivered</th>
+          <th class="r" style="padding:7px 12px">Returned</th>
+          <th class="r" style="padding:7px 12px">Fees</th>
+          <th class="r" style="padding:7px 12px">Net</th>
+        </tr></thead>
+        <tbody>${countryRows}</tbody>
+      </table>
+      ${hiddenCountries > 0 ? `<div style="font-size:10px;color:#9ca3af;margin-top:4px">+ ${hiddenCountries} other countr${hiddenCountries > 1 ? "ies" : "y"}</div>` : ""}
+    </div>` : ""
 
   const W = 794, H = 1123
   const container = document.createElement("div")
@@ -275,6 +309,7 @@ async function downloadInvoice(inv: Invoice, clientWithdrawals: Withdrawal[], in
         </div>
       </div>
     </div>
+    ${countryTable}
     <div class="pay-box">
       <span class="pay-status"><span class="pay-dot"></span>PAYMENT SENT</span>
       <div class="pay-detail">

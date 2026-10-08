@@ -133,6 +133,20 @@ export interface Withdrawal {
   feeTotal?:           number
   deliveredCount?:     number
   returnedCount?:      number
+  countryBreakdown?:   CountryBreakdown[]
+}
+
+export interface CountryBreakdown {
+  countryCode:    string
+  countryName:    string
+  deliveredCount: number
+  returnedCount:  number
+  grossAmount:    number
+  deliveryFee:    number
+  returnFee:      number
+  callCenterFee:  number
+  totalFee:       number
+  netAmount:      number
 }
 
 export interface UnbilledOrder {
@@ -158,6 +172,7 @@ export interface InvoicePreview {
   totalFees:       number
   netAmount:       number    // grossAmount - totalFees
   currency:        string
+  countryBreakdown: CountryBreakdown[]
 }
 
 export interface FeeRate {
@@ -276,6 +291,7 @@ const mapWithdrawal = (r: any): Withdrawal => ({
   feeTotal:            r.fee_total       ?? undefined,
   deliveredCount:      r.delivered_count ?? undefined,
   returnedCount:       r.returned_count  ?? undefined,
+  countryBreakdown:    r.country_breakdown ?? undefined,
 })
 
 /* ── Clients ────────────────────────────────────────────────────────────── */
@@ -520,11 +536,21 @@ export async function createAdjustment(
   return adj
 }
 
+// Fallback display names for countries not present in the fee_rates table.
+const FALLBACK_COUNTRY_NAMES: Record<string, string> = {
+  PT: "Portugal", ES: "Espagne",  FR: "France",      MA: "Maroc",
+  DZ: "Algérie",  TN: "Tunisie",  IT: "Italie",      DE: "Allemagne",
+  BE: "Belgique", GB: "Royaume-Uni", NL: "Pays-Bas", CH: "Suisse",
+  SN: "Sénégal",  CI: "Côte d'Ivoire", LU: "Luxembourg",
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function buildInvoicePreview(rows: any[], rateMap: Map<string, FeeRate>): InvoicePreview {
   const fallback = rateMap.get("DEFAULT") ?? {
     deliveryFee: SERVICE_FEES.delivery, returnFee: SERVICE_FEES.return, callCenterFee: SERVICE_FEES.callCenter,
   }
+  const rnd = (n: number) => Math.round(n * 100) / 100
+
   const orders: UnbilledOrder[] = rows.map(r => {
     const rates       = rateMap.get(r.country_code ?? "") ?? fallback
     const isDelivered = r.status === "DELIVERED"
@@ -544,12 +570,47 @@ function buildInvoicePreview(rows: any[], rateMap: Map<string, FeeRate>): Invoic
     }
   })
 
-  const rnd = (n: number) => Math.round(n * 100) / 100
   const grossAmount    = rnd(orders.reduce((s, o) => s + o.value, 0))
   const deliveryFees   = rnd(orders.reduce((s, o) => s + o.deliveryFee, 0))
   const returnFees     = rnd(orders.reduce((s, o) => s + o.returnFee, 0))
   const callCenterFees = rnd(orders.reduce((s, o) => s + o.callCenterFee, 0))
   const totalFees      = rnd(deliveryFees + returnFees + callCenterFees)
+
+  // Per-country breakdown — same per-order fee computation, grouped by
+  // country_code instead of summed globally.
+  const byCountry = new Map<string, CountryBreakdown>()
+  rows.forEach((r, i) => {
+    const code = r.country_code || "—"
+    const o = orders[i]
+    if (!byCountry.has(code)) {
+      byCountry.set(code, {
+        countryCode:    code,
+        countryName:    rateMap.get(code)?.countryName ?? FALLBACK_COUNTRY_NAMES[code] ?? code,
+        deliveredCount: 0, returnedCount: 0,
+        grossAmount: 0, deliveryFee: 0, returnFee: 0, callCenterFee: 0, totalFee: 0, netAmount: 0,
+      })
+    }
+    const c = byCountry.get(code)!
+    if (o.status === "DELIVERED") c.deliveredCount++
+    else c.returnedCount++
+    c.grossAmount   += o.value
+    c.deliveryFee   += o.deliveryFee
+    c.returnFee     += o.returnFee
+    c.callCenterFee += o.callCenterFee
+    c.totalFee      += o.totalFee
+  })
+  const countryBreakdown = Array.from(byCountry.values())
+    .map(c => ({
+      ...c,
+      grossAmount:   rnd(c.grossAmount),
+      deliveryFee:   rnd(c.deliveryFee),
+      returnFee:      rnd(c.returnFee),
+      callCenterFee: rnd(c.callCenterFee),
+      totalFee:      rnd(c.totalFee),
+      netAmount:     rnd(Math.max(0, c.grossAmount - c.totalFee)),
+    }))
+    .sort((a, b) => b.grossAmount - a.grossAmount)
+
   return {
     orders,
     deliveredCount: orders.filter(o => o.status === "DELIVERED").length,
@@ -561,6 +622,7 @@ function buildInvoicePreview(rows: any[], rateMap: Map<string, FeeRate>): Invoic
     totalFees,
     netAmount: rnd(Math.max(0, grossAmount - totalFees)),
     currency: rows[0]?.currency ?? "EUR",
+    countryBreakdown,
   }
 }
 
@@ -613,7 +675,7 @@ export async function getInvoicePreview(clientId: string): Promise<InvoicePrevie
   const empty: InvoicePreview = {
     orders: [], deliveredCount: 0, returnedCount: 0,
     grossAmount: 0, deliveryFees: 0, returnFees: 0, callCenterFees: 0,
-    totalFees: 0, netAmount: 0, currency: "EUR",
+    totalFees: 0, netAmount: 0, currency: "EUR", countryBreakdown: [],
   }
   if (clientId === "c1") return empty
   const sb = getSupabaseAdmin()
@@ -712,6 +774,7 @@ export async function createWithdrawal(
     fee_total:       preview.totalFees,
     delivered_count: preview.deliveredCount,
     returned_count:  preview.returnedCount,
+    country_breakdown: preview.countryBreakdown,
   }
 
   try {
