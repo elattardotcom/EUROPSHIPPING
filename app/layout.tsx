@@ -86,7 +86,7 @@ const jsonLd = {
       contactType: "customer support",
       availableLanguage: ["French", "English", "Arabic"],
     },
-    areaServed: ["ES", "IT", "PT", "RO", "BG", "HU", "GR", "SK", "SI", "CZ"],
+    areaServed: ["ES", "IT", "PT", "RO", "BG", "HU", "GR", "SK", "CZ"],
   },
 }
 
