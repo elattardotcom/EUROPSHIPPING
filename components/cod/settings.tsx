@@ -3,13 +3,11 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import {
-  User, Bell, Shield, CreditCard, Globe, Palette,
-  Save, Key, Eye, EyeOff, Check, Download, Monitor, Moon, Sun, Loader2, LogOut,
+  User, Shield, CreditCard, Globe,
+  Save, Key, Eye, EyeOff, Check, Loader2, LogOut,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { getClientIdFromCookie } from "@/lib/client-cookie"
-import { useTheme } from "next-themes"
-import { useLang } from "@/hooks/useLang"
 
 const INPUT = "w-full bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-orange-500 disabled:opacity-50"
 
@@ -60,45 +58,12 @@ export default function SettingsPage() {
   const [ordersUsed,    setOrdersUsed]    = useState(0)
   const [loggingOut,    setLoggingOut]    = useState(false)
 
-  // ── Appearance state ───────────────────────────────────
-  const { theme: currentTheme, setTheme } = useTheme()
-  const theme = (currentTheme ?? "dark") as "dark" | "light" | "system"
-
   // ── Localization state ─────────────────────────────────
-  const [lang, setLang] = useLang()
-  const [timezone,   setTimezone]   = useState(() => (typeof window !== "undefined" ? localStorage.getItem("site-timezone")    ?? "paris"  : "paris"))
-  const [dateFormat, setDateFormat] = useState(() => (typeof window !== "undefined" ? localStorage.getItem("site-date-format") ?? "dmy"    : "dmy"))
   const [currency,   setCurrency]   = useState(() => (typeof window !== "undefined" ? localStorage.getItem("site-currency")    ?? "eur"    : "eur"))
   const [localeMsg,  setLocaleMsg]  = useState<{ type: "success" | "error"; text: string } | null>(null)
 
-  // ── Notification toggles (persisted to localStorage) ──
-  const [notifToggles, setNotifToggles] = useState<boolean[]>(() => {
-    if (typeof window === "undefined") return [true, true, true, true, false, false]
-    const saved = localStorage.getItem("site-notif-toggles")
-    return saved ? JSON.parse(saved) : [true, true, true, true, false, false]
-  })
-  const setNotif = (i: number, v: boolean) => setNotifToggles(prev => {
-    const next = [...prev]; next[i] = v
-    localStorage.setItem("site-notif-toggles", JSON.stringify(next))
-    return next
-  })
-
-  // ── Display preference toggles (persisted to localStorage) ─
-  const [dispToggles, setDispToggles] = useState<boolean[]>(() => {
-    if (typeof window === "undefined") return [false, true, true]
-    const saved = localStorage.getItem("site-disp-toggles")
-    return saved ? JSON.parse(saved) : [false, true, true]
-  })
-  const setDisp = (i: number, v: boolean) => setDispToggles(prev => {
-    const next = [...prev]; next[i] = v
-    localStorage.setItem("site-disp-toggles", JSON.stringify(next))
-    return next
-  })
-
   function saveLocalization() {
-    localStorage.setItem("site-timezone",    timezone)
-    localStorage.setItem("site-date-format", dateFormat)
-    localStorage.setItem("site-currency",    currency)
+    localStorage.setItem("site-currency", currency)
     // Notify other components on same tab
     window.dispatchEvent(new StorageEvent("storage", { key: "site-currency", newValue: currency }))
     setLocaleMsg({ type: "success", text: "Préférences de localisation sauvegardées." })
@@ -202,11 +167,9 @@ export default function SettingsPage() {
 
   const tabs = [
     { id: "profile",       icon: User,       label: "Profil" },
-    { id: "notifications", icon: Bell,       label: "Notifications" },
     { id: "security",      icon: Shield,     label: "Sécurité" },
     { id: "billing",       icon: CreditCard, label: "Facturation" },
     { id: "localization",  icon: Globe,      label: "Localisation" },
-    { id: "appearance",    icon: Palette,    label: "Apparence" },
   ]
 
   return (
@@ -369,35 +332,6 @@ export default function SettingsPage() {
             </div>
           )}
 
-          {/* ── Notifications ────────────────────────────── */}
-          {activeTab === "notifications" && (
-            <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-6">
-              <h2 className="text-lg font-medium text-white mb-6">Préférences de notifications</h2>
-              <div className="space-y-1">
-                {[
-                  { title: "Nouvelles commandes",       desc: "Recevoir une alerte lors d'une nouvelle commande" },
-                  { title: "Mises à jour de statut",    desc: "Alertes lors des changements de statut de commande" },
-                  { title: "Confirmations de leads",    desc: "Notifier quand un lead est confirmé" },
-                  { title: "Problèmes de synchronisation", desc: "Alertes en cas de problème Shopify" },
-                  { title: "Rapports quotidiens",       desc: "Recevoir un rapport de performance chaque jour" },
-                  { title: "Résumé hebdomadaire",       desc: "Recevoir un résumé hebdomadaire par email" },
-                ].map((item, i) => (
-                  <div key={i} className="flex items-center justify-between py-4 border-b border-neutral-800 last:border-0">
-                    <div>
-                      <p className="text-white text-sm font-medium">{item.title}</p>
-                      <p className="text-xs text-neutral-500 mt-0.5">{item.desc}</p>
-                    </div>
-                    <label className="relative inline-flex items-center cursor-pointer flex-shrink-0">
-                      <input type="checkbox" checked={notifToggles[i] ?? false}
-                        onChange={e => setNotif(i, e.target.checked)} className="sr-only peer" />
-                      <div className="w-11 h-6 bg-neutral-700 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500" />
-                    </label>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
           {/* ── Security ─────────────────────────────────── */}
           {activeTab === "security" && (
             <div className="space-y-4">
@@ -508,12 +442,7 @@ export default function SettingsPage() {
               </div>
 
               <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-medium text-white">Historique de facturation</h2>
-                  <Button variant="ghost" size="sm" className="text-orange-400 hover:text-orange-300">
-                    <Download className="w-4 h-4 mr-1" /> Tout télécharger
-                  </Button>
-                </div>
+                <h2 className="text-lg font-medium text-white mb-4">Historique de facturation</h2>
                 <p className="text-neutral-500 text-sm py-8 text-center">Aucune facture pour le moment.</p>
               </div>
             </div>
@@ -526,29 +455,6 @@ export default function SettingsPage() {
               <div className="space-y-4">
                 {localeMsg && <Alert type={localeMsg.type} msg={localeMsg.text} />}
                 <div>
-                  <label className="block text-sm font-medium text-neutral-400 mb-2">Langue</label>
-                  <select value={lang} onChange={e => setLang(e.target.value as "fr" | "en")} className={INPUT}>
-                    <option value="fr">Français</option>
-                    <option value="en">English</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-neutral-400 mb-2">Fuseau horaire</label>
-                  <select value={timezone} onChange={e => setTimezone(e.target.value)} className={INPUT}>
-                    {[["lisbon","Europe/Lisbon (GMT+0)"],["madrid","Europe/Madrid (GMT+1)"],["paris","Europe/Paris (GMT+1)"],["casablanca","Africa/Casablanca (GMT+1)"],["utc","UTC"]].map(([v,l]) => (
-                      <option key={v} value={v}>{l}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-neutral-400 mb-2">Format de date</label>
-                  <select value={dateFormat} onChange={e => setDateFormat(e.target.value)} className={INPUT}>
-                    {[["dmy","JJ/MM/AAAA"],["mdy","MM/JJ/AAAA"],["ymd","AAAA-MM-JJ"]].map(([v,l]) => (
-                      <option key={v} value={v}>{l}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
                   <label className="block text-sm font-medium text-neutral-400 mb-2">Devise</label>
                   <select value={currency} onChange={e => setCurrency(e.target.value)} className={INPUT}>
                     {[["eur","EUR (€)"],["usd","USD ($)"],["gbp","GBP (£)"],["mad","MAD (DH)"]].map(([v,l]) => (
@@ -560,75 +466,6 @@ export default function SettingsPage() {
                   <Button onClick={saveLocalization} className="bg-orange-500 hover:bg-orange-600 text-white gap-2">
                     <Save className="w-4 h-4" /> Sauvegarder
                   </Button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* ── Appearance ───────────────────────────────── */}
-          {activeTab === "appearance" && (
-            <div className="space-y-4">
-              <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-6">
-                <h2 className="text-lg font-medium text-white mb-6">Thème</h2>
-                <div className="grid grid-cols-3 gap-4">
-                  {([
-                    {
-                      id: "dark",   label: "Sombre",  icon: Moon,
-                      previewStyle: { background: "#0a0a0a", border: "1px solid #404040" } as React.CSSProperties,
-                    },
-                    {
-                      id: "light",  label: "Clair",   icon: Sun,
-                      previewStyle: { background: "#f1f5f9", border: "1px solid #d1d5db" } as React.CSSProperties,
-                    },
-                    {
-                      id: "system", label: "Système", icon: Monitor,
-                      previewStyle: { background: "linear-gradient(135deg, #0a0a0a 50%, #f1f5f9 50%)", border: "1px solid #737373" } as React.CSSProperties,
-                    },
-                  ] as const).map((opt) => (
-                    <button
-                      key={opt.id}
-                      onClick={() => setTheme(opt.id)}
-                      className={`relative flex flex-col items-center gap-3 p-4 rounded-xl border-2 transition-colors ${
-                        theme === opt.id
-                          ? "border-orange-500 bg-orange-500/5"
-                          : "border-neutral-700 hover:border-neutral-600 bg-neutral-800/50"
-                      }`}
-                    >
-                      {theme === opt.id && (
-                        <div className="absolute top-2 right-2 w-5 h-5 bg-orange-500 rounded-full flex items-center justify-center">
-                          <Check className="w-3 h-3 text-white" />
-                        </div>
-                      )}
-                      <div className="w-full h-14 rounded-lg overflow-hidden" style={opt.previewStyle} />
-                      <div className="flex items-center gap-2">
-                        <opt.icon className="w-4 h-4 text-neutral-400" />
-                        <span className="text-sm text-neutral-300">{opt.label}</span>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-6">
-                <h2 className="text-lg font-medium text-white mb-4">Préférences d&apos;affichage</h2>
-                <div className="space-y-1">
-                  {[
-                    { label: "Sidebar compacte",      desc: "Utiliser une barre latérale réduite" },
-                    { label: "Animations",            desc: "Activer les transitions et animations" },
-                    { label: "Badge de notifications",desc: "Afficher le compteur non-lu sur la cloche" },
-                  ].map((item, i) => (
-                    <div key={i} className="flex items-center justify-between py-4 border-b border-neutral-800 last:border-0">
-                      <div>
-                        <p className="text-white text-sm font-medium">{item.label}</p>
-                        <p className="text-xs text-neutral-500 mt-0.5">{item.desc}</p>
-                      </div>
-                      <label className="relative inline-flex items-center cursor-pointer flex-shrink-0">
-                        <input type="checkbox" checked={dispToggles[i] ?? false}
-                          onChange={e => setDisp(i, e.target.checked)} className="sr-only peer" />
-                        <div className="w-11 h-6 bg-neutral-700 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500" />
-                      </label>
-                    </div>
-                  ))}
                 </div>
               </div>
             </div>

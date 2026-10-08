@@ -8,12 +8,14 @@ import {
   Users, ShoppingCart, Wallet, HelpCircle, Bell, RefreshCw,
   Link2, Gift, Boxes, X, Menu, Search, ArrowUpRight,
   CheckCircle2, UserPlus, Truck, DollarSign, AlertTriangle, Info,
+  Moon, Sun,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { getClientIdFromCookie } from "@/lib/client-cookie"
 import { Logo } from "@/components/logo"
 import { useRealtime, type RealtimeEvent } from "@/hooks/useSse"
 import { useCurrency } from "@/hooks/useCurrency"
+import { useTheme } from "next-themes"
 interface NavItem {
   href: string
   icon: React.ElementType
@@ -147,6 +149,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   })
   const [balance,        setBalance]        = useState<number | null>(null)
   const { fmt: fmtBalance }                 = useCurrency()
+  const { theme, setTheme }                 = useTheme()
+  const [mounted,        setMounted]        = useState(false)
+  useEffect(() => { setMounted(true) }, [])
   const [refreshing,     setRefreshing]     = useState(false)
   const [clientId,       setClientId]       = useState(getClientIdFromCookie)
   const [leadsCount,     setLeadsCount]     = useState(0)
@@ -203,7 +208,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     : navGroups
 
   const [clientName,     setClientName]     = useState("")
-  const [clientPlan,     setClientPlan]     = useState("")
   const [clientInitials, setClientInitials] = useState("")
   const [clientColor,    setClientColor]    = useState("from-orange-500 to-red-600")
   const [suspended,      setSuspended]      = useState(false)
@@ -280,7 +284,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         const lastName  = client.lastName  ?? ""
         setClientId(client.id)
         setClientName(firstName)
-        setClientPlan(client.plan === "enterprise" ? "Enterprise" : client.plan === "pro" ? "Pro" : client.status === "trial" ? "Free trial" : "Starter")
         setClientInitials((firstName[0] ?? "") + (lastName[0] ?? ""))
         setClientColor(client.avatarColor ?? "from-orange-500 to-red-600")
         fetchBalance(client.id)
@@ -505,6 +508,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </Link>
             )}
 
+            {/* Theme toggle */}
+            <Button
+              variant="ghost" size="icon"
+              onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+              className="hidden sm:inline-flex text-neutral-400 hover:bg-neutral-800 hover:text-orange-500"
+              title={mounted && theme === "light" ? "Switch to dark" : "Switch to light"}
+            >
+              {mounted && theme === "light" ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
+            </Button>
+
             {/* Refresh */}
             <Button
               variant="ghost" size="icon"
@@ -612,7 +625,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </div>
               <div className="hidden sm:block">
                 <p className="text-white text-sm font-medium leading-none">{clientName || "…"}</p>
-                <p className="text-neutral-400 text-xs">{clientPlan}</p>
               </div>
             </div>
           </div>
