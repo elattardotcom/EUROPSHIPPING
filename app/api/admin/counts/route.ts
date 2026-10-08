@@ -1,9 +1,12 @@
 import { NextResponse } from "next/server"
-import { getSupabase } from "@/lib/supabase"
+import { getSupabaseAdmin } from "@/lib/supabase"
+import { requireAdmin } from "@/lib/admin-auth"
 
 export async function GET() {
+  const denied = await requireAdmin()
+  if (denied) return denied
   try {
-    const sb = getSupabase()
+    const sb = getSupabaseAdmin()
     if (!sb) return NextResponse.json({ clients: 0, orders: 0, leads: 0, withdrawals: 0, requests: 0 })
 
     const [

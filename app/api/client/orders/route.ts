@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getSupabase } from "@/lib/supabase"
+import { getSupabaseAdmin } from "@/lib/supabase"
 import { ALL_ORDERS }  from "@/lib/mock-data"
 
 export async function GET(req: NextRequest) {
@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
   // Demo client always gets mock data
   if (clientId === "c1") return NextResponse.json(ALL_ORDERS)
 
-  const sb = getSupabase()
+  const sb = getSupabaseAdmin()
   if (!sb) return NextResponse.json([])
 
   try {

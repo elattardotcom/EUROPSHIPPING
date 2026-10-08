@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getClientById, getClientOrders, getClientLeads, getClientStores, getPaymentMethods } from "@/lib/db"
 import { getSupabaseAdmin } from "@/lib/supabase"
+import { requireAdmin } from "@/lib/admin-auth"
+
+const VALID_PLANS  = ["starter", "pro", "enterprise"]
+const VALID_STATUS = ["active", "trial", "suspended", "cancelled"]
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const denied = await requireAdmin()
+  if (denied) return denied
   const { id } = await params
   const [client, orders, leads, stores, paymentMethods] = await Promise.all([
     getClientById(id),
@@ -16,8 +22,13 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
 }
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const denied = await requireAdmin()
+  if (denied) return denied
   const { id } = await params
   const { plan, status } = await req.json()
+
+  if (plan   !== undefined && !VALID_PLANS.includes(plan))   return NextResponse.json({ error: "Invalid plan" }, { status: 400 })
+  if (status !== undefined && !VALID_STATUS.includes(status)) return NextResponse.json({ error: "Invalid status" }, { status: 400 })
 
   const sb = getSupabaseAdmin()
   if (!sb) return NextResponse.json({ error: "DB non configurée" }, { status: 500 })

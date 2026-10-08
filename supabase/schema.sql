@@ -120,6 +120,12 @@ ALTER TABLE stores           ENABLE ROW LEVEL SECURITY;
 ALTER TABLE auth_credentials   ENABLE ROW LEVEL SECURITY;
 ALTER TABLE balance_adjustments ENABLE ROW LEVEL SECURITY;
 
+-- NOTE: no anon policies are created on purpose. RLS is enabled with zero
+-- grants to `anon`/`authenticated`, so all access is deny-by-default for
+-- those roles. The app never uses Supabase Auth (custom cookie auth instead),
+-- so every read/write goes through the service-role key server-side, which
+-- bypasses RLS entirely. See supabase/migrations/lock_down_rls_phase0.sql
+-- for the full rationale and the Realtime tradeoff this implies.
 DROP POLICY IF EXISTS "public_access" ON clients;
 DROP POLICY IF EXISTS "public_access" ON balances;
 DROP POLICY IF EXISTS "public_access" ON withdrawals;
@@ -128,15 +134,6 @@ DROP POLICY IF EXISTS "public_access" ON leads;
 DROP POLICY IF EXISTS "public_access" ON stores;
 DROP POLICY IF EXISTS "public_access" ON auth_credentials;
 DROP POLICY IF EXISTS "public_access" ON balance_adjustments;
-
-CREATE POLICY "public_access" ON clients          FOR ALL TO anon USING (true) WITH CHECK (true);
-CREATE POLICY "public_access" ON balances         FOR ALL TO anon USING (true) WITH CHECK (true);
-CREATE POLICY "public_access" ON withdrawals      FOR ALL TO anon USING (true) WITH CHECK (true);
-CREATE POLICY "public_access" ON orders           FOR ALL TO anon USING (true) WITH CHECK (true);
-CREATE POLICY "public_access" ON leads            FOR ALL TO anon USING (true) WITH CHECK (true);
-CREATE POLICY "public_access" ON stores           FOR ALL TO anon USING (true) WITH CHECK (true);
-CREATE POLICY "public_access" ON auth_credentials   FOR ALL TO anon USING (true) WITH CHECK (true);
-CREATE POLICY "public_access" ON balance_adjustments FOR ALL TO anon USING (true) WITH CHECK (true);
 
 -- ─── Realtime ────────────────────────────────────────────────────────────────
 ALTER PUBLICATION supabase_realtime ADD TABLE withdrawals;

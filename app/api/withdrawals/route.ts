@@ -1,5 +1,7 @@
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 import { getWithdrawals, createWithdrawal } from "@/lib/db"
+import { getSupabaseAdmin } from "@/lib/supabase"
+import { requireAdmin } from "@/lib/admin-auth"
 
 async function sendRequestConfirmationEmail(w: {
   id: string
@@ -152,12 +154,39 @@ async function sendRequestConfirmationEmail(w: {
 }
 
 export async function GET() {
+  const denied = await requireAdmin()
+  if (denied) return denied
   return NextResponse.json(await getWithdrawals())
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
+  const clientId = req.cookies.get("client_id")?.value
+  if (!clientId) return NextResponse.json({ error: "Non authentifié" }, { status: 401 })
+
+  const sb = getSupabaseAdmin()
+  if (!sb) return NextResponse.json({ error: "Base de données non configurée" }, { status: 500 })
+
+  const { data: client } = await sb
+    .from("clients")
+    .select("id, first_name, last_name, email")
+    .eq("id", clientId)
+    .single()
+  if (!client) return NextResponse.json({ error: "Client introuvable" }, { status: 404 })
+
   const body = await req.json()
-  const w = await createWithdrawal(body)
+  const amount = parseFloat(body.amount)
+  if (!amount || amount <= 0) return NextResponse.json({ error: "Montant invalide" }, { status: 400 })
+
+  const w = await createWithdrawal({
+    clientId,
+    clientName:        `${client.first_name ?? ""} ${client.last_name ?? ""}`.trim(),
+    clientEmail:       client.email,
+    amount,
+    currency:          body.currency ?? "EUR",
+    iban:              body.iban,
+    paymentMethodType: body.paymentMethodType,
+    paymentDetails:    body.paymentDetails,
+  })
   if (!w) return NextResponse.json({ error: "Failed to create withdrawal" }, { status: 500 })
 
   if (w.clientEmail) {

@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getSupabaseAdmin } from "@/lib/supabase"
 import { fetchShopifyProducts, extractPricing } from "@/lib/shopify"
+import { requireAdmin } from "@/lib/admin-auth"
 
 export async function GET(req: NextRequest) {
+  const denied = await requireAdmin()
+  if (denied) return denied
   const sb = getSupabaseAdmin()
   if (!sb) return NextResponse.json({ error: "Supabase non configuré" })
 

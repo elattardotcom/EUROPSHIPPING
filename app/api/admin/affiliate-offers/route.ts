@@ -1,12 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getSupabaseAdmin } from "@/lib/supabase"
-
-function auth(req: NextRequest) {
-  return req.cookies.get("admin_session")?.value
-}
+import { requireAdmin } from "@/lib/admin-auth"
 
 export async function GET(req: NextRequest) {
-  if (!auth(req)) return NextResponse.json({ error: "Non autorisé" }, { status: 401 })
+  const denied = await requireAdmin()
+  if (denied) return denied
   const sb = getSupabaseAdmin()
   if (!sb) return NextResponse.json([])
   const [offersRes, countsRes] = await Promise.all([
@@ -22,7 +20,8 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  if (!auth(req)) return NextResponse.json({ error: "Non autorisé" }, { status: 401 })
+  const denied = await requireAdmin()
+  if (denied) return denied
   const sb = getSupabaseAdmin()
   if (!sb) return NextResponse.json({ error: "DB non configurée" }, { status: 500 })
   const body = await req.json()

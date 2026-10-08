@@ -1,12 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getSupabaseAdmin } from "@/lib/supabase"
-
-function auth(req: NextRequest) {
-  return req.cookies.get("admin_session")?.value
-}
+import { requireAdmin } from "@/lib/admin-auth"
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  if (!auth(req)) return NextResponse.json({ error: "Non autorisé" }, { status: 401 })
+  const denied = await requireAdmin()
+  if (denied) return denied
   const { id } = await params
   const body = await req.json()
   const sb = getSupabaseAdmin()
@@ -32,7 +30,8 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 }
 
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  if (!auth(req)) return NextResponse.json({ error: "Non autorisé" }, { status: 401 })
+  const denied = await requireAdmin()
+  if (denied) return denied
   const { id } = await params
   const sb = getSupabaseAdmin()
   if (!sb) return NextResponse.json({ error: "DB non configurée" }, { status: 500 })

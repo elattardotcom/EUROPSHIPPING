@@ -329,6 +329,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   useRealtime(onRealtimeEvent)
 
+  // Realtime relies on the anon client and is no longer guaranteed once RLS
+  // denies anon SELECT on withdrawals/balances — poll the balance as a fallback.
+  useEffect(() => {
+    if (!clientId) return
+    const interval = setInterval(() => fetchBalance(clientId), 20_000)
+    return () => clearInterval(interval)
+  }, [clientId])
+
   // Close mobile drawer on route change
   useEffect(() => { setMobileOpen(false) }, [pathname])
 

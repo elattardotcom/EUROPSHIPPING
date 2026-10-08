@@ -363,6 +363,13 @@ export default function WalletPage() {
 
   useEffect(() => { load() }, [load])
 
+  // Realtime relies on the anon client and is no longer guaranteed once RLS
+  // denies anon SELECT on withdrawals/balances — poll as a fallback.
+  useEffect(() => {
+    const interval = setInterval(load, 15_000)
+    return () => clearInterval(interval)
+  }, [load])
+
   useEffect(() => {
     fetch("/api/auth/me")
       .then(r => r.json())

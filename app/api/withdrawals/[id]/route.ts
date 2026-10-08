@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { processWithdrawal } from "@/lib/db"
 import { sendEmail, emailShell } from "@/lib/resend"
+import { requireAdmin } from "@/lib/admin-auth"
 
 async function sendRejectionEmail(w: {
   id: string
@@ -204,6 +205,9 @@ export async function PATCH(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const denied = await requireAdmin()
+  if (denied) return denied
+
   const { id } = await params
   const { status, adminNote } = await req.json()
 

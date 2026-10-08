@@ -1,9 +1,10 @@
-import { NextRequest, NextResponse } from "next/server"
+import { NextResponse } from "next/server"
 import { getSupabaseAdmin } from "@/lib/supabase"
+import { requireAdmin } from "@/lib/admin-auth"
 
-export async function GET(req: NextRequest) {
-  const adminSession = req.cookies.get("admin_session")?.value
-  if (!adminSession) return NextResponse.json({ error: "Non autorisé" }, { status: 401 })
+export async function GET() {
+  const denied = await requireAdmin()
+  if (denied) return denied
 
   const sb = getSupabaseAdmin()
   if (!sb) return NextResponse.json([])

@@ -19,8 +19,8 @@ CREATE TABLE IF NOT EXISTS products (
 );
 
 ALTER TABLE products ENABLE ROW LEVEL SECURITY;
+-- No anon policy on purpose — see supabase/migrations/lock_down_rls_phase0.sql
 DROP POLICY IF EXISTS "public_access" ON products;
-CREATE POLICY "public_access" ON products FOR ALL TO anon USING (true) WITH CHECK (true);
 
 -- Realtime pour sync en direct
 ALTER PUBLICATION supabase_realtime ADD TABLE products;

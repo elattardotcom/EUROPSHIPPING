@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { updateOrder } from "@/lib/db"
 import type { OrderStatus } from "@/lib/db"
 import { getSupabaseAdmin } from "@/lib/supabase"
+import { requireAdmin } from "@/lib/admin-auth"
 
 const VALID_STATUSES: OrderStatus[] = ["PENDING", "SHIPPED", "DELIVERED", "RETURNED", "ERROR"]
 
@@ -9,6 +10,8 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const denied = await requireAdmin()
+  if (denied) return denied
   const { id } = await params
   const body = await req.json().catch(() => ({}))
 

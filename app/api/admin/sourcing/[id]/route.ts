@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getSupabaseAdmin } from "@/lib/supabase"
+import { requireAdmin } from "@/lib/admin-auth"
 
 const VALID = ["PENDING", "PROCESSING", "SHIPPED", "RECEIVED", "CANCELED"]
 
@@ -7,8 +8,8 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const adminSession = req.cookies.get("admin_session")?.value
-  if (!adminSession) return NextResponse.json({ error: "Non autorisé" }, { status: 401 })
+  const denied = await requireAdmin()
+  if (denied) return denied
 
   const { id } = await params
   const body = await req.json()

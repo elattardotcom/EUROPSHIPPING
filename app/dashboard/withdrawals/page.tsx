@@ -55,6 +55,13 @@ export default function WithdrawalsPage() {
 
   useEffect(() => { load() }, [load])
 
+  // Realtime relies on the anon client and is no longer guaranteed once RLS
+  // denies anon SELECT on withdrawals/balances — poll as a fallback.
+  useEffect(() => {
+    const interval = setInterval(load, 15_000)
+    return () => clearInterval(interval)
+  }, [load])
+
   const loadPayMethods = useCallback(async () => {
     try {
       const methods: PaymentMethod[] = await fetch("/api/client/payment-methods").then(r => r.json())

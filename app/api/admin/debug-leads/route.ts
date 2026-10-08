@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server"
 import { getSupabaseAdmin } from "@/lib/supabase"
+import { requireAdmin } from "@/lib/admin-auth"
 
 export async function GET() {
+  const denied = await requireAdmin()
+  if (denied) return denied
   const sb = getSupabaseAdmin()
   if (!sb) return NextResponse.json({ error: "DB non configurée" })
 

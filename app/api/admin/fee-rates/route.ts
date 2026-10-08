@@ -1,12 +1,17 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getFeeRates, upsertFeeRate, deleteFeeRate } from "@/lib/db"
+import { requireAdmin } from "@/lib/admin-auth"
 
 export async function GET() {
+  const denied = await requireAdmin()
+  if (denied) return denied
   const rates = await getFeeRates()
   return NextResponse.json(rates)
 }
 
 export async function PUT(req: NextRequest) {
+  const denied = await requireAdmin()
+  if (denied) return denied
   const body = await req.json()
   const { countryCode, countryName, deliveryFee, returnFee, callCenterFee } = body
   if (!countryCode || !countryName) return NextResponse.json({ error: "Champs requis" }, { status: 400 })
@@ -22,6 +27,8 @@ export async function PUT(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
+  const denied = await requireAdmin()
+  if (denied) return denied
   const { searchParams } = new URL(req.url)
   const countryCode = searchParams.get("code")
   if (!countryCode) return NextResponse.json({ error: "Code manquant" }, { status: 400 })

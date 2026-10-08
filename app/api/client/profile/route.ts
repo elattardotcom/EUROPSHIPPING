@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getSupabase }              from "@/lib/supabase"
+import { getSupabaseAdmin }         from "@/lib/supabase"
 import { readClients, writeClients } from "@/lib/clients-store"
 
 const COUNTRY_NAMES: Record<string, string> = {
@@ -16,7 +16,7 @@ export async function PATCH(req: NextRequest) {
 
   const { firstName, lastName, phone, company, countryCode, plan } = await req.json()
 
-  const sb = getSupabase()
+  const sb = getSupabaseAdmin()
 
   if (sb) {
     const updatePayload: Record<string, unknown> = {
