@@ -522,7 +522,7 @@ export default function AdminDashboard() {
         <div className="absolute top-0 left-0 right-0 h-px" style={{ background: "linear-gradient(90deg,transparent,#f97316,transparent)" }} />
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
-            <p className="text-[10px] font-black uppercase tracking-widest text-orange-400 mb-1">CODShipEurope Pro · €31.99/month</p>
+            <p className="text-[10px] font-black uppercase tracking-widest text-orange-400 mb-1">CODShipEurope Pro</p>
             <div className="flex items-baseline gap-3 mb-1">
               <span className="text-4xl font-black text-white">€{mrr.toFixed(2)}</span>
               <span className="text-neutral-500 text-sm">current MRR</span>

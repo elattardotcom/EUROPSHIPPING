@@ -85,7 +85,7 @@ function ActionModal({
 
           {isApprove && (
             <p className="text-sm text-neutral-400">
-              A <span className="text-white font-medium">CODShipEurope Pro</span> client account (€31.99/month) will be created. The client will be able to sign in immediately.
+              A <span className="text-white font-medium">CODShipEurope Pro</span> client account will be created. The client will be able to sign in immediately.
             </p>
           )}
 
@@ -251,7 +251,7 @@ export default function RequestsPage() {
                       {new Date(req.created_at).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
                     </p>
                     <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border ${PLAN_CFG.Pro.bg} ${PLAN_CFG.Pro.color}`}>
-                      Pro · €31.99
+                      Pro
                     </span>
                   </div>
                 </div>
