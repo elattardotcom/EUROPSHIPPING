@@ -161,9 +161,9 @@ async function downloadInvoice(inv: Invoice, clientWithdrawals: Withdrawal[], in
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 .page{width:${W}px;height:${H}px;display:flex;flex-direction:column;background:#fff;overflow:hidden}
-.hdr{background:linear-gradient(135deg,#f97316,#dc2626);padding:26px 36px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.hdr{background:#0a0a0a;padding:26px 36px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
 .hdr-logo{display:flex;align-items:center;gap:14px}
-.hdr-icon{height:48px;background:#fff;border-radius:12px;display:flex;align-items:center;justify-content:center;padding:7px 10px}
+.hdr-icon{height:48px;display:flex;align-items:center;justify-content:center}
 .hdr-icon img{height:100%;width:auto;display:block}
 .hdr-name{font-size:22px;font-weight:800;color:#fff;line-height:1}
 .hdr-sub{font-size:11px;color:rgba(255,255,255,.65);letter-spacing:.5px;margin-top:3px}

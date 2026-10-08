@@ -137,7 +137,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const pathname = usePathname()
   const router   = useRouter()
 
-  const [collapsed,      setCollapsed]      = useState(false)
   const [mobileOpen,     setMobileOpen]     = useState(false)
   const [showNotifs,     setShowNotifs]     = useState(false)
   const [notifs,         setNotifs]         = useState<Notif[]>([])
@@ -342,85 +341,66 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     <>
       {/* Logo */}
       <div className="px-3 flex items-center justify-between border-b border-neutral-800 h-16 overflow-hidden">
-        {(!collapsed || inDrawer) && (
-          <Link href="/dashboard" className="flex items-center gap-2.5 min-w-0">
-            <Logo size={40} showBg={false} />
-            <p className="text-white font-bold text-[11px] uppercase tracking-wide leading-none truncate">CODShipEurope</p>
-          </Link>
-        )}
-        {inDrawer ? (
+        <Link href="/dashboard" className="flex items-center gap-2.5 min-w-0">
+          <Logo size={40} showBg={false} />
+          <p className="text-white font-bold text-[11px] uppercase tracking-wide leading-none truncate">CODShipEurope</p>
+        </Link>
+        {inDrawer && (
           <button onClick={() => setMobileOpen(false)} className="text-neutral-400 hover:text-orange-500 ml-auto">
             <X className="w-5 h-5" />
           </button>
-        ) : (
-          <Button
-            variant="ghost" size="icon"
-            onClick={() => setCollapsed(!collapsed)}
-            className="text-neutral-400 hover:bg-neutral-800 hover:text-orange-500 flex-shrink-0"
-          >
-            <ChevronRight className={`w-4 h-4 transition-transform duration-300 ${collapsed ? "" : "rotate-180"}`} />
-          </Button>
         )}
       </div>
 
       {/* Search */}
-      {(!collapsed || inDrawer) && (
-        <div className="px-3 pt-3">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-neutral-500" />
-            <input
-              value={navSearch}
-              onChange={e => setNavSearch(e.target.value)}
-              placeholder="Search"
-              className="w-full bg-neutral-800 border border-neutral-700 rounded-lg pl-9 pr-3 py-2 text-sm text-white placeholder:text-neutral-500 focus:outline-none focus:border-orange-500/60 transition-colors"
-            />
-          </div>
+      <div className="px-3 pt-3">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-neutral-500" />
+          <input
+            value={navSearch}
+            onChange={e => setNavSearch(e.target.value)}
+            placeholder="Search"
+            className="w-full bg-neutral-800 border border-neutral-700 rounded-lg pl-9 pr-3 py-2 text-sm text-white placeholder:text-neutral-500 focus:outline-none focus:border-orange-500/60 transition-colors"
+          />
         </div>
-      )}
+      </div>
 
       {/* Nav */}
       <nav className="flex-1 overflow-y-auto p-3 space-y-3">
-        {filteredNavGroups.map(group => {
-          const showText = !collapsed || inDrawer
-          return (
-            <div key={group.label} className="space-y-0.5">
-              {showText && (
-                <p className="text-neutral-600 text-[10px] uppercase tracking-widest px-3 py-1">{group.label}</p>
-              )}
-              {group.items.map(item => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors text-sm ${
-                    isActive(item.href)
-                      ? "bg-orange-500/10 text-orange-400"
-                      : "text-neutral-400 hover:bg-neutral-800 hover:text-white"
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <item.icon className="w-4 h-4 flex-shrink-0" />
-                    {showText && <span>{item.label}</span>}
-                  </div>
-                  {showText && item.badge !== undefined && (
-                    <span className="bg-orange-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-medium">
-                      {item.badge}
-                    </span>
-                  )}
-                </Link>
-              ))}
-            </div>
-          )
-        })}
-        {filteredNavGroups.length === 0 && (!collapsed || inDrawer) && (
+        {filteredNavGroups.map(group => (
+          <div key={group.label} className="space-y-0.5">
+            <p className="text-neutral-600 text-[10px] uppercase tracking-widest px-3 py-1">{group.label}</p>
+            {group.items.map(item => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors text-sm ${
+                  isActive(item.href)
+                    ? "bg-orange-500/10 text-orange-400"
+                    : "text-neutral-400 hover:bg-neutral-800 hover:text-white"
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <item.icon className="w-4 h-4 flex-shrink-0" />
+                  <span>{item.label}</span>
+                </div>
+                {item.badge !== undefined && (
+                  <span className="bg-orange-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-medium">
+                    {item.badge}
+                  </span>
+                )}
+              </Link>
+            ))}
+          </div>
+        ))}
+        {filteredNavGroups.length === 0 && (
           <p className="text-neutral-600 text-sm text-center py-6">No results</p>
         )}
       </nav>
 
       {/* Bottom */}
       <div className="p-3 border-t border-neutral-800 space-y-0.5">
-        {(!collapsed || inDrawer) && (
-          <p className="text-neutral-600 text-[10px] uppercase tracking-widest px-3 py-1">Help</p>
-        )}
+        <p className="text-neutral-600 text-[10px] uppercase tracking-widest px-3 py-1">Help</p>
         <Link
           href="/dashboard/contact"
           className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-sm ${
@@ -430,7 +410,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           }`}
         >
           <HelpCircle className="w-4 h-4 flex-shrink-0" />
-          {(!collapsed || inDrawer) && <span>Contact</span>}
+          <span>Contact</span>
         </Link>
         <Link
           href="/dashboard/settings"
@@ -441,7 +421,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           }`}
         >
           <Settings className="w-4 h-4 flex-shrink-0" />
-          {(!collapsed || inDrawer) && <span>Settings</span>}
+          <span>Settings</span>
         </Link>
       </div>
     </>
@@ -472,7 +452,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     <div data-dashboard className="flex h-screen bg-neutral-950 overflow-hidden">
 
       {/* ── Desktop Sidebar ─────────────────────────────────── */}
-      <aside className={`${collapsed ? "w-16" : "w-64"} hidden md:flex flex-shrink-0 bg-neutral-900 border-r border-neutral-800 transition-all duration-300 flex-col h-full z-30`}>
+      <aside className="w-64 hidden md:flex flex-shrink-0 bg-neutral-900 border-r border-neutral-800 flex-col h-full z-30">
         <SidebarContent />
       </aside>
 
