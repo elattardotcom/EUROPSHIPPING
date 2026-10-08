@@ -46,61 +46,35 @@
 -- either, since this app does not use Supabase Auth. All access must go
 -- through the service-role key (server-side only, never shipped to browser),
 -- which bypasses RLS by design.
+--
+-- Every table is guarded with an information_schema existence check before
+-- being touched: the live database was found to diverge from the committed
+-- schema.sql (e.g. `auth_credentials` was never actually created — the app
+-- falls back to clients.password_hash), so this migration must not assume
+-- any table listed in schema.sql actually exists in production.
 -- ============================================================================
 
--- ─── Tables defined in supabase/schema.sql ─────────────────────────────────
-DROP POLICY IF EXISTS "public_access" ON clients;
-DROP POLICY IF EXISTS "public_access" ON balances;
-DROP POLICY IF EXISTS "public_access" ON withdrawals;
-DROP POLICY IF EXISTS "public_access" ON orders;
-DROP POLICY IF EXISTS "public_access" ON leads;
-DROP POLICY IF EXISTS "public_access" ON stores;
-DROP POLICY IF EXISTS "public_access" ON auth_credentials;
-DROP POLICY IF EXISTS "public_access" ON balance_adjustments;
-
--- ─── Tables defined in supabase/shopify_schema.sql ─────────────────────────
-DROP POLICY IF EXISTS "public_access" ON products;
-
--- ─── Tables that exist in production but were created ad hoc (not tracked
---     in any committed schema file) — found via admin routes that read them.
---     Guarded with IF EXISTS so this migration is safe to run even if a
---     given table isn't present in a particular environment.
 DO $$
+DECLARE
+  t TEXT;
 BEGIN
-  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'payment_methods') THEN
-    ALTER TABLE payment_methods ENABLE ROW LEVEL SECURITY;
-    EXECUTE 'DROP POLICY IF EXISTS "public_access" ON payment_methods';
-  END IF;
-
-  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'registration_requests') THEN
-    ALTER TABLE registration_requests ENABLE ROW LEVEL SECURITY;
-    EXECUTE 'DROP POLICY IF EXISTS "public_access" ON registration_requests';
-  END IF;
-
-  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'fee_rates') THEN
-    ALTER TABLE fee_rates ENABLE ROW LEVEL SECURITY;
-    EXECUTE 'DROP POLICY IF EXISTS "public_access" ON fee_rates';
-  END IF;
-
-  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'cod_products') THEN
-    ALTER TABLE cod_products ENABLE ROW LEVEL SECURITY;
-    EXECUTE 'DROP POLICY IF EXISTS "public_access" ON cod_products';
-  END IF;
-
-  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'affiliate_offers') THEN
-    ALTER TABLE affiliate_offers ENABLE ROW LEVEL SECURITY;
-    EXECUTE 'DROP POLICY IF EXISTS "public_access" ON affiliate_offers';
-  END IF;
-
-  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'client_product_activations') THEN
-    ALTER TABLE client_product_activations ENABLE ROW LEVEL SECURITY;
-    EXECUTE 'DROP POLICY IF EXISTS "public_access" ON client_product_activations';
-  END IF;
-
-  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'sourcing_requests') THEN
-    ALTER TABLE sourcing_requests ENABLE ROW LEVEL SECURITY;
-    EXECUTE 'DROP POLICY IF EXISTS "public_access" ON sourcing_requests';
-  END IF;
+  FOREACH t IN ARRAY ARRAY[
+    -- tables defined in supabase/schema.sql
+    'clients', 'balances', 'withdrawals', 'orders', 'leads', 'stores',
+    'auth_credentials', 'balance_adjustments',
+    -- table defined in supabase/shopify_schema.sql
+    'products',
+    -- tables that exist in production but were created ad hoc (not tracked
+    -- in any committed schema file) — found via admin routes that read them
+    'payment_methods', 'registration_requests', 'fee_rates', 'cod_products',
+    'affiliate_offers', 'client_product_activations', 'sourcing_requests'
+  ]
+  LOOP
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = t) THEN
+      EXECUTE format('ALTER TABLE %I ENABLE ROW LEVEL SECURITY', t);
+      EXECUTE format('DROP POLICY IF EXISTS "public_access" ON %I', t);
+    END IF;
+  END LOOP;
 END $$;
 
 -- ============================================================================
