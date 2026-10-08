@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { processWithdrawal } from "@/lib/db"
 import { sendEmail, emailShell } from "@/lib/resend"
 import { requireAdmin } from "@/lib/admin-auth"
+import { getAdminEmail, logAdminAction } from "@/lib/audit-log"
 
 async function sendRejectionEmail(w: {
   id: string
@@ -217,6 +218,11 @@ export async function PATCH(
 
   const w = await processWithdrawal(id, status, adminNote)
   if (!w) return NextResponse.json({ error: "Not found or already processed" }, { status: 404 })
+
+  const adminEmail = await getAdminEmail()
+  if (adminEmail) {
+    await logAdminAction(adminEmail, `withdrawal_${status}`, "withdrawal", id, { amount: w.amount, currency: w.currency, clientId: w.clientId, adminNote: adminNote ?? null })
+  }
 
   if (status === "approved" && w.clientEmail) {
     await sendPayoutEmail({

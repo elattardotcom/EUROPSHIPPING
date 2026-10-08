@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getSupabaseAdmin } from "@/lib/supabase"
 import { requireAdmin } from "@/lib/admin-auth"
+import { getAdminEmail, logAdminAction } from "@/lib/audit-log"
 
 const AVATAR_COLORS = [
   "from-orange-500 to-red-600", "from-teal-500 to-emerald-600",
@@ -42,6 +43,10 @@ export async function PATCH(
     await sb.from("registration_requests")
       .update({ status: "rejected", admin_note: adminNote ?? null })
       .eq("id", id)
+    const adminEmail = await getAdminEmail()
+    if (adminEmail) {
+      await logAdminAction(adminEmail, "registration_reject", "registration_request", id, { email: regReq.email, adminNote: adminNote ?? null })
+    }
     return NextResponse.json({ success: true, action: "rejected" })
   }
 
@@ -99,6 +104,11 @@ export async function PATCH(
   await sb.from("registration_requests")
     .update({ status: "approved", admin_note: adminNote ?? null })
     .eq("id", id)
+
+  const adminEmail = await getAdminEmail()
+  if (adminEmail) {
+    await logAdminAction(adminEmail, "registration_approve", "registration_request", id, { email: regReq.email, clientId })
+  }
 
   // Send approval email to the client
   const apiKey  = process.env.RESEND_API_KEY

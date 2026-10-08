@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createAdjustment, getClientAdjustments } from "@/lib/db"
 import { requireAdmin } from "@/lib/admin-auth"
+import { getAdminEmail, logAdminAction } from "@/lib/audit-log"
 
 export async function GET(
   _req: NextRequest,
@@ -31,6 +32,11 @@ export async function POST(
 
   const finalAmount = type === "credit" ? Math.abs(Number(amount)) : -Math.abs(Number(amount))
   const adj = await createAdjustment(id, finalAmount, reason ?? "")
-  console.log(`[audit] balance_adjustment client=${id} amount=${finalAmount} reason=${JSON.stringify(reason ?? "")} at=${new Date().toISOString()}`)
+
+  const adminEmail = await getAdminEmail()
+  if (adminEmail) {
+    await logAdminAction(adminEmail, "balance_adjustment", "client", id, { amount: finalAmount, type, reason: reason ?? "" })
+  }
+
   return NextResponse.json(adj)
 }

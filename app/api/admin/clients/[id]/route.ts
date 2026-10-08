@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getClientById, getClientOrders, getClientLeads, getClientStores, getPaymentMethods } from "@/lib/db"
 import { getSupabaseAdmin } from "@/lib/supabase"
 import { requireAdmin } from "@/lib/admin-auth"
+import { getAdminEmail, logAdminAction } from "@/lib/audit-log"
 
 const VALID_PLANS  = ["starter", "pro", "enterprise"]
 const VALID_STATUS = ["active", "trial", "suspended", "cancelled"]
@@ -39,6 +40,11 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
   const { error } = await sb.from("clients").update(payload).eq("id", id)
   if (error) return NextResponse.json({ error: error.message }, { status: 400 })
+
+  const adminEmail = await getAdminEmail()
+  if (adminEmail) {
+    await logAdminAction(adminEmail, "client_update", "client", id, { plan, status })
+  }
 
   // Send activation email when status → active
   if (status === "active") {
