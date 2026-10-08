@@ -79,7 +79,7 @@ export default function AdminWithdrawals() {
     const [copied, setCopied] = useState(false)
     return (
       <button onClick={() => { navigator.clipboard.writeText(value); setCopied(true); setTimeout(() => setCopied(false), 1500) }}
-        className="ml-1 text-neutral-600 hover:text-orange-400 transition-colors flex-shrink-0" title="Copier">
+        className="ml-1 text-neutral-600 hover:text-orange-400 transition-colors flex-shrink-0" title="Copy">
         {copied ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
       </button>
     )
@@ -119,18 +119,25 @@ export default function AdminWithdrawals() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
-          { label: t("with_pending"),    value: pending,              border: "border-l-amber-500",   icon: Clock,        action: "pending"  as const },
-          { label: t("with_approved"),   value: approved,             border: "border-l-emerald-500", icon: CheckCircle,  action: "approved" as const },
-          { label: t("with_rejected"),   value: rejected,             border: "border-l-red-500",     icon: XCircle,      action: "rejected" as const },
-          { label: t("with_total_pend"), value: `€${fmt(totalPending)}`, border: "border-l-orange-500", icon: DollarSign, action: "ALL"      as const },
+          { label: t("with_pending"),    value: pending,                 icon: Clock,       action: "pending"  as const, grad: "linear-gradient(135deg,#f59e0b,#d97706)", border: "rgba(245,158,11,0.25)", glow: "rgba(245,158,11,0.08)" },
+          { label: t("with_approved"),   value: approved,                icon: CheckCircle, action: "approved" as const, grad: "linear-gradient(135deg,#10b981,#059669)", border: "rgba(16,185,129,0.25)", glow: "rgba(16,185,129,0.08)" },
+          { label: t("with_rejected"),   value: rejected,                icon: XCircle,     action: "rejected" as const, grad: "linear-gradient(135deg,#ef4444,#b91c1c)", border: "rgba(239,68,68,0.25)",  glow: "rgba(239,68,68,0.08)"  },
+          { label: t("with_total_pend"), value: `€${fmt(totalPending)}`, icon: DollarSign,  action: "ALL"      as const, grad: "linear-gradient(135deg,#f97316,#dc2626)", border: "rgba(249,115,22,0.25)", glow: "rgba(249,115,22,0.08)" },
         ].map(k => (
           <button key={k.label} onClick={() => setFilter(k.action)}
-            className={`bg-neutral-900 border border-neutral-800 border-l-4 ${k.border} rounded-xl p-4 text-left hover:border-neutral-700 transition-colors`}>
-            <k.icon className="w-4 h-4 text-neutral-500 mb-2" />
-            <div className="text-2xl font-bold text-white mb-0.5">{k.value}</div>
-            <p className="text-xs text-neutral-500">{k.label}</p>
+            className="relative rounded-2xl p-5 overflow-hidden text-left transition-all hover:-translate-y-0.5"
+            style={{ background: "#111", border: `1px solid ${k.border}` }}>
+            <div className="absolute inset-0 opacity-[0.04]" style={{ background: k.grad }} />
+            <div className="absolute bottom-0 left-0 right-0 h-0.5" style={{ background: k.grad, opacity: 0.7 }} />
+            <div className="relative">
+              <div className="w-10 h-10 rounded-xl mb-4 flex items-center justify-center" style={{ background: k.glow, border: `1px solid ${k.border}` }}>
+                <k.icon className="w-5 h-5 text-white" />
+              </div>
+              <div className="text-2xl font-black text-white mb-0.5">{k.value}</div>
+              <p className="text-xs text-neutral-400 font-medium">{k.label}</p>
+            </div>
           </button>
         ))}
       </div>
@@ -162,7 +169,7 @@ export default function AdminWithdrawals() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-neutral-800">
-                {[t("with_th_client"),t("with_th_amount"),"Méthode de paiement",t("with_th_status"),t("with_th_requested"),t("with_th_processed"),"Note",t("with_th_actions")].map(h => (
+                {[t("with_th_client"),t("with_th_amount"),"Payment method",t("with_th_status"),t("with_th_requested"),t("with_th_processed"),"Note",t("with_th_actions")].map(h => (
                   <th key={h} className="text-left p-4 text-xs font-semibold text-neutral-500 uppercase tracking-wider whitespace-nowrap">{h}</th>
                 ))}
               </tr>
@@ -193,12 +200,12 @@ export default function AdminWithdrawals() {
                         const iconColor = type === "bank" ? "text-blue-400" : type === "wise" ? "text-green-400" : "text-purple-400"
                         const bg       = type === "bank" ? "bg-blue-500/10" : type === "wise" ? "bg-green-500/10" : "bg-purple-500/10"
                         const fields: { label: string; value: string; mono?: boolean }[] =
-                          type === "wise"   ? [{ label: "Email", value: p.wiseEmail ?? "—" }, { label: "Devise", value: p.wiseCurrency ?? "EUR" }]
-                          : type === "crypto" ? [{ label: "Réseau", value: p.cryptoNetwork ?? "—" }, { label: "Adresse", value: p.cryptoAddress ?? "—", mono: true }]
+                          type === "wise"   ? [{ label: "Email", value: p.wiseEmail ?? "—" }, { label: "Currency", value: p.wiseCurrency ?? "EUR" }]
+                          : type === "crypto" ? [{ label: "Network", value: p.cryptoNetwork ?? "—" }, { label: "Address", value: p.cryptoAddress ?? "—", mono: true }]
                           : [
                               { label: "IBAN", value: p.iban ?? w.iban ?? "—", mono: true },
                               ...(p.bic ? [{ label: "BIC", value: p.bic, mono: true }] : []),
-                              ...(p.accountHolder ? [{ label: "Titulaire", value: p.accountHolder }] : []),
+                              ...(p.accountHolder ? [{ label: "Holder", value: p.accountHolder }] : []),
                             ]
                         return (
                           <div className="flex items-start gap-2">

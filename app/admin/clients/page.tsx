@@ -38,12 +38,12 @@ function formatLastLogin(iso: string): string {
   const diffMin = Math.floor(diffMs / 60000)
   const diffH   = Math.floor(diffMs / 3600000)
   const diffD   = Math.floor(diffMs / 86400000)
-  if (diffMin < 1)  return "À l'instant"
-  if (diffMin < 60) return `Il y a ${diffMin} min`
-  if (diffH   < 24) return `Il y a ${diffH}h`
-  if (diffD   < 2)  return "Hier"
-  if (diffD   < 7)  return `Il y a ${diffD}j`
-  return d.toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })
+  if (diffMin < 1)  return "Just now"
+  if (diffMin < 60) return `${diffMin} min ago`
+  if (diffH   < 24) return `${diffH}h ago`
+  if (diffD   < 2)  return "Yesterday"
+  if (diffD   < 7)  return `${diffD}d ago`
+  return d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })
 }
 
 export default function AdminClients() {
@@ -59,8 +59,8 @@ export default function AdminClients() {
   async function toggleSuspend(c: Client) {
     const newStatus = c.status === "suspended" ? "active" : "suspended"
     if (!confirm(newStatus === "suspended"
-      ? `Suspendre le compte de ${c.firstName} ${c.lastName} ?`
-      : `Réactiver le compte de ${c.firstName} ${c.lastName} ?`)) return
+      ? `Suspend ${c.firstName} ${c.lastName}'s account?`
+      : `Reactivate ${c.firstName} ${c.lastName}'s account?`)) return
     setToggling(c.id)
     await fetch(`/api/admin/clients/${c.id}`, {
       method: "PATCH",
@@ -115,17 +115,24 @@ export default function AdminClients() {
         </button>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
-          { label:t("clients_total"),    value: clients.length,                                icon: Users,      color:"border-l-orange-500"  },
-          { label:t("clients_active"),   value: clients.filter(c=>c.status==="active").length, icon: Shield,     color:"border-l-emerald-500" },
-          { label:t("clients_trial"),    value: clients.filter(c=>c.status==="trial").length,  icon: TrendingUp, color:"border-l-amber-500"   },
-          { label:t("dash_mrr"),         value: `€${totalMRR}`,                                icon: DollarSign, color:"border-l-orange-400"  },
+          { label:t("clients_total"),  value: clients.length,                                 icon: Users,      grad: "linear-gradient(135deg,#f97316,#dc2626)", border: "rgba(249,115,22,0.25)", glow: "rgba(249,115,22,0.08)" },
+          { label:t("clients_active"), value: clients.filter(c=>c.status==="active").length,  icon: Shield,     grad: "linear-gradient(135deg,#10b981,#059669)", border: "rgba(16,185,129,0.25)", glow: "rgba(16,185,129,0.08)" },
+          { label:t("clients_trial"),  value: clients.filter(c=>c.status==="trial").length,   icon: TrendingUp, grad: "linear-gradient(135deg,#f59e0b,#d97706)", border: "rgba(245,158,11,0.25)", glow: "rgba(245,158,11,0.08)" },
+          { label:t("dash_mrr"),       value: `€${totalMRR}`,                                 icon: DollarSign, grad: "linear-gradient(135deg,#3b82f6,#2563eb)", border: "rgba(59,130,246,0.25)", glow: "rgba(59,130,246,0.08)" },
         ].map(k => (
-          <div key={k.label} className={`bg-neutral-900 border border-neutral-800 border-l-4 ${k.color} rounded-xl p-4`}>
-            <k.icon className="w-4 h-4 text-neutral-500 mb-3" />
-            <div className="text-2xl font-bold text-white mb-0.5">{loading ? "…" : k.value}</div>
-            <p className="text-xs text-neutral-500">{k.label}</p>
+          <div key={k.label} className="relative rounded-2xl p-5 overflow-hidden transition-all hover:-translate-y-0.5"
+            style={{ background: "#111", border: `1px solid ${k.border}` }}>
+            <div className="absolute inset-0 opacity-[0.04]" style={{ background: k.grad }} />
+            <div className="absolute bottom-0 left-0 right-0 h-0.5" style={{ background: k.grad, opacity: 0.7 }} />
+            <div className="relative">
+              <div className="w-10 h-10 rounded-xl mb-4 flex items-center justify-center" style={{ background: k.glow, border: `1px solid ${k.border}` }}>
+                <k.icon className="w-5 h-5 text-white" />
+              </div>
+              <div className="text-2xl font-black text-white mb-0.5">{loading ? "…" : k.value}</div>
+              <p className="text-xs text-neutral-400 font-medium">{k.label}</p>
+            </div>
           </div>
         ))}
       </div>
@@ -167,7 +174,7 @@ export default function AdminClients() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-neutral-800">
-                {[t("clients_th_client"),"",t("clients_th_plan"),t("clients_th_status"),t("clients_th_stores"),t("clients_th_orders"),t("clients_th_leads"),t("clients_th_mrr"),t("clients_th_joined"),"Dernière connexion",""].map((h,i) => (
+                {[t("clients_th_client"),"",t("clients_th_plan"),t("clients_th_status"),t("clients_th_stores"),t("clients_th_orders"),t("clients_th_leads"),t("clients_th_mrr"),t("clients_th_joined"),"Last login",""].map((h,i) => (
                   <th key={i} className="text-left p-4 text-xs font-semibold text-neutral-500 uppercase tracking-wider whitespace-nowrap">{h}</th>
                 ))}
               </tr>
@@ -234,14 +241,14 @@ export default function AdminClients() {
                           ) : c.status === "suspended" ? (
                             <button onClick={() => toggleSuspend(c)}
                               className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium text-emerald-400 hover:bg-emerald-500/10 transition-colors"
-                              title="Réactiver le compte">
-                              <CheckCircle className="w-3.5 h-3.5" /> Réactiver
+                              title="Reactivate account">
+                              <CheckCircle className="w-3.5 h-3.5" /> Reactivate
                             </button>
                           ) : (
                             <button onClick={() => toggleSuspend(c)}
                               className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium text-red-400 hover:bg-red-500/10 transition-colors"
-                              title="Suspendre le compte">
-                              <Ban className="w-3.5 h-3.5" /> Suspendre
+                              title="Suspend account">
+                              <Ban className="w-3.5 h-3.5" /> Suspend
                             </button>
                           )}
                         </div>

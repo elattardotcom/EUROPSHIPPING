@@ -65,11 +65,11 @@ function EditModal({
         headers: { "Content-Type": "application/json" },
         body:    JSON.stringify({ status, trackingNumber: trackingNumber.trim() || undefined }),
       })
-      if (!res.ok) { setError("Erreur lors de la mise à jour"); return }
+      if (!res.ok) { setError("Update failed"); return }
       const updated: AdminOrder = await res.json()
       onSaved(updated)
     } catch {
-      setError("Erreur réseau")
+      setError("Network error")
     } finally {
       setSaving(false)
     }
@@ -83,7 +83,7 @@ function EditModal({
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-neutral-800">
           <div>
-            <h2 className="text-base font-semibold text-white">Modifier la commande</h2>
+            <h2 className="text-base font-semibold text-white">Edit order</h2>
             <p className="text-xs text-neutral-500 mt-0.5">{order.customerName} · {order.product}</p>
           </div>
           <button onClick={onClose} className="text-neutral-500 hover:text-white transition-colors">
@@ -97,7 +97,7 @@ function EditModal({
           {/* Status */}
           <div>
             <label className="block text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-3">
-              Statut
+              Status
             </label>
             <div className="grid grid-cols-2 gap-2">
               {ALL_STATUSES.map(s => {
@@ -124,15 +124,15 @@ function EditModal({
           {/* Tracking number */}
           <div>
             <label className="block text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-2">
-              Numéro de suivi
+              Tracking number
             </label>
             <input
               value={trackingNumber}
               onChange={e => setTrackingNumber(e.target.value)}
-              placeholder="ex: 1Z999AA10123456784"
+              placeholder="e.g. 1Z999AA10123456784"
               className="w-full bg-neutral-800 border border-neutral-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-neutral-600 focus:outline-none focus:border-orange-500 font-mono"
             />
-            <p className="text-xs text-neutral-600 mt-1.5">Laisser vide pour effacer le numéro existant</p>
+            <p className="text-xs text-neutral-600 mt-1.5">Leave blank to clear the existing number</p>
           </div>
 
           {error && (
@@ -143,7 +143,7 @@ function EditModal({
         {/* Footer */}
         <div className="px-6 py-4 border-t border-neutral-800 flex items-center justify-end gap-3">
           <Button variant="ghost" onClick={onClose} className="text-neutral-400 hover:text-white">
-            Annuler
+            Cancel
           </Button>
           <Button
             onClick={save}
@@ -151,7 +151,7 @@ function EditModal({
             className="bg-orange-500 hover:bg-orange-600 text-white gap-2"
           >
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-            Enregistrer
+            Save
           </Button>
         </div>
       </div>
@@ -239,19 +239,26 @@ export default function AdminOrders() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
         {([
-          { label:t("orders_total"),    value: orders.length,                                   status:"ALL",       border:"border-l-orange-500"  },
-          { label:t("orders_pending"),  value: orders.filter(o=>o.status==="PENDING").length,   status:"PENDING",   border:"border-l-amber-500"   },
-          { label:t("orders_shipped"),  value: orders.filter(o=>o.status==="SHIPPED").length,   status:"SHIPPED",   border:"border-l-blue-500"    },
-          { label:t("orders_delivered"),value: orders.filter(o=>o.status==="DELIVERED").length, status:"DELIVERED", border:"border-l-emerald-500" },
-          { label:t("orders_returned"), value: orders.filter(o=>o.status==="RETURNED").length,  status:"RETURNED",  border:"border-l-red-500"     },
-        ] as {label:string;value:number;status:string;border:string}[]).map(k => (
+          { label:t("orders_total"),    value: orders.length,                                   status:"ALL",       grad: "linear-gradient(135deg,#f97316,#dc2626)", border: "rgba(249,115,22,0.25)", glow: "rgba(249,115,22,0.08)" },
+          { label:t("orders_pending"),  value: orders.filter(o=>o.status==="PENDING").length,   status:"PENDING",   grad: "linear-gradient(135deg,#f59e0b,#d97706)", border: "rgba(245,158,11,0.25)", glow: "rgba(245,158,11,0.08)" },
+          { label:t("orders_shipped"),  value: orders.filter(o=>o.status==="SHIPPED").length,   status:"SHIPPED",   grad: "linear-gradient(135deg,#3b82f6,#2563eb)", border: "rgba(59,130,246,0.25)", glow: "rgba(59,130,246,0.08)" },
+          { label:t("orders_delivered"),value: orders.filter(o=>o.status==="DELIVERED").length, status:"DELIVERED", grad: "linear-gradient(135deg,#10b981,#059669)", border: "rgba(16,185,129,0.25)", glow: "rgba(16,185,129,0.08)" },
+          { label:t("orders_returned"), value: orders.filter(o=>o.status==="RETURNED").length,  status:"RETURNED",  grad: "linear-gradient(135deg,#ef4444,#b91c1c)", border: "rgba(239,68,68,0.25)",  glow: "rgba(239,68,68,0.08)"  },
+        ] as {label:string;value:number;status:string;grad:string;border:string;glow:string}[]).map(k => (
           <button key={k.label} onClick={()=>{setStat(k.status as OrderStatus|"ALL");setPage(1)}}
-            className={`bg-neutral-900 border border-neutral-800 border-l-4 ${k.border} rounded-xl p-4 text-left hover:border-neutral-700 transition-colors`}>
-            <ShoppingCart className="w-4 h-4 text-neutral-500 mb-2" />
-            <div className="text-2xl font-bold text-white mb-0.5">{loading ? "…" : k.value}</div>
-            <p className="text-xs text-neutral-500">{k.label}</p>
+            className={`relative rounded-2xl p-5 overflow-hidden text-left transition-all hover:-translate-y-0.5 ${statF === k.status ? "" : ""}`}
+            style={{ background: "#111", border: `1px solid ${statF === k.status ? k.border.replace("0.25", "0.5") : k.border}` }}>
+            <div className="absolute inset-0 opacity-[0.04]" style={{ background: k.grad }} />
+            <div className="absolute bottom-0 left-0 right-0 h-0.5" style={{ background: k.grad, opacity: 0.7 }} />
+            <div className="relative">
+              <div className="w-10 h-10 rounded-xl mb-4 flex items-center justify-center" style={{ background: k.glow, border: `1px solid ${k.border}` }}>
+                <ShoppingCart className="w-5 h-5 text-white" />
+              </div>
+              <div className="text-2xl font-black text-white mb-0.5">{loading ? "…" : k.value}</div>
+              <p className="text-xs text-neutral-400 font-medium">{k.label}</p>
+            </div>
           </button>
         ))}
       </div>
@@ -334,7 +341,7 @@ export default function AdminOrders() {
                               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-orange-500/15 hover:bg-orange-500/30 text-orange-400 text-xs font-semibold transition-colors border border-orange-500/30"
                             >
                               <Pencil className="w-3 h-3" />
-                              Éditer
+                              Edit
                             </button>
                           </td>
                         </tr>

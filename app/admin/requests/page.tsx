@@ -24,18 +24,12 @@ interface RegistrationRequest {
   created_at: string
 }
 
-const PLAN_CFG: Record<string, { color: string; bg: string }> = {
-  Pro:        { color: "text-orange-400",  bg: "bg-orange-500/10 border-orange-500/20"  },
-  Starter:    { color: "text-emerald-400", bg: "bg-emerald-500/10 border-emerald-500/20" },
-  Enterprise: { color: "text-violet-400",  bg: "bg-violet-500/10 border-violet-500/20"  },
-}
-
-const PLAN_PRICES: Record<string, string> = { Pro: "€31.99", Starter: "€31.99", Enterprise: "€31.99" }
+const PLAN_CFG = { Pro: { color: "text-orange-400", bg: "bg-orange-500/10 border-orange-500/20" } }
 
 const STATUS_CFG = {
-  pending:  { label: "En attente", color: "text-amber-400",   bg: "bg-amber-500/10 border-amber-500/20",    Icon: Clock },
-  approved: { label: "Approuvé",   color: "text-emerald-400", bg: "bg-emerald-500/10 border-emerald-500/20", Icon: CheckCircle },
-  rejected: { label: "Rejeté",     color: "text-red-400",     bg: "bg-red-500/10 border-red-500/20",         Icon: XCircle },
+  pending:  { label: "Pending",  color: "text-amber-400",   bg: "bg-amber-500/10 border-amber-500/20",    Icon: Clock },
+  approved: { label: "Approved", color: "text-emerald-400", bg: "bg-emerald-500/10 border-emerald-500/20", Icon: CheckCircle },
+  rejected: { label: "Rejected", color: "text-red-400",     bg: "bg-red-500/10 border-red-500/20",         Icon: XCircle },
 }
 
 function ActionModal({
@@ -62,9 +56,9 @@ function ActionModal({
         body: JSON.stringify({ action, adminNote: note.trim() || undefined }),
       })
       const data = await res.json()
-      if (!res.ok) { setError(data.error || "Erreur"); setLoading(false); return }
+      if (!res.ok) { setError(data.error || "Error"); setLoading(false); return }
       onDone(req.id, action === "approve" ? "approved" : "rejected")
-    } catch { setError("Erreur réseau") }
+    } catch { setError("Network error") }
     setLoading(false)
   }
 
@@ -76,7 +70,7 @@ function ActionModal({
       <div className="relative w-full max-w-md bg-neutral-900 border border-neutral-800 rounded-2xl shadow-2xl">
         <div className="flex items-center justify-between px-6 py-4 border-b border-neutral-800">
           <h2 className={`text-base font-semibold ${isApprove ? "text-emerald-400" : "text-red-400"}`}>
-            {isApprove ? "Approuver le compte" : "Rejeter la demande"}
+            {isApprove ? "Approve account" : "Reject request"}
           </h2>
           <button onClick={onClose} className="text-neutral-500 hover:text-white"><X className="w-5 h-5" /></button>
         </div>
@@ -91,18 +85,18 @@ function ActionModal({
 
           {isApprove && (
             <p className="text-sm text-neutral-400">
-              Un compte client <span className="text-white font-medium">CODShipEurope Pro</span> (€31.99/mois) sera créé. Le client pourra se connecter immédiatement.
+              A <span className="text-white font-medium">CODShipEurope Pro</span> client account (€31.99/month) will be created. The client will be able to sign in immediately.
             </p>
           )}
 
           <div>
             <label className="block text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-2">
-              Note admin (optionnel)
+              Admin note (optional)
             </label>
             <textarea
               value={note}
               onChange={e => setNote(e.target.value)}
-              placeholder={isApprove ? "Bienvenue sur CODShipEurope !" : "Raison du rejet..."}
+              placeholder={isApprove ? "Welcome to CODShipEurope!" : "Reason for rejection..."}
               rows={3}
               className="w-full bg-neutral-800 border border-neutral-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-neutral-600 focus:outline-none focus:border-orange-500 resize-none"
             />
@@ -112,7 +106,7 @@ function ActionModal({
         </div>
 
         <div className="px-6 py-4 border-t border-neutral-800 flex items-center justify-end gap-3">
-          <Button variant="ghost" onClick={onClose} className="text-neutral-400 hover:text-white">Annuler</Button>
+          <Button variant="ghost" onClick={onClose} className="text-neutral-400 hover:text-white">Cancel</Button>
           <Button
             onClick={submit}
             disabled={loading}
@@ -122,7 +116,7 @@ function ActionModal({
               ? <Loader2 className="w-4 h-4 animate-spin" />
               : isApprove ? <CheckCircle className="w-4 h-4" /> : <XCircle className="w-4 h-4" />
             }
-            {isApprove ? "Approuver" : "Rejeter"}
+            {isApprove ? "Approve" : "Reject"}
           </Button>
         </div>
       </div>
@@ -172,24 +166,24 @@ export default function RequestsPage() {
             {t("nav_requests")}
             {pendingCount > 0 && (
               <span className="text-sm bg-orange-500 text-white px-2.5 py-0.5 rounded-full font-semibold">
-                {pendingCount} en attente
+                {pendingCount} pending
               </span>
             )}
           </h1>
           <p className="text-xs md:text-sm text-neutral-500 mt-0.5">{t("req_sub")}</p>
         </div>
         <button onClick={load} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-neutral-400 hover:text-white text-sm transition-colors">
-          <RefreshCw className="w-3.5 h-3.5" />Actualiser
+          <RefreshCw className="w-3.5 h-3.5" />Refresh
         </button>
       </div>
 
       {/* Filter tabs */}
       <div className="flex gap-1 p-1 bg-neutral-900 border border-neutral-800 rounded-xl w-fit">
         {([
-          { value: "pending",  label: "En attente", count: requests.filter(r => r.status === "pending").length },
-          { value: "approved", label: "Approuvés",  count: requests.filter(r => r.status === "approved").length },
-          { value: "rejected", label: "Rejetés",    count: requests.filter(r => r.status === "rejected").length },
-          { value: "all",      label: "Tous",       count: requests.length },
+          { value: "pending",  label: "Pending",  count: requests.filter(r => r.status === "pending").length },
+          { value: "approved", label: "Approved", count: requests.filter(r => r.status === "approved").length },
+          { value: "rejected", label: "Rejected", count: requests.filter(r => r.status === "rejected").length },
+          { value: "all",      label: "All",      count: requests.length },
         ] as const).map(tab => (
           <button
             key={tab.value}
@@ -212,12 +206,12 @@ export default function RequestsPage() {
       <div className="space-y-3">
         {loading ? (
           <div className="flex items-center justify-center py-16 text-neutral-500 gap-3">
-            <Loader2 className="w-5 h-5 animate-spin" />Chargement…
+            <Loader2 className="w-5 h-5 animate-spin" />Loading…
           </div>
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-neutral-600 gap-3">
             <ClipboardList className="w-10 h-10" />
-            <p className="text-sm">Aucune demande {filter !== "all" ? STATUS_CFG[filter as keyof typeof STATUS_CFG]?.label.toLowerCase() : ""}</p>
+            <p className="text-sm">No {filter !== "all" ? STATUS_CFG[filter as keyof typeof STATUS_CFG]?.label.toLowerCase() : ""} requests</p>
           </div>
         ) : filtered.map(req => {
           const cfg = STATUS_CFG[req.status]
@@ -254,7 +248,7 @@ export default function RequestsPage() {
                   </div>
                   <div className="flex items-center gap-2 mt-1">
                     <p className="text-xs text-neutral-600">
-                      {new Date(req.created_at).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+                      {new Date(req.created_at).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
                     </p>
                     <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border ${PLAN_CFG.Pro.bg} ${PLAN_CFG.Pro.color}`}>
                       Pro · €31.99
@@ -274,13 +268,13 @@ export default function RequestsPage() {
                       onClick={() => setModal({ req, action: "approve" })}
                       className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold transition-colors"
                     >
-                      <CheckCircle className="w-3.5 h-3.5" />Approuver
+                      <CheckCircle className="w-3.5 h-3.5" />Approve
                     </button>
                     <button
                       onClick={() => setModal({ req, action: "reject" })}
                       className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-neutral-800 hover:bg-red-600/20 text-red-400 hover:text-red-300 text-sm font-semibold transition-colors border border-neutral-700 hover:border-red-500/30"
                     >
-                      <XCircle className="w-3.5 h-3.5" />Rejeter
+                      <XCircle className="w-3.5 h-3.5" />Reject
                     </button>
                   </div>
                 )}

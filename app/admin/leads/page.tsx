@@ -100,19 +100,26 @@ export default function AdminLeads() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
         {([
-          { label:t("leads_total"),        value:leads.length,                                  status:"ALL",       border:"border-l-orange-500"  },
-          { label:t("leads_confirmed"),    value:confirmed,                                     status:"CONFIRMED", border:"border-l-emerald-500" },
-          { label:t("leads_pending"),      value:leads.filter(l=>l.status==="PENDING").length,  status:"PENDING",   border:"border-l-amber-500"   },
-          { label:t("leads_unreached"),    value:leads.filter(l=>l.status==="UNREACHED").length,status:"UNREACHED", border:"border-l-blue-500"    },
-          { label:t("leads_confirm_rate"), value:`${rate}%`,                                    status:"ALL",       border:"border-l-orange-400"  },
-        ] as {label:string;value:string|number;status:string;border:string}[]).map(k=>(
+          { label:t("leads_total"),        value:leads.length,                                  status:"ALL",       grad: "linear-gradient(135deg,#f97316,#dc2626)", border: "rgba(249,115,22,0.25)", glow: "rgba(249,115,22,0.08)" },
+          { label:t("leads_confirmed"),    value:confirmed,                                     status:"CONFIRMED", grad: "linear-gradient(135deg,#10b981,#059669)", border: "rgba(16,185,129,0.25)", glow: "rgba(16,185,129,0.08)" },
+          { label:t("leads_pending"),      value:leads.filter(l=>l.status==="PENDING").length,  status:"PENDING",   grad: "linear-gradient(135deg,#f59e0b,#d97706)", border: "rgba(245,158,11,0.25)", glow: "rgba(245,158,11,0.08)" },
+          { label:t("leads_unreached"),    value:leads.filter(l=>l.status==="UNREACHED").length,status:"UNREACHED", grad: "linear-gradient(135deg,#3b82f6,#2563eb)", border: "rgba(59,130,246,0.25)", glow: "rgba(59,130,246,0.08)" },
+          { label:t("leads_confirm_rate"), value:`${rate}%`,                                    status:"ALL",       grad: "linear-gradient(135deg,#f97316,#ea580c)", border: "rgba(249,115,22,0.25)", glow: "rgba(249,115,22,0.08)" },
+        ] as {label:string;value:string|number;status:string;grad:string;border:string;glow:string}[]).map(k=>(
           <button key={k.label} onClick={()=>{setStat(k.status as LeadStatus|"ALL");setPage(1)}}
-            className={`bg-neutral-900 border border-neutral-800 border-l-4 ${k.border} rounded-xl p-4 text-left hover:border-neutral-700 transition-colors`}>
-            <Users className="w-4 h-4 text-neutral-500 mb-2"/>
-            <div className="text-2xl font-bold text-white mb-0.5">{loading?"…":k.value}</div>
-            <p className="text-xs text-neutral-500">{k.label}</p>
+            className="relative rounded-2xl p-5 overflow-hidden text-left transition-all hover:-translate-y-0.5"
+            style={{ background: "#111", border: `1px solid ${k.border}` }}>
+            <div className="absolute inset-0 opacity-[0.04]" style={{ background: k.grad }} />
+            <div className="absolute bottom-0 left-0 right-0 h-0.5" style={{ background: k.grad, opacity: 0.7 }} />
+            <div className="relative">
+              <div className="w-10 h-10 rounded-xl mb-4 flex items-center justify-center" style={{ background: k.glow, border: `1px solid ${k.border}` }}>
+                <Users className="w-5 h-5 text-white" />
+              </div>
+              <div className="text-2xl font-black text-white mb-0.5">{loading?"…":k.value}</div>
+              <p className="text-xs text-neutral-400 font-medium">{k.label}</p>
+            </div>
           </button>
         ))}
       </div>
@@ -144,7 +151,7 @@ export default function AdminLeads() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-neutral-800">
-                {[t("leads_th_customer"),t("leads_th_merchant"),t("leads_th_country"),t("leads_th_product"),t("leads_th_value"),t("leads_th_status"),"Tentatives",t("leads_th_date"),"Action"].map(h=>(
+                {[t("leads_th_customer"),t("leads_th_merchant"),t("leads_th_country"),t("leads_th_product"),t("leads_th_value"),t("leads_th_status"),"Attempts",t("leads_th_date"),"Action"].map(h=>(
                   <th key={h} className="text-left p-4 text-xs font-semibold text-neutral-500 uppercase tracking-wider whitespace-nowrap">{h}</th>
                 ))}
               </tr>

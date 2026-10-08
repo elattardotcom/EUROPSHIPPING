@@ -194,7 +194,7 @@ export default function ClientDetail({ params }: { params: Promise<{ id: string 
             <div className="flex items-center gap-2">
               <select value={editPlan} onChange={e => setEditPlan(e.target.value)}
                 className="flex-1 bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-orange-500">
-                <option value="pro">Pro — €31.99/mois</option>
+                <option value="pro">Pro — €31.99/month</option>
               </select>
               <select value={editStatus} onChange={e => setEditStatus(e.target.value)}
                 className="flex-1 bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-orange-500">
@@ -212,17 +212,24 @@ export default function ClientDetail({ params }: { params: Promise<{ id: string 
         </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
-          { label:t("nav_stores"),       value: stores.length,                       icon: Store,        color:"border-l-orange-500"  },
-          { label:t("nav_orders"),       value: orders.length,                       icon: ShoppingCart, color:"border-l-orange-500"  },
-          { label:t("dash_confirmed"),   value: `${confirmedLeads}/${leads.length}`, icon: Users,        color:"border-l-teal-500"    },
-          { label:"Revenue",             value: `€${totalRevenue.toFixed(0)}`,       icon: DollarSign,   color:"border-l-emerald-500" },
+          { label:t("nav_stores"),     value: stores.length,                       icon: Store,        grad: "linear-gradient(135deg,#f97316,#dc2626)", border: "rgba(249,115,22,0.25)", glow: "rgba(249,115,22,0.08)" },
+          { label:t("nav_orders"),     value: orders.length,                       icon: ShoppingCart, grad: "linear-gradient(135deg,#3b82f6,#2563eb)", border: "rgba(59,130,246,0.25)", glow: "rgba(59,130,246,0.08)" },
+          { label:t("dash_confirmed"), value: `${confirmedLeads}/${leads.length}`, icon: Users,        grad: "linear-gradient(135deg,#14b8a6,#0d9488)", border: "rgba(20,184,166,0.25)", glow: "rgba(20,184,166,0.08)" },
+          { label:"Revenue",           value: `€${totalRevenue.toFixed(0)}`,       icon: DollarSign,   grad: "linear-gradient(135deg,#10b981,#059669)", border: "rgba(16,185,129,0.25)", glow: "rgba(16,185,129,0.08)" },
         ].map(s => (
-          <div key={s.label} className={`bg-neutral-900 border border-neutral-800 border-l-4 ${s.color} rounded-xl p-4`}>
-            <s.icon className="w-4 h-4 text-neutral-500 mb-2" />
-            <div className="text-2xl font-bold text-white mb-0.5">{s.value}</div>
-            <p className="text-xs text-neutral-500">{s.label}</p>
+          <div key={s.label} className="relative rounded-2xl p-5 overflow-hidden transition-all hover:-translate-y-0.5"
+            style={{ background: "#111", border: `1px solid ${s.border}` }}>
+            <div className="absolute inset-0 opacity-[0.04]" style={{ background: s.grad }} />
+            <div className="absolute bottom-0 left-0 right-0 h-0.5" style={{ background: s.grad, opacity: 0.7 }} />
+            <div className="relative">
+              <div className="w-10 h-10 rounded-xl mb-4 flex items-center justify-center" style={{ background: s.glow, border: `1px solid ${s.border}` }}>
+                <s.icon className="w-5 h-5 text-white" />
+              </div>
+              <div className="text-2xl font-black text-white mb-0.5">{s.value}</div>
+              <p className="text-xs text-neutral-400 font-medium">{s.label}</p>
+            </div>
           </div>
         ))}
       </div>
@@ -379,10 +386,10 @@ export default function ClientDetail({ params }: { params: Promise<{ id: string 
       <div className="bg-neutral-900 border border-neutral-800 rounded-2xl overflow-hidden">
         <div className="px-5 py-4 border-b border-neutral-800 flex items-center gap-2">
           <Wallet className="w-4 h-4 text-orange-400" />
-          <h2 className="font-semibold text-white">Méthodes de paiement ({paymentMethods.length})</h2>
+          <h2 className="font-semibold text-white">Payment methods ({paymentMethods.length})</h2>
         </div>
         {paymentMethods.length === 0
-          ? <p className="p-5 text-neutral-500 text-sm">Aucune méthode de paiement enregistrée.</p>
+          ? <p className="p-5 text-neutral-500 text-sm">No payment method saved.</p>
           : <div className="divide-y divide-neutral-800">
               {paymentMethods.map(m => {
                 const Icon = m.type === "bank" ? Building2 : m.type === "crypto" ? Bitcoin : ArrowRight
