@@ -2,32 +2,33 @@
 
 import { useState, useMemo, useEffect, useCallback } from "react"
 import Link from "next/link"
-import { Search, ChevronDown, ArrowUpRight, Users, TrendingUp, DollarSign, Shield, ChevronLeft, ChevronRight, RefreshCw, Ban, CheckCircle, Loader2, Clock, Download } from "lucide-react"
+import { ChevronDown, ArrowUpRight, Users, TrendingUp, DollarSign, Shield, RefreshCw, Ban, CheckCircle, Loader2, Clock, Download } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import type { Client, Plan, UserStatus } from "@/lib/db"
 import { useI18n } from "@/lib/admin-i18n"
 import { exportToCSV } from "@/lib/mock-data"
+import { PageHeader } from "@/components/admin/page-header"
+import { KpiCard } from "@/components/admin/kpi-card"
+import { StatusBadge, type StatusTone } from "@/components/admin/status-badge"
+import { ConfirmDialog } from "@/components/admin/confirm-dialog"
+import {
+  TableCard, TableToolbar, TablePagination,
+  TableShell, TableHeader, TableBody, TableRow, TableHead, TableCell,
+} from "@/components/admin/data-table"
 
 const FLAGS: Record<string, string> = { PT:"🇵🇹", ES:"🇪🇸", FR:"🇫🇷", MA:"🇲🇦", BE:"🇧🇪", TN:"🇹🇳" }
 
 const PLAN_COLORS: Record<Plan, string> = {
-  enterprise: "bg-orange-500/20 text-orange-400 border-orange-500/25",
-  pro:        "bg-amber-500/20  text-amber-400  border-amber-500/25",
-  starter:    "bg-neutral-500/20 text-neutral-400 border-neutral-500/25",
+  enterprise: "bg-orange-50 text-orange-700 border-orange-200",
+  pro:        "bg-amber-50  text-amber-700  border-amber-200",
+  starter:    "bg-neutral-100 text-neutral-600 border-neutral-200",
 }
 
-const STATUS_DOTS: Record<UserStatus, string> = {
-  active:    "bg-emerald-400",
-  trial:     "bg-amber-400",
-  suspended: "bg-red-400",
-  cancelled: "bg-neutral-500",
-}
-
-const STATUS_BG: Record<UserStatus, string> = {
-  active:    "bg-emerald-500/15 text-emerald-400",
-  trial:     "bg-amber-500/15   text-amber-400",
-  suspended: "bg-red-500/15     text-red-400",
-  cancelled: "bg-neutral-500/15 text-neutral-400",
+const STATUS_TONE: Record<UserStatus, StatusTone> = {
+  active:    "success",
+  trial:     "warning",
+  suspended: "danger",
+  cancelled: "neutral",
 }
 
 const PER_PAGE = 8
@@ -56,12 +57,12 @@ export default function AdminClients() {
   const [statF,   setStat]    = useState<UserStatus | "ALL">("ALL")
   const [page,      setPage]      = useState(1)
   const [toggling,  setToggling]  = useState<string | null>(null)
+  const [confirmTarget, setConfirmTarget] = useState<Client | null>(null)
 
-  async function toggleSuspend(c: Client) {
+  async function confirmToggleSuspend() {
+    if (!confirmTarget) return
+    const c = confirmTarget
     const newStatus = c.status === "suspended" ? "active" : "suspended"
-    if (!confirm(newStatus === "suspended"
-      ? `Suspend ${c.firstName} ${c.lastName}'s account?`
-      : `Reactivate ${c.firstName} ${c.lastName}'s account?`)) return
     setToggling(c.id)
     await fetch(`/api/admin/clients/${c.id}`, {
       method: "PATCH",
@@ -70,6 +71,7 @@ export default function AdminClients() {
     })
     setClients(prev => prev.map(x => x.id === c.id ? { ...x, status: newStatus } : x))
     setToggling(null)
+    setConfirmTarget(null)
   }
 
   const STATUS_LABELS: Record<UserStatus, string> = {
@@ -116,183 +118,160 @@ export default function AdminClients() {
 
   return (
     <div className="p-4 md:p-6 space-y-4 md:space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl md:text-2xl font-bold text-white">{t("clients_title")}</h1>
-          <p className="text-sm text-neutral-500 mt-0.5">{t("clients_sub")}</p>
-        </div>
-        <button onClick={load}
-          className="flex items-center gap-2 px-3 py-2 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-neutral-400 hover:text-white text-sm transition-colors">
-          <RefreshCw className="w-3.5 h-3.5" />{t("refresh")}
-        </button>
-      </div>
+      <PageHeader
+        title={t("clients_title")}
+        subtitle={t("clients_sub")}
+        actions={
+          <button onClick={load}
+            className="flex items-center gap-2 px-3 py-2 rounded-lg border border-neutral-200 bg-white hover:bg-neutral-50 text-neutral-600 hover:text-[#17191D] text-sm transition-colors">
+            <RefreshCw className="w-3.5 h-3.5" />{t("refresh")}
+          </button>
+        }
+      />
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        {[
-          { label:t("clients_total"),  value: clients.length,                                 icon: Users,      grad: "linear-gradient(135deg,#f97316,#dc2626)", border: "rgba(249,115,22,0.25)", glow: "rgba(249,115,22,0.08)" },
-          { label:t("clients_active"), value: clients.filter(c=>c.status==="active").length,  icon: Shield,     grad: "linear-gradient(135deg,#10b981,#059669)", border: "rgba(16,185,129,0.25)", glow: "rgba(16,185,129,0.08)" },
-          { label:t("clients_trial"),  value: clients.filter(c=>c.status==="trial").length,   icon: TrendingUp, grad: "linear-gradient(135deg,#f59e0b,#d97706)", border: "rgba(245,158,11,0.25)", glow: "rgba(245,158,11,0.08)" },
-          { label:t("dash_mrr"),       value: `€${totalMRR}`,                                 icon: DollarSign, grad: "linear-gradient(135deg,#3b82f6,#2563eb)", border: "rgba(59,130,246,0.25)", glow: "rgba(59,130,246,0.08)" },
-        ].map(k => (
-          <div key={k.label} className="relative rounded-2xl p-5 overflow-hidden transition-all hover:-translate-y-0.5"
-            style={{ background: "#111", border: `1px solid ${k.border}` }}>
-            <div className="absolute inset-0 opacity-[0.04]" style={{ background: k.grad }} />
-            <div className="absolute bottom-0 left-0 right-0 h-0.5" style={{ background: k.grad, opacity: 0.7 }} />
+        <KpiCard label={t("clients_total")} value={loading ? "…" : clients.length} icon={Users} />
+        <KpiCard label={t("clients_active")} value={loading ? "…" : clients.filter(c=>c.status==="active").length} icon={Shield} />
+        <KpiCard label={t("clients_trial")} value={loading ? "…" : clients.filter(c=>c.status==="trial").length} icon={TrendingUp} />
+        <KpiCard label={t("dash_mrr")} value={loading ? "…" : `€${totalMRR}`} icon={DollarSign} />
+      </div>
+
+      <TableToolbar
+        search={search} onSearchChange={v => { setSearch(v); setPage(1) }} searchPlaceholder={t("clients_search")}
+        filters={
+          <>
             <div className="relative">
-              <div className="w-10 h-10 rounded-xl mb-4 flex items-center justify-center" style={{ background: k.glow, border: `1px solid ${k.border}` }}>
-                <k.icon className="w-5 h-5 text-white" />
-              </div>
-              <div className="text-2xl font-black text-white mb-0.5">{loading ? "…" : k.value}</div>
-              <p className="text-xs text-neutral-400 font-medium">{k.label}</p>
+              <select value={planF} onChange={e=>{setPlan(e.target.value as Plan|"ALL");setPage(1)}}
+                className="appearance-none bg-white border border-neutral-200 rounded-lg pl-3 pr-8 py-2.5 text-sm text-neutral-600 focus:outline-none focus:border-orange-400 cursor-pointer">
+                <option value="ALL">{t("clients_all_plans")}</option>
+                <option value="pro">Pro</option>
+              </select>
+              <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-neutral-400 pointer-events-none" />
             </div>
-          </div>
-        ))}
-      </div>
+            <div className="relative">
+              <select value={statF} onChange={e=>{setStat(e.target.value as UserStatus|"ALL");setPage(1)}}
+                className="appearance-none bg-white border border-neutral-200 rounded-lg pl-3 pr-8 py-2.5 text-sm text-neutral-600 focus:outline-none focus:border-orange-400 cursor-pointer">
+                <option value="ALL">{t("clients_all_status")}</option>
+                {(Object.entries(STATUS_LABELS) as [UserStatus, string][]).map(([k,v]) => (
+                  <option key={k} value={k}>{v}</option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-neutral-400 pointer-events-none" />
+            </div>
+          </>
+        }
+        actions={
+          <button onClick={handleExport}
+            className="flex items-center gap-1.5 px-3 py-2.5 rounded-lg text-sm font-medium border border-neutral-200 bg-white text-neutral-600 hover:bg-neutral-50 transition-colors">
+            <Download className="w-3.5 h-3.5" />Export
+          </button>
+        }
+      />
 
-      <div className="flex flex-col sm:flex-row flex-wrap gap-3">
-        <div className="relative flex-1 sm:flex-none">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
-          <input value={search} onChange={e=>{setSearch(e.target.value);setPage(1)}}
-            placeholder={t("clients_search")}
-            className="w-full sm:w-64 bg-neutral-900 border border-neutral-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder:text-neutral-600 focus:outline-none focus:border-orange-500" />
-        </div>
-        <div className="flex gap-3">
-          <div className="relative flex-1 sm:flex-none">
-            <select value={planF} onChange={e=>{setPlan(e.target.value as Plan|"ALL");setPage(1)}}
-              className="w-full appearance-none bg-neutral-900 border border-neutral-800 rounded-xl pl-4 pr-9 py-2.5 text-sm text-neutral-300 focus:outline-none focus:border-orange-500 cursor-pointer">
-              <option value="ALL">{t("clients_all_plans")}</option>
-              <option value="pro">Pro</option>
-            </select>
-            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-neutral-500 pointer-events-none" />
-          </div>
-          <div className="relative flex-1 sm:flex-none">
-            <select value={statF} onChange={e=>{setStat(e.target.value as UserStatus|"ALL");setPage(1)}}
-              className="w-full appearance-none bg-neutral-900 border border-neutral-800 rounded-xl pl-4 pr-9 py-2.5 text-sm text-neutral-300 focus:outline-none focus:border-orange-500 cursor-pointer">
-              <option value="ALL">{t("clients_all_status")}</option>
-              {(Object.entries(STATUS_LABELS) as [UserStatus, string][]).map(([k,v]) => (
-                <option key={k} value={k}>{v}</option>
-              ))}
-            </select>
-            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-neutral-500 pointer-events-none" />
-          </div>
-        </div>
-        <button onClick={handleExport}
-          className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl text-sm font-medium border border-neutral-800 text-neutral-300 hover:bg-neutral-800 transition-colors">
-          <Download className="w-3.5 h-3.5" />Export
-        </button>
-      </div>
-
-      <div className="bg-neutral-900 border border-neutral-800 rounded-2xl overflow-hidden">
-        <div className="px-5 py-4 border-b border-neutral-800">
+      <TableCard>
+        <div className="px-5 py-3 border-b border-neutral-100">
           <p className="text-sm text-neutral-500">{loading ? t("loading") : `${filtered.length} clients`}</p>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-neutral-800">
-                {[t("clients_th_client"),"",t("clients_th_plan"),t("clients_th_status"),t("clients_th_stores"),t("clients_th_orders"),t("clients_th_leads"),t("clients_th_mrr"),t("clients_th_joined"),"Last login",""].map((h,i) => (
-                  <th key={i} className="text-left p-4 text-xs font-semibold text-neutral-500 uppercase tracking-wider whitespace-nowrap">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {loading
-                ? <tr><td colSpan={10} className="py-12 text-center text-neutral-500 text-sm">{t("loading")}</td></tr>
-                : rows.length === 0
-                  ? <tr><td colSpan={10} className="py-12 text-center text-neutral-500 text-sm">{t("clients_none")}</td></tr>
-                  : rows.map(c => (
-                    <tr key={c.id} className="border-b border-neutral-800/60 last:border-0 hover:bg-neutral-800/20 transition-colors">
-                      <td className="p-4">
-                        <div className="flex items-center gap-3">
-                          <div className={`w-9 h-9 rounded-full bg-gradient-to-br ${c.avatarColor} flex items-center justify-center text-white text-xs font-bold flex-shrink-0`}>
-                            {(c.firstName[0]??"")}{ (c.lastName[0]??"")}
-                          </div>
-                          <div>
-                            <p className="text-white text-sm font-medium whitespace-nowrap">{c.firstName} {c.lastName}</p>
-                            <p className="text-neutral-500 text-xs">{c.email}</p>
-                          </div>
+        <TableShell>
+          <TableHeader>
+            <TableRow>
+              {[t("clients_th_client"),"",t("clients_th_plan"),t("clients_th_status"),t("clients_th_stores"),t("clients_th_orders"),t("clients_th_leads"),t("clients_th_mrr"),t("clients_th_joined"),"Last login",""].map((h,i) => (
+                <TableHead key={i} className="whitespace-nowrap">{h}</TableHead>
+              ))}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {loading
+              ? <TableRow><TableCell colSpan={11} className="py-12 text-center text-neutral-400">{t("loading")}</TableCell></TableRow>
+              : rows.length === 0
+                ? <TableRow><TableCell colSpan={11} className="py-12 text-center text-neutral-400">{t("clients_none")}</TableCell></TableRow>
+                : rows.map(c => (
+                  <TableRow key={c.id}>
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <div className={`w-9 h-9 rounded-full bg-gradient-to-br ${c.avatarColor} flex items-center justify-center text-white text-xs font-bold flex-shrink-0`}>
+                          {(c.firstName[0]??"")}{ (c.lastName[0]??"")}
                         </div>
-                      </td>
-                      <td className="p-4">
+                        <div>
+                          <p className="text-[#17191D] text-sm font-medium whitespace-nowrap">{c.firstName} {c.lastName}</p>
+                          <p className="text-neutral-400 text-xs">{c.email}</p>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-base">{FLAGS[c.countryCode]??"🏳️"}</span>
+                        <span className="text-sm text-neutral-600 whitespace-nowrap">{c.country}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <span className={`text-xs px-2.5 py-1 rounded-full border font-medium ${PLAN_COLORS[c.plan]??PLAN_COLORS.starter}`}>
+                        {c.plan}
+                      </span>
+                    </TableCell>
+                    <TableCell><StatusBadge label={STATUS_LABELS[c.status]??c.status} tone={STATUS_TONE[c.status]??"neutral"} /></TableCell>
+                    <TableCell className="text-center">{c.storesCount}</TableCell>
+                    <TableCell className="text-center">{c.ordersCount}</TableCell>
+                    <TableCell className="text-center">{c.leadsCount}</TableCell>
+                    <TableCell><span className="text-sm font-semibold text-emerald-600">€{c.monthlyRevenue}</span></TableCell>
+                    <TableCell className="whitespace-nowrap text-neutral-500">{c.joinedAt}</TableCell>
+                    <TableCell className="whitespace-nowrap">
+                      {c.lastLoginAt ? (
                         <div className="flex items-center gap-1.5">
-                          <span className="text-base">{FLAGS[c.countryCode]??"🏳️"}</span>
-                          <span className="text-sm text-neutral-300 whitespace-nowrap">{c.country}</span>
+                          <Clock className="w-3.5 h-3.5 text-neutral-400" />
+                          <span className="text-sm text-neutral-600">{formatLastLogin(c.lastLoginAt)}</span>
                         </div>
-                      </td>
-                      <td className="p-4">
-                        <span className={`text-xs px-2.5 py-1 rounded-full border font-medium ${PLAN_COLORS[c.plan]??PLAN_COLORS.starter}`}>
-                          {c.plan}
-                        </span>
-                      </td>
-                      <td className="p-4">
-                        <span className={`inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full font-medium ${STATUS_BG[c.status]??""}`}>
-                          <span className={`w-1.5 h-1.5 rounded-full ${STATUS_DOTS[c.status]??""}`} />
-                          {STATUS_LABELS[c.status]??c.status}
-                        </span>
-                      </td>
-                      <td className="p-4 text-sm text-neutral-300 text-center">{c.storesCount}</td>
-                      <td className="p-4 text-sm text-neutral-300 text-center">{c.ordersCount}</td>
-                      <td className="p-4 text-sm text-neutral-300 text-center">{c.leadsCount}</td>
-                      <td className="p-4"><span className="text-sm font-semibold text-emerald-400">€{c.monthlyRevenue}</span></td>
-                      <td className="p-4 text-sm text-neutral-500 whitespace-nowrap">{c.joinedAt}</td>
-                      <td className="p-4 whitespace-nowrap">
-                        {c.lastLoginAt ? (
-                          <div className="flex items-center gap-1.5">
-                            <Clock className="w-3.5 h-3.5 text-neutral-600" />
-                            <span className="text-sm text-neutral-300">{formatLastLogin(c.lastLoginAt)}</span>
-                          </div>
+                      ) : (
+                        <span className="text-sm text-neutral-400">—</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Link href={`/admin/clients/${c.id}`}>
+                          <Button variant="ghost" size="sm" className="text-orange-600 hover:text-orange-700 hover:bg-orange-50 gap-1 h-7 text-xs">
+                            View <ArrowUpRight className="w-3 h-3" />
+                          </Button>
+                        </Link>
+                        {toggling === c.id ? (
+                          <Loader2 className="w-4 h-4 animate-spin text-neutral-400" />
+                        ) : c.status === "suspended" ? (
+                          <button onClick={() => setConfirmTarget(c)}
+                            className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium text-emerald-600 hover:bg-emerald-50 transition-colors"
+                            title="Reactivate account">
+                            <CheckCircle className="w-3.5 h-3.5" /> Reactivate
+                          </button>
                         ) : (
-                          <span className="text-sm text-neutral-600">—</span>
+                          <button onClick={() => setConfirmTarget(c)}
+                            className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium text-red-600 hover:bg-red-50 transition-colors"
+                            title="Suspend account">
+                            <Ban className="w-3.5 h-3.5" /> Suspend
+                          </button>
                         )}
-                      </td>
-                      <td className="p-4">
-                        <div className="flex items-center gap-2">
-                          <Link href={`/admin/clients/${c.id}`}>
-                            <Button variant="ghost" size="sm" className="text-orange-400 hover:text-orange-300 hover:bg-orange-500/10 gap-1 h-7 text-xs">
-                              View <ArrowUpRight className="w-3 h-3" />
-                            </Button>
-                          </Link>
-                          {toggling === c.id ? (
-                            <Loader2 className="w-4 h-4 animate-spin text-neutral-400" />
-                          ) : c.status === "suspended" ? (
-                            <button onClick={() => toggleSuspend(c)}
-                              className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium text-emerald-400 hover:bg-emerald-500/10 transition-colors"
-                              title="Reactivate account">
-                              <CheckCircle className="w-3.5 h-3.5" /> Reactivate
-                            </button>
-                          ) : (
-                            <button onClick={() => toggleSuspend(c)}
-                              className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium text-red-400 hover:bg-red-500/10 transition-colors"
-                              title="Suspend account">
-                              <Ban className="w-3.5 h-3.5" /> Suspend
-                            </button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-              }
-            </tbody>
-          </table>
-        </div>
-        <div className="px-5 py-4 border-t border-neutral-800 flex items-center justify-between">
-          <p className="text-xs text-neutral-500">
-            {filtered.length===0?0:(cur-1)*PER_PAGE+1}–{Math.min(cur*PER_PAGE,filtered.length)} / {filtered.length}
-          </p>
-          <div className="flex items-center gap-1">
-            <Button variant="ghost" size="icon" className="h-8 w-8 text-neutral-400 hover:text-white hover:bg-neutral-800"
-              disabled={cur===1} onClick={()=>setPage(p=>p-1)}><ChevronLeft className="w-4 h-4"/></Button>
-            {Array.from({length:totalPages},(_,i)=>i+1).map(p=>(
-              <button key={p} onClick={()=>setPage(p)}
-                className={`h-8 w-8 rounded-lg text-sm font-medium transition-colors ${cur===p?"bg-orange-500 text-white":"text-neutral-400 hover:text-white hover:bg-neutral-800"}`}>
-                {p}
-              </button>
-            ))}
-            <Button variant="ghost" size="icon" className="h-8 w-8 text-neutral-400 hover:text-white hover:bg-neutral-800"
-              disabled={cur===totalPages} onClick={()=>setPage(p=>p+1)}><ChevronRight className="w-4 h-4"/></Button>
-          </div>
-        </div>
-      </div>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+            }
+          </TableBody>
+        </TableShell>
+        <TablePagination page={cur} totalPages={totalPages} onChange={setPage}
+          totalLabel={`${filtered.length===0?0:(cur-1)*PER_PAGE+1}–${Math.min(cur*PER_PAGE,filtered.length)} / ${filtered.length}`} />
+      </TableCard>
+
+      <ConfirmDialog
+        open={confirmTarget !== null}
+        onOpenChange={open => { if (!open) setConfirmTarget(null) }}
+        title={confirmTarget?.status === "suspended" ? "Reactivate account?" : "Suspend account?"}
+        description={confirmTarget
+          ? confirmTarget.status === "suspended"
+            ? `${confirmTarget.firstName} ${confirmTarget.lastName} will regain access to their dashboard immediately.`
+            : `${confirmTarget.firstName} ${confirmTarget.lastName} will lose access to their dashboard immediately. They can be reactivated at any time.`
+          : ""}
+        confirmLabel={confirmTarget?.status === "suspended" ? "Reactivate" : "Suspend"}
+        destructive={confirmTarget?.status !== "suspended"}
+        loading={toggling === confirmTarget?.id}
+        onConfirm={confirmToggleSuspend}
+      />
     </div>
   )
 }
