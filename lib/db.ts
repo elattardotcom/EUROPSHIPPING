@@ -82,6 +82,7 @@ export interface AdminOrder {
   providerId?: string
   shipmentStatus?: string
   shipmentError?: string
+  invoicedAt?: string
 }
 
 export interface Provider {
@@ -246,6 +247,7 @@ const mapOrder = (r: any): AdminOrder => ({
   providerId:     r.provider_id ?? undefined,
   shipmentStatus: r.shipment_status ?? undefined,
   shipmentError:  r.shipment_error ?? undefined,
+  invoicedAt:     r.invoiced_at ?? undefined,
 })
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -911,6 +913,95 @@ export async function getMerchantPayablesTotal(): Promise<number> {
   const clients = await getClients()
   const summaries = await Promise.all(clients.map(c => getBalanceSummary(c.id)))
   return Math.round(summaries.reduce((s, b) => s + b.available, 0) * 100) / 100
+}
+
+export interface FinanceLedgerRow {
+  clientId:        string
+  clientName:      string
+  orderValue:      number   // sum of every order's value, any status
+  codExpected:     number   // PENDING + SHIPPED — not yet collected
+  codCollected:    number   // DELIVERED — actually collected from the customer
+  reconciled:      number   // DELIVERED, invoiced_at set — settled with the merchant
+  unreconciled:    number   // DELIVERED, invoiced_at null — collected but not yet settled
+  feesEstimated:   number   // platform service fees on DELIVERED/RETURNED orders
+  merchantPayable: number   // current wallet balance owed to this merchant
+}
+
+export interface FinanceLedger {
+  rows: FinanceLedgerRow[]
+  totals: {
+    orderValue:         number
+    codExpected:        number
+    codCollected:       number
+    reconciled:         number
+    unreconciled:       number
+    feesEstimated:      number
+    merchantPayable:    number
+    platformRevenueMRR: number  // subscription revenue — kept separate from COD/fees, never summed
+  }
+}
+
+/**
+ * Computed ledger — no new table. Merges orders (for order-value/COD/
+ * reconciliation figures) with getBalanceSummary() (for merchant payable,
+ * so it can never drift from what a merchant's own wallet page shows) and
+ * getClients() (for MRR). Service fees on already-invoiced orders are
+ * re-derived from the *current* fee_rates, since historical fee amounts
+ * aren't persisted per order — this is an estimate for settled orders, and
+ * the UI must label it as such; the uninvoiced/unreconciled fee figure
+ * used by the wallet (BalanceSummary.totalFees) is exact.
+ */
+export async function getFinanceLedger(): Promise<FinanceLedger> {
+  const [clients, orders, feeRates] = await Promise.all([getClients(), getAllOrders(), getFeeRates()])
+  const rateMap  = new Map(feeRates.map(r => [r.countryCode, r]))
+  const fallback = rateMap.get("DEFAULT") ?? { deliveryFee: SERVICE_FEES.delivery, returnFee: SERVICE_FEES.return, callCenterFee: SERVICE_FEES.callCenter }
+  const rnd = (n: number) => Math.round(n * 100) / 100
+
+  const feeFor = (o: AdminOrder): number => {
+    const rates = rateMap.get(o.countryCode) ?? fallback
+    if (o.status === "DELIVERED") return rates.deliveryFee + rates.callCenterFee
+    if (o.status === "RETURNED")  return rates.returnFee
+    return 0
+  }
+
+  const balances = await Promise.all(clients.map(c => getBalanceSummary(c.id)))
+  const balanceByClient = new Map(clients.map((c, i) => [c.id, balances[i]]))
+
+  const rows: FinanceLedgerRow[] = clients.map(c => {
+    const own       = orders.filter(o => o.clientId === c.id)
+    // RETURNED orders keep their nominal `value` in the DB even though no
+    // cash was ever collected on them — only DELIVERED orders represent
+    // money actually in hand, so collected/reconciled/unreconciled must
+    // read from `delivered` only. `settled` (DELIVERED + RETURNED) is still
+    // correct for fees, since return fees apply to returned orders too.
+    const delivered = own.filter(o => o.status === "DELIVERED")
+    const settled   = own.filter(o => o.status === "DELIVERED" || o.status === "RETURNED")
+    const orderValue    = rnd(own.reduce((s, o) => s + o.value, 0))
+    const codExpected   = rnd(own.filter(o => o.status === "PENDING" || o.status === "SHIPPED").reduce((s, o) => s + o.value, 0))
+    const codCollected  = rnd(delivered.reduce((s, o) => s + o.value, 0))
+    const reconciled    = rnd(delivered.filter(o => !!o.invoicedAt).reduce((s, o) => s + o.value, 0))
+    const unreconciled  = rnd(delivered.filter(o => !o.invoicedAt).reduce((s, o) => s + o.value, 0))
+    const feesEstimated = rnd(settled.reduce((s, o) => s + feeFor(o), 0))
+    return {
+      clientId: c.id,
+      clientName: `${c.firstName} ${c.lastName}`.trim() || c.email,
+      orderValue, codExpected, codCollected, reconciled, unreconciled, feesEstimated,
+      merchantPayable: balanceByClient.get(c.id)?.available ?? 0,
+    }
+  })
+
+  const sum = (k: keyof Omit<FinanceLedgerRow, "clientId" | "clientName">) =>
+    rnd(rows.reduce((s, r) => s + r[k], 0))
+  const platformRevenueMRR = rnd(clients.filter(c => c.status === "active").reduce((s, c) => s + c.monthlyRevenue, 0))
+
+  return {
+    rows: rows.sort((a, b) => b.merchantPayable - a.merchantPayable),
+    totals: {
+      orderValue: sum("orderValue"), codExpected: sum("codExpected"), codCollected: sum("codCollected"),
+      reconciled: sum("reconciled"), unreconciled: sum("unreconciled"), feesEstimated: sum("feesEstimated"),
+      merchantPayable: sum("merchantPayable"), platformRevenueMRR,
+    },
+  }
 }
 
 export async function createWithdrawal(
