@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { Eye, EyeOff, ArrowRight, CheckCircle, ShieldCheck, Truck, PhoneCall, BarChart3, Globe2 } from "lucide-react"
+import { Eye, EyeOff, ArrowRight, CheckCircle, ShieldCheck, Truck, PhoneCall, BarChart3, Globe2, Mail, Lock, User, Building2, Phone } from "lucide-react"
 import { Logo } from "@/components/logo"
 import { useLang } from "@/hooks/useLang"
 import { ProductShowcase } from "@/components/auth/product-showcase"
@@ -54,6 +54,11 @@ const T = {
     ],
     pendingBack:    "Retour à la connexion",
     langSwitch:     "EN",
+    needHelp:       "Besoin d'aide ? Contactez le support",
+    support:        "Aide",
+    footerRights:   "Tous droits réservés.",
+    privacy:        "Politique de confidentialité",
+    terms2Footer:   "Conditions générales",
   },
   en: {
     badge:       "Founding program — limited spots",
@@ -101,6 +106,11 @@ const T = {
     ],
     pendingBack:    "Back to sign in",
     langSwitch:     "FR",
+    needHelp:       "Need help? Contact support",
+    support:        "Help",
+    footerRights:   "All rights reserved.",
+    privacy:        "Privacy Policy",
+    terms2Footer:   "Terms of Service",
   },
 }
 
@@ -140,7 +150,8 @@ const BENEFIT_COLORS = ["#f97316", "#6366f1", "#10b981", "#06b6d4"]
 
 // text-base (16px) on purpose — anything smaller triggers an unwanted
 // zoom-on-focus in iOS Safari.
-const INPUT  = "w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-3 text-white text-base placeholder:text-neutral-600 focus:outline-none focus:border-orange-500 focus:bg-white/[0.06] transition-all"
+const INPUT      = "w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-3 text-white text-base placeholder:text-neutral-600 focus:outline-none focus:border-orange-500 focus:bg-white/[0.06] transition-all"
+const INPUT_ICON = "w-full bg-white/[0.04] border border-white/[0.08] rounded-xl pl-11 pr-4 py-3 text-white text-base placeholder:text-neutral-600 focus:outline-none focus:border-orange-500 focus:bg-white/[0.06] transition-all"
 const SELECT = "w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-3 text-white text-base focus:outline-none focus:border-orange-500 transition-all"
 const LABEL  = "block text-xs font-medium text-neutral-400 mb-2"
 
@@ -204,7 +215,7 @@ export default function RegisterPage() {
             <Logo size={44} showBg />
             <div>
               <p className="text-white font-black text-base tracking-tight">CODShipEurope</p>
-              <p className="text-neutral-600 text-xs">Pro Platform</p>
+              <p className="text-neutral-600 text-[10px] uppercase tracking-wide">{lang === "fr" ? "Logistique paiement à la livraison" : "Cash on delivery logistics"}</p>
             </div>
           </div>
 
@@ -268,12 +279,19 @@ export default function RegisterPage() {
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-3 lg:hidden">
               <Logo size={36} showBg />
-              <div>
+              <div className="hidden sm:block">
                 <p className="text-white font-black text-sm">CODShipEurope</p>
-                <p className="text-neutral-600 text-xs">Pro Platform</p>
+                <p className="text-neutral-600 text-[10px] uppercase tracking-wide">{lang === "fr" ? "Logistique paiement à la livraison" : "Cash on delivery logistics"}</p>
               </div>
             </div>
-            <div className="ml-auto">
+            <div className="ml-auto flex items-center gap-2">
+              <a href="mailto:contact@codshipeurope.com" aria-label={t.needHelp}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-neutral-400 hover:text-white transition-colors"
+                style={{ border: "1px solid rgba(255,255,255,0.08)" }}>
+                <Mail className="w-3 h-3" />
+                <span className="hidden sm:inline">{t.needHelp}</span>
+                <span className="sm:hidden">{t.support}</span>
+              </a>
               <button
                 onClick={() => setLang(l => l === "fr" ? "en" : "fr")}
                 aria-label={lang === "fr" ? "Switch to English" : "Passer en français"}
@@ -304,7 +322,10 @@ export default function RegisterPage() {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className={LABEL}>{t.firstNameL}</label>
-                    <input type="text" autoComplete="given-name" placeholder={t.firstNamePh} required value={form.firstName} onChange={set("firstName")} className={INPUT} />
+                    <div className="relative">
+                      <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-600 pointer-events-none" />
+                      <input type="text" autoComplete="given-name" placeholder={t.firstNamePh} required value={form.firstName} onChange={set("firstName")} className={INPUT_ICON} />
+                    </div>
                   </div>
                   <div>
                     <label className={LABEL}>{t.lastNameL}</label>
@@ -314,7 +335,10 @@ export default function RegisterPage() {
 
                 <div>
                   <label className={LABEL}>{t.emailL}</label>
-                  <input type="email" inputMode="email" autoComplete="email" placeholder={t.emailPh} required value={form.email} onChange={set("email")} className={INPUT} />
+                  <div className="relative">
+                    <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-600 pointer-events-none" />
+                    <input type="email" inputMode="email" autoComplete="email" placeholder={t.emailPh} required value={form.email} onChange={set("email")} className={INPUT_ICON} />
+                  </div>
                 </div>
 
                 <div>
@@ -325,17 +349,23 @@ export default function RegisterPage() {
                       className="bg-white/[0.04] border border-white/[0.08] rounded-xl px-2.5 py-3 text-white text-base focus:outline-none focus:border-orange-500 transition-all flex-shrink-0">
                       {DIAL_CODES.map(d => <option key={d.v} value={d.v}>{d.l}</option>)}
                     </select>
-                    <input type="tel" inputMode="tel" autoComplete="tel-national" placeholder={t.phonePh} required
-                      value={form.phone}
-                      onChange={e => setForm(f => ({ ...f, phone: e.target.value.replace(/\D/g, "").slice(0, 15) }))}
-                      className={INPUT} />
+                    <div className="relative flex-1">
+                      <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-600 pointer-events-none" />
+                      <input type="tel" inputMode="tel" autoComplete="tel-national" placeholder={t.phonePh} required
+                        value={form.phone}
+                        onChange={e => setForm(f => ({ ...f, phone: e.target.value.replace(/\D/g, "").slice(0, 15) }))}
+                        className={INPUT_ICON} />
+                    </div>
                   </div>
                   <p className="text-[11px] text-neutral-700 mt-1.5">{t.phoneHint}</p>
                 </div>
 
                 <div>
                   <label className={LABEL}>{t.companyL}</label>
-                  <input type="text" autoComplete="organization" placeholder={t.companyPh} value={form.company} onChange={set("company")} className={INPUT} />
+                  <div className="relative">
+                    <Building2 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-600 pointer-events-none" />
+                    <input type="text" autoComplete="organization" placeholder={t.companyPh} value={form.company} onChange={set("company")} className={INPUT_ICON} />
+                  </div>
                 </div>
 
                 <div>
@@ -349,8 +379,9 @@ export default function RegisterPage() {
                 <div>
                   <label className={LABEL}>{t.passwordL}</label>
                   <div className="relative">
+                    <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-600 pointer-events-none" />
                     <input type={showPwd ? "text" : "password"} autoComplete="new-password" placeholder={t.passwordPh} required minLength={8}
-                      value={form.password} onChange={set("password")} className={INPUT + " pr-12"} />
+                      value={form.password} onChange={set("password")} className={INPUT_ICON + " pr-12"} />
                     <button type="button" onClick={() => setShowPwd(!showPwd)}
                       aria-label={showPwd ? "Hide password" : "Show password"} aria-pressed={showPwd}
                       className="absolute right-0 top-0 h-full w-12 flex items-center justify-center text-neutral-600 hover:text-white transition-colors">
@@ -426,6 +457,14 @@ export default function RegisterPage() {
               </Link>
             </div>
           )}
+
+          <div className="mt-10 pt-6 flex items-center justify-between flex-wrap gap-2" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+            <p className="text-neutral-700 text-[11px]">© {new Date().getFullYear()} CODShipEurope. {t.footerRights}</p>
+            <div className="flex items-center gap-4">
+              <Link href="/confidentialite" className="text-neutral-700 hover:text-neutral-500 text-[11px] transition-colors">{t.privacy}</Link>
+              <Link href="/conditions" className="text-neutral-700 hover:text-neutral-500 text-[11px] transition-colors">{t.terms2Footer}</Link>
+            </div>
+          </div>
         </div>
       </div>
     </div>
