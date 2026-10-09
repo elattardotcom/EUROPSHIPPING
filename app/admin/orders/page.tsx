@@ -1,13 +1,12 @@
 "use client"
 
 import { useState, useMemo, useEffect, useCallback } from "react"
-import { createPortal } from "react-dom"
+import Link from "next/link"
 import {
-  ChevronDown,
+  ChevronDown, ChevronRight,
   CheckCircle, Clock, Truck, XCircle, AlertCircle,
-  ShoppingCart, RefreshCw, Radio, Pencil, X, Save, Loader2, Download,
+  ShoppingCart, RefreshCw, Radio, Download,
 } from "lucide-react"
-import { Button } from "@/components/ui/button"
 import type { AdminOrder, OrderStatus } from "@/lib/db"
 import { useI18n } from "@/lib/admin-i18n"
 import { exportToCSV } from "@/lib/mock-data"
@@ -36,130 +35,7 @@ const STATUS_TONE: Record<OrderStatus, StatusTone> = {
   ERROR:     "danger",
 }
 
-const ALL_STATUSES: OrderStatus[] = ["PENDING", "SHIPPED", "DELIVERED", "RETURNED", "ERROR"]
 const PER_PAGE = 10
-
-/* ── Edit modal ─────────────────────────────────────────────── */
-
-function EditModal({
-  order,
-  statusLabels,
-  onClose,
-  onSaved,
-}: {
-  order: AdminOrder
-  statusLabels: Record<OrderStatus, string>
-  onClose: () => void
-  onSaved: (updated: AdminOrder) => void
-}) {
-  const [status,         setStatus]         = useState<OrderStatus>(order.status)
-  const [trackingNumber, setTrackingNumber] = useState(order.trackingNumber ?? "")
-  const [saving,         setSaving]         = useState(false)
-  const [error,          setError]          = useState("")
-
-  const save = async () => {
-    setSaving(true)
-    setError("")
-    try {
-      const res = await fetch(`/api/admin/orders/${order.id}`, {
-        method:  "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify({ status, trackingNumber: trackingNumber.trim() || undefined }),
-      })
-      if (!res.ok) { setError("Update failed"); return }
-      const updated: AdminOrder = await res.json()
-      onSaved(updated)
-    } catch {
-      setError("Network error")
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  return createPortal(
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <div className="relative w-full max-w-md bg-white border border-neutral-200 rounded-2xl shadow-xl overflow-hidden">
-
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-neutral-100">
-          <div>
-            <h2 className="text-base font-semibold text-[#17191D]">Edit order</h2>
-            <p className="text-xs text-neutral-500 mt-0.5">{order.customerName} · {order.product}</p>
-          </div>
-          <button onClick={onClose} className="text-neutral-400 hover:text-[#17191D] transition-colors">
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        {/* Body */}
-        <div className="p-6 space-y-5">
-
-          {/* Status */}
-          <div>
-            <label className="block text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-3">
-              Status
-            </label>
-            <div className="grid grid-cols-2 gap-2">
-              {ALL_STATUSES.map(s => {
-                const Icon = STATUS_ICONS[s]
-                const active = status === s
-                return (
-                  <button
-                    key={s}
-                    onClick={() => setStatus(s)}
-                    className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl border text-sm font-medium transition-all ${
-                      active
-                        ? "bg-orange-50 border-orange-300 text-orange-700"
-                        : "bg-white border-neutral-200 text-neutral-500 hover:border-neutral-300 hover:text-[#17191D]"
-                    }`}
-                  >
-                    <Icon className="w-4 h-4 flex-shrink-0" />
-                    {statusLabels[s]}
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-
-          {/* Tracking number */}
-          <div>
-            <label className="block text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-2">
-              Tracking number
-            </label>
-            <input
-              value={trackingNumber}
-              onChange={e => setTrackingNumber(e.target.value)}
-              placeholder="e.g. 1Z999AA10123456784"
-              className="w-full bg-white border border-neutral-200 rounded-xl px-4 py-2.5 text-sm text-[#17191D] placeholder:text-neutral-400 focus:outline-none focus:border-orange-400 font-mono"
-            />
-            <p className="text-xs text-neutral-400 mt-1.5">Leave blank to clear the existing number</p>
-          </div>
-
-          {error && (
-            <p className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg px-4 py-2.5">{error}</p>
-          )}
-        </div>
-
-        {/* Footer */}
-        <div className="px-6 py-4 border-t border-neutral-100 flex items-center justify-end gap-3">
-          <Button variant="ghost" onClick={onClose} className="text-neutral-500 hover:text-[#17191D]">
-            Cancel
-          </Button>
-          <Button
-            onClick={save}
-            disabled={saving}
-            className="bg-orange-500 hover:bg-orange-600 text-white gap-2"
-          >
-            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-            Save
-          </Button>
-        </div>
-      </div>
-    </div>,
-    document.body
-  )
-}
 
 /* ── Page ───────────────────────────────────────────────────── */
 
@@ -171,7 +47,6 @@ export default function AdminOrders() {
   const [statF,   setStat]    = useState<OrderStatus | "ALL">("ALL")
   const [page,    setPage]    = useState(1)
   const [live,    setLive]    = useState(false)
-  const [editing, setEditing] = useState<AdminOrder | null>(null)
 
   const STATUS_LABELS: Record<OrderStatus, string> = {
     PENDING:   t("status_pending"),
@@ -218,22 +93,8 @@ export default function AdminOrders() {
     )
   }
 
-  const handleSaved = (updated: AdminOrder) => {
-    setOrders(prev => prev.map(o => o.id === updated.id ? updated : o))
-    setEditing(null)
-  }
-
   return (
     <div className="p-4 md:p-6 space-y-4 md:space-y-6">
-      {editing && (
-        <EditModal
-          order={editing}
-          statusLabels={STATUS_LABELS}
-          onClose={() => setEditing(null)}
-          onSaved={handleSaved}
-        />
-      )}
-
       <PageHeader
         title={t("orders_title")}
         subtitle={t("orders_sub")}
@@ -333,13 +194,11 @@ export default function AdminOrders() {
                       <TableCell><StatusBadge label={STATUS_LABELS[o.status]??o.status} tone={STATUS_TONE[o.status]??"danger"} icon={STATUS_ICONS[o.status]} /></TableCell>
                       <TableCell className="whitespace-nowrap text-neutral-500">{o.createdAt}</TableCell>
                       <TableCell>
-                        <button
-                          onClick={() => setEditing(o)}
-                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-orange-50 hover:bg-orange-100 text-orange-700 text-xs font-semibold transition-colors border border-orange-200"
+                        <Link href={`/admin/orders/${o.id}`}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-orange-50 hover:bg-orange-100 text-orange-700 text-xs font-semibold transition-colors border border-orange-200 w-fit"
                         >
-                          <Pencil className="w-3 h-3" />
-                          Edit
-                        </button>
+                          View <ChevronRight className="w-3 h-3" />
+                        </Link>
                       </TableCell>
                     </TableRow>
                   ))

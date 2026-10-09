@@ -1,10 +1,23 @@
 import { NextRequest, NextResponse } from "next/server"
-import { updateOrder } from "@/lib/db"
+import { updateOrder, getOrderById, getOrderStatusHistory } from "@/lib/db"
 import type { OrderStatus } from "@/lib/db"
 import { getSupabaseAdmin } from "@/lib/supabase"
 import { requireAdmin } from "@/lib/admin-auth"
+import { getAdminEmail } from "@/lib/audit-log"
 
 const VALID_STATUSES: OrderStatus[] = ["PENDING", "SHIPPED", "DELIVERED", "RETURNED", "ERROR"]
+
+export async function GET(
+  _req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const denied = await requireAdmin()
+  if (denied) return denied
+  const { id } = await params
+  const [order, history] = await Promise.all([getOrderById(id), getOrderStatusHistory(id)])
+  if (!order) return NextResponse.json({ error: "Order not found" }, { status: 404 })
+  return NextResponse.json({ order, history })
+}
 
 export async function PATCH(
   req: NextRequest,
@@ -23,12 +36,13 @@ export async function PATCH(
     return NextResponse.json({ error: "Invalid status" }, { status: 400 })
   }
 
+  const adminEmail = await getAdminEmail()
   const updated = await updateOrder(id, {
     status:         status as OrderStatus | undefined,
     trackingNumber: trackingNumber,
     providerId,
     shipmentStatus,
-  })
+  }, adminEmail ?? undefined)
 
   if (!updated) return NextResponse.json({ error: "Update failed" }, { status: 500 })
 

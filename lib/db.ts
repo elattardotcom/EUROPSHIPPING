@@ -389,16 +389,69 @@ export async function getAllOrders(): Promise<AdminOrder[]> {
 
 export async function updateOrder(
   id: string,
-  fields: { status?: OrderStatus; trackingNumber?: string; providerId?: string | null; shipmentStatus?: string | null }
+  fields: { status?: OrderStatus; trackingNumber?: string; providerId?: string | null; shipmentStatus?: string | null },
+  changedBy?: string,
 ): Promise<AdminOrder | null> {
   try {
     const sb = getSupabaseAdmin(); if (!sb) return null
+
+    let fromStatus: string | undefined
+    if (fields.status !== undefined) {
+      const { data: existing } = await sb.from("orders").select("status").eq("id", id).single()
+      fromStatus = existing?.status
+    }
+
     const patch: Record<string, unknown> = {}
     if (fields.status         !== undefined) patch.status          = fields.status
     if (fields.trackingNumber !== undefined) patch.tracking_number = fields.trackingNumber || null
     if (fields.providerId     !== undefined) patch.provider_id     = fields.providerId || null
     if (fields.shipmentStatus !== undefined) patch.shipment_status = fields.shipmentStatus || null
     const { data, error } = await sb.from("orders").update(patch).eq("id", id).select().single()
+    if (error) throw error
+
+    if (fields.status !== undefined && fields.status !== fromStatus) {
+      try {
+        await sb.from("order_status_history").insert({
+          order_id: id, from_status: fromStatus ?? null, to_status: fields.status,
+          changed_by: changedBy ?? "system",
+        })
+      } catch { /* history table may not exist yet — order update itself already succeeded */ }
+    }
+
+    return mapOrder(data)
+  } catch { return null }
+}
+
+export interface OrderStatusHistoryEntry {
+  id:         string
+  fromStatus: string | null
+  toStatus:   string
+  changedBy:  string
+  createdAt:  string
+}
+
+export async function getOrderStatusHistory(orderId: string): Promise<OrderStatusHistoryEntry[]> {
+  const sb = getSupabaseAdmin()
+  if (!sb) return []
+  try {
+    const { data, error } = await sb
+      .from("order_status_history")
+      .select("id, from_status, to_status, changed_by, created_at")
+      .eq("order_id", orderId)
+      .order("created_at", { ascending: true })
+    if (error) throw error
+    return (data ?? []).map(r => ({
+      id: r.id, fromStatus: r.from_status, toStatus: r.to_status,
+      changedBy: r.changed_by, createdAt: r.created_at,
+    }))
+  } catch { return [] }
+}
+
+export async function getOrderById(id: string): Promise<AdminOrder | null> {
+  const sb = getSupabaseAdmin()
+  if (!sb) return null
+  try {
+    const { data, error } = await sb.from("orders").select("*").eq("id", id).single()
     if (error) throw error
     return mapOrder(data)
   } catch { return null }
