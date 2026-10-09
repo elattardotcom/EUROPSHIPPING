@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { Eye, EyeOff, ArrowRight, ArrowLeft, CheckCircle, Package, TrendingUp, Zap, Globe2, Users, ShieldCheck, Star } from "lucide-react"
+import { Eye, EyeOff, ArrowRight, ArrowLeft, CheckCircle, Package, TrendingUp, Zap, Globe2, Users, ShieldCheck, Mail } from "lucide-react"
 import { Logo } from "@/components/logo"
 import { useLang } from "@/hooks/useLang"
 
@@ -40,6 +40,11 @@ const T = {
     stat3v: "COD",    stat3l: "Paiement à la livraison",
     trustLine:     "Plateforme sécurisée · Données chiffrées · Support 24/7",
     langSwitch:    "EN",
+    mobileHeroTitle: "Vos opérations COD. Un seul centre de contrôle.",
+    mobileHeroSub:   "Commandes, livraisons et paiements — gérés au même endroit.",
+    support:         "Aide",
+    showPwd:         "Afficher le mot de passe",
+    hidePwd:         "Masquer le mot de passe",
   },
   en: {
     badge:         "Platform active · 8 countries covered",
@@ -74,6 +79,11 @@ const T = {
     stat3v: "COD",     stat3l: "Cash on delivery",
     trustLine:     "Secure platform · Encrypted data · 24/7 support",
     langSwitch:    "FR",
+    mobileHeroTitle: "Your COD operations. One control center.",
+    mobileHeroSub:   "Orders, delivery operations and payouts — managed in one place.",
+    support:         "Help",
+    showPwd:         "Show password",
+    hidePwd:         "Hide password",
   },
 }
 
@@ -92,11 +102,13 @@ const LIVE_ORDERS = {
 
 const FEATURE_ICONS = [Zap, Globe2, TrendingUp, Package]
 
-const INPUT = "w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-3.5 text-white text-sm placeholder:text-neutral-600 focus:outline-none focus:border-orange-500 focus:bg-white/[0.06] transition-all"
+// text-base (16px) on purpose — anything smaller triggers an unwanted
+// zoom-on-focus in iOS Safari.
+const INPUT = "w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-3.5 text-white text-base placeholder:text-neutral-600 focus:outline-none focus:border-orange-500 focus:bg-white/[0.06] transition-all"
 
 function Spinner() {
   return (
-    <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
+    <svg className="animate-spin motion-reduce:animate-none w-4 h-4" viewBox="0 0 24 24" fill="none">
       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
     </svg>
@@ -153,7 +165,7 @@ export default function LoginPage() {
 
           <div className="my-auto">
             <div className="inline-flex items-center gap-2 rounded-full px-3 py-1 mb-7" style={{ background: "rgba(249,115,22,0.1)", border: "1px solid rgba(249,115,22,0.2)" }}>
-              <span className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse" />
+              <span className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse motion-reduce:animate-none" />
               <span className="text-orange-400 text-xs font-semibold">{t.badge}</span>
             </div>
 
@@ -205,14 +217,21 @@ export default function LoginPage() {
       {/* ── Right form panel ────────────────────────────────────── */}
       <div className="flex-1 flex flex-col">
         {/* Top bar */}
-        <div className="flex items-center justify-between px-6 pt-6">
+        <div className="flex items-center justify-between px-6" style={{ paddingTop: "max(1.5rem, env(safe-area-inset-top))" }}>
           <div className="flex items-center gap-3 lg:hidden">
             <Logo size={32} showBg />
-            <p className="text-white font-black text-sm">CODShipEurope</p>
+            <p className="hidden sm:block text-white font-black text-sm">CODShipEurope</p>
           </div>
-          <div className="ml-auto">
+          <div className="ml-auto flex items-center gap-2">
+            <a href="mailto:contact@codshipeurope.com" aria-label={t.support}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-neutral-400 hover:text-white transition-colors"
+              style={{ border: "1px solid rgba(255,255,255,0.08)" }}>
+              <Mail className="w-3 h-3" />
+              <span className="hidden sm:inline">{t.support}</span>
+            </a>
             <button
               onClick={() => setLang(l => l === "fr" ? "en" : "fr")}
+              aria-label={lang === "fr" ? "Switch to English" : "Passer en français"}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-neutral-400 hover:text-white transition-colors"
               style={{ border: "1px solid rgba(255,255,255,0.08)" }}>
               <Globe2 className="w-3 h-3" />
@@ -228,6 +247,12 @@ export default function LoginPage() {
             {/* ── LOGIN ─────────────────────────────────────────── */}
             {step === "login" && (
               <>
+                {/* Mobile-only intro — desktop users already see this in the left panel */}
+                <div className="lg:hidden mb-6">
+                  <h2 className="text-lg font-black text-white leading-snug mb-1">{t.mobileHeroTitle}</h2>
+                  <p className="text-neutral-500 text-sm leading-snug">{t.mobileHeroSub}</p>
+                </div>
+
                 <div className="mb-8">
                   <h1 className="text-[1.85rem] font-black text-white mb-1.5">{t.welcome}</h1>
                   <p className="text-neutral-500 text-sm">{t.welcomeSub}</p>
@@ -241,22 +266,24 @@ export default function LoginPage() {
 
                 <form onSubmit={handleLogin} className="space-y-5">
                   <div>
-                    <label className="block text-xs font-semibold text-neutral-400 mb-2">{t.emailLabel}</label>
-                    <input type="email" placeholder={t.emailPh} required value={email} onChange={e => setEmail(e.target.value)} className={INPUT} />
+                    <label htmlFor="login-email" className="block text-xs font-semibold text-neutral-400 mb-2">{t.emailLabel}</label>
+                    <input id="login-email" type="email" inputMode="email" autoComplete="email" placeholder={t.emailPh} required
+                      value={email} onChange={e => setEmail(e.target.value)} className={INPUT} />
                   </div>
                   <div>
                     <div className="flex items-center justify-between mb-2">
-                      <label className="text-xs font-semibold text-neutral-400">{t.pwdLabel}</label>
+                      <label htmlFor="login-password" className="text-xs font-semibold text-neutral-400">{t.pwdLabel}</label>
                       <button type="button" onClick={() => { setStep("forgot"); setForgotEmail(email) }}
                         className="text-xs text-orange-400 hover:text-orange-300 transition-colors">
                         {t.pwdForgot}
                       </button>
                     </div>
                     <div className="relative">
-                      <input type={showPwd ? "text" : "password"} placeholder="••••••••" required
+                      <input id="login-password" type={showPwd ? "text" : "password"} autoComplete="current-password" placeholder="••••••••" required
                         value={password} onChange={e => setPassword(e.target.value)} className={INPUT + " pr-12"} />
                       <button type="button" onClick={() => setShowPwd(!showPwd)}
-                        className="absolute right-3.5 top-1/2 -translate-y-1/2 text-neutral-600 hover:text-white transition-colors">
+                        aria-label={showPwd ? t.hidePwd : t.showPwd} aria-pressed={showPwd}
+                        className="absolute right-0 top-0 h-full w-12 flex items-center justify-center text-neutral-600 hover:text-white transition-colors">
                         {showPwd ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
                     </div>
@@ -309,8 +336,9 @@ export default function LoginPage() {
                 </div>
                 <form onSubmit={handleForgot} className="space-y-5">
                   <div>
-                    <label className="block text-xs font-semibold text-neutral-400 mb-2">{t.emailLabel}</label>
-                    <input type="email" placeholder={t.emailPh} required value={forgotEmail} onChange={e => setForgotEmail(e.target.value)} className={INPUT} />
+                    <label htmlFor="forgot-email" className="block text-xs font-semibold text-neutral-400 mb-2">{t.emailLabel}</label>
+                    <input id="forgot-email" type="email" inputMode="email" autoComplete="email" placeholder={t.emailPh} required
+                      value={forgotEmail} onChange={e => setForgotEmail(e.target.value)} className={INPUT} />
                   </div>
                   <button type="submit" disabled={loading}
                     className="w-full flex items-center justify-center gap-2 py-4 rounded-xl font-bold text-sm text-white transition-all disabled:opacity-60 hover:opacity-90"

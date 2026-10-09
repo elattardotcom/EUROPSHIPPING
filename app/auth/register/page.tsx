@@ -138,13 +138,15 @@ const DIAL_CODES = [
 const BENEFIT_ICONS = [Truck, PhoneCall, BarChart3, ShieldCheck]
 const BENEFIT_COLORS = ["#f97316", "#6366f1", "#10b981", "#06b6d4"]
 
-const INPUT  = "w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-3 text-white text-sm placeholder:text-neutral-600 focus:outline-none focus:border-orange-500 focus:bg-white/[0.06] transition-all"
-const SELECT = "w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-orange-500 transition-all"
+// text-base (16px) on purpose — anything smaller triggers an unwanted
+// zoom-on-focus in iOS Safari.
+const INPUT  = "w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-3 text-white text-base placeholder:text-neutral-600 focus:outline-none focus:border-orange-500 focus:bg-white/[0.06] transition-all"
+const SELECT = "w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-3 text-white text-base focus:outline-none focus:border-orange-500 transition-all"
 const LABEL  = "block text-xs font-medium text-neutral-400 mb-2"
 
 function Spinner() {
   return (
-    <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
+    <svg className="animate-spin motion-reduce:animate-none w-4 h-4" viewBox="0 0 24 24" fill="none">
       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
     </svg>
@@ -274,6 +276,7 @@ export default function RegisterPage() {
             <div className="ml-auto">
               <button
                 onClick={() => setLang(l => l === "fr" ? "en" : "fr")}
+                aria-label={lang === "fr" ? "Switch to English" : "Passer en français"}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-neutral-400 hover:text-white transition-colors"
                 style={{ border: "1px solid rgba(255,255,255,0.08)" }}>
                 <Globe2 className="w-3 h-3" />
@@ -301,27 +304,28 @@ export default function RegisterPage() {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className={LABEL}>{t.firstNameL}</label>
-                    <input type="text" placeholder={t.firstNamePh} required value={form.firstName} onChange={set("firstName")} className={INPUT} />
+                    <input type="text" autoComplete="given-name" placeholder={t.firstNamePh} required value={form.firstName} onChange={set("firstName")} className={INPUT} />
                   </div>
                   <div>
                     <label className={LABEL}>{t.lastNameL}</label>
-                    <input type="text" placeholder={t.lastNamePh} required value={form.lastName} onChange={set("lastName")} className={INPUT} />
+                    <input type="text" autoComplete="family-name" placeholder={t.lastNamePh} required value={form.lastName} onChange={set("lastName")} className={INPUT} />
                   </div>
                 </div>
 
                 <div>
                   <label className={LABEL}>{t.emailL}</label>
-                  <input type="email" placeholder={t.emailPh} required value={form.email} onChange={set("email")} className={INPUT} />
+                  <input type="email" inputMode="email" autoComplete="email" placeholder={t.emailPh} required value={form.email} onChange={set("email")} className={INPUT} />
                 </div>
 
                 <div>
                   <label className={LABEL}>{t.phoneL}</label>
                   <div className="flex gap-2">
                     <select value={form.dialCode} onChange={e => setForm(f => ({ ...f, dialCode: e.target.value }))}
-                      className="bg-white/[0.04] border border-white/[0.08] rounded-xl px-2.5 py-3 text-white text-sm focus:outline-none focus:border-orange-500 transition-all flex-shrink-0">
+                      aria-label={t.phoneL}
+                      className="bg-white/[0.04] border border-white/[0.08] rounded-xl px-2.5 py-3 text-white text-base focus:outline-none focus:border-orange-500 transition-all flex-shrink-0">
                       {DIAL_CODES.map(d => <option key={d.v} value={d.v}>{d.l}</option>)}
                     </select>
-                    <input type="tel" placeholder={t.phonePh} required
+                    <input type="tel" inputMode="tel" autoComplete="tel-national" placeholder={t.phonePh} required
                       value={form.phone}
                       onChange={e => setForm(f => ({ ...f, phone: e.target.value.replace(/\D/g, "").slice(0, 15) }))}
                       className={INPUT} />
@@ -331,7 +335,7 @@ export default function RegisterPage() {
 
                 <div>
                   <label className={LABEL}>{t.companyL}</label>
-                  <input type="text" placeholder={t.companyPh} value={form.company} onChange={set("company")} className={INPUT} />
+                  <input type="text" autoComplete="organization" placeholder={t.companyPh} value={form.company} onChange={set("company")} className={INPUT} />
                 </div>
 
                 <div>
@@ -345,10 +349,11 @@ export default function RegisterPage() {
                 <div>
                   <label className={LABEL}>{t.passwordL}</label>
                   <div className="relative">
-                    <input type={showPwd ? "text" : "password"} placeholder={t.passwordPh} required minLength={8}
+                    <input type={showPwd ? "text" : "password"} autoComplete="new-password" placeholder={t.passwordPh} required minLength={8}
                       value={form.password} onChange={set("password")} className={INPUT + " pr-12"} />
                     <button type="button" onClick={() => setShowPwd(!showPwd)}
-                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-neutral-600 hover:text-white transition-colors">
+                      aria-label={showPwd ? "Hide password" : "Show password"} aria-pressed={showPwd}
+                      className="absolute right-0 top-0 h-full w-12 flex items-center justify-center text-neutral-600 hover:text-white transition-colors">
                       {showPwd ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>

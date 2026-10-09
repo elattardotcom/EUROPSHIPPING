@@ -6,10 +6,12 @@ import { Eye, EyeOff, CheckCircle, AlertCircle, ArrowRight } from "lucide-react"
 import { Logo } from "@/components/logo"
 import Link from "next/link"
 
-const INPUT = "w-full bg-[#111] border border-white/10 rounded-xl px-3.5 py-2.5 text-white text-sm placeholder:text-neutral-600 focus:outline-none focus:border-orange-500 transition-colors"
+// text-base (16px) on purpose — anything smaller triggers an unwanted
+// zoom-on-focus in iOS Safari.
+const INPUT = "w-full bg-[#111] border border-white/10 rounded-xl px-3.5 py-3 text-white text-base placeholder:text-neutral-600 focus:outline-none focus:border-orange-500 transition-colors"
 
 const Spinner = () => (
-  <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
+  <svg className="animate-spin motion-reduce:animate-none w-4 h-4" viewBox="0 0 24 24" fill="none">
     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
   </svg>
@@ -69,7 +71,7 @@ function ResetForm() {
               </div>
               <h2 className="text-white font-bold text-xl">Mot de passe mis à jour !</h2>
               <p className="text-neutral-500 text-sm">Votre mot de passe a été réinitialisé avec succès.</p>
-              <Link href="/"
+              <Link href="/auth/login"
                 className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-bold text-sm text-white transition-all"
                 style={{ background: "linear-gradient(135deg,#f97316,#dc2626)", boxShadow: "0 8px 24px rgba(249,115,22,0.3)" }}>
                 Se connecter <ArrowRight className="w-4 h-4" />
@@ -88,20 +90,21 @@ function ResetForm() {
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-medium text-neutral-500 mb-1.5">Nouveau mot de passe</label>
+                  <label htmlFor="reset-password" className="block text-xs font-medium text-neutral-500 mb-1.5">Nouveau mot de passe</label>
                   <div className="relative">
-                    <input type={showPw ? "text" : "password"} placeholder="Minimum 8 caractères"
+                    <input id="reset-password" type={showPw ? "text" : "password"} autoComplete="new-password" placeholder="Minimum 8 caractères"
                       required minLength={8} value={password} onChange={e => setPassword(e.target.value)}
-                      disabled={!token} className={INPUT + " pr-11"} />
+                      disabled={!token} className={INPUT + " pr-12"} />
                     <button type="button" onClick={() => setShowPw(!showPw)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-600 hover:text-white">
+                      aria-label={showPw ? "Masquer le mot de passe" : "Afficher le mot de passe"} aria-pressed={showPw}
+                      className="absolute right-0 top-0 h-full w-12 flex items-center justify-center text-neutral-600 hover:text-white">
                       {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-neutral-500 mb-1.5">Confirmer le mot de passe</label>
-                  <input type={showPw ? "text" : "password"} placeholder="Répétez le mot de passe"
+                  <label htmlFor="reset-password-confirm" className="block text-xs font-medium text-neutral-500 mb-1.5">Confirmer le mot de passe</label>
+                  <input id="reset-password-confirm" type={showPw ? "text" : "password"} autoComplete="new-password" placeholder="Répétez le mot de passe"
                     required value={confirm} onChange={e => setConfirm(e.target.value)}
                     disabled={!token} className={INPUT} />
                 </div>
@@ -114,7 +117,7 @@ function ResetForm() {
 
               <p className="mt-6 text-center text-xs text-neutral-600">
                 Vous vous souvenez de votre mot de passe ?{" "}
-                <Link href="/" className="text-orange-400 hover:underline">Se connecter</Link>
+                <Link href="/auth/login" className="text-orange-400 hover:underline">Se connecter</Link>
               </p>
             </>
           )}
