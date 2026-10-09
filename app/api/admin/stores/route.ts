@@ -8,10 +8,24 @@ export async function GET() {
   const sb = getSupabaseAdmin()
   if (!sb) return NextResponse.json([])
 
-  const { data: stores } = await sb
-    .from("stores")
-    .select("id, name, domain, status, last_sync, client_id")
-    .order("last_sync", { ascending: false })
+  // last_sync_status/last_error may not exist yet (pre-migration) — fall
+  // back to the base columns rather than erroring the whole page.
+  let stores: { id: string; name: string; domain: string; status: string; last_sync: string; client_id: string; last_sync_status?: string; last_error?: string }[] | null = null
+  {
+    const { data, error } = await sb
+      .from("stores")
+      .select("id, name, domain, status, last_sync, client_id, last_sync_status, last_error")
+      .order("last_sync", { ascending: false })
+    if (error) {
+      const fallback = await sb
+        .from("stores")
+        .select("id, name, domain, status, last_sync, client_id")
+        .order("last_sync", { ascending: false })
+      stores = fallback.data
+    } else {
+      stores = data
+    }
+  }
 
   const { data: clients } = await sb
     .from("clients")
@@ -39,6 +53,8 @@ export async function GET() {
       clientEmail:  client?.email ?? "",
       ordersToday,
       totalOrders:  storeOrders.length,
+      lastSyncStatus: s.last_sync_status ?? null,
+      lastError:      s.last_error ?? null,
     }
   })
 

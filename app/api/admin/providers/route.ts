@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getProviders, createProvider } from "@/lib/db"
 import { requireAdmin } from "@/lib/admin-auth"
+import { getAdminEmail, logAdminAction } from "@/lib/audit-log"
 
 const VALID_STATUS = ["active", "inactive", "pending"]
 
@@ -32,5 +33,9 @@ export async function POST(req: NextRequest) {
     notes,
   })
   if (!provider) return NextResponse.json({ error: "Failed to create provider" }, { status: 500 })
+
+  const adminEmail = await getAdminEmail()
+  if (adminEmail) await logAdminAction(adminEmail, "provider_create", "provider", provider.id, { name: provider.name, serviceType: provider.serviceType })
+
   return NextResponse.json(provider, { status: 201 })
 }

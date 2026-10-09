@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { updateProvider, deleteProvider } from "@/lib/db"
 import { requireAdmin } from "@/lib/admin-auth"
+import { getAdminEmail, logAdminAction } from "@/lib/audit-log"
 
 const VALID_STATUS = ["active", "inactive", "pending"]
 
@@ -25,6 +26,10 @@ export async function PATCH(
     countries: Array.isArray(countries) ? countries.map(String) : undefined,
   })
   if (!provider) return NextResponse.json({ error: "Update failed" }, { status: 500 })
+
+  const adminEmail = await getAdminEmail()
+  if (adminEmail) await logAdminAction(adminEmail, "provider_update", "provider", id, { name, serviceType, status })
+
   return NextResponse.json(provider)
 }
 
@@ -37,5 +42,9 @@ export async function DELETE(
   const { id } = await params
   const ok = await deleteProvider(id)
   if (!ok) return NextResponse.json({ error: "Delete failed" }, { status: 500 })
+
+  const adminEmail = await getAdminEmail()
+  if (adminEmail) await logAdminAction(adminEmail, "provider_delete", "provider", id)
+
   return NextResponse.json({ success: true })
 }
