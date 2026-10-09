@@ -13,7 +13,6 @@ import {
 import { Button } from "@/components/ui/button"
 import { AdminI18nProvider, useI18n } from "@/lib/admin-i18n"
 import { Logo } from "@/components/logo"
-import { GridBackground } from "@/components/dashboard/hud-accents"
 import { useRealtime, type RealtimeEvent } from "@/hooks/useSse"
 
 interface Counts { clients: number; orders: number; leads: number; withdrawals: number; requests: number }
@@ -291,10 +290,10 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
       </div>,
       document.body
     )}
-    <div className="flex h-screen bg-neutral-950 overflow-hidden">
+    <div className="flex h-screen bg-[#F3F4F6] overflow-hidden">
 
       {/* ── Desktop Sidebar ─────────────────────────────────────── */}
-      <aside className={`hidden md:flex ${collapsed ? "w-16" : "w-60"} flex-shrink-0 bg-neutral-900 border-r border-neutral-800 transition-all duration-300 flex-col`}>
+      <aside className={`hidden md:flex ${collapsed ? "w-16" : "w-60"} flex-shrink-0 bg-[#17191D] border-r border-black/20 transition-all duration-300 flex-col`}>
 
         {/* Logo */}
         <div className="h-16 flex items-center justify-between px-4 border-b border-neutral-800">
@@ -388,7 +387,7 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
       {drawerOpen && (
         <div className="md:hidden fixed inset-0 z-50 flex">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setDrawerOpen(false)} />
-          <div ref={drawerRef} className="relative w-72 max-w-[85vw] bg-neutral-900 border-r border-neutral-800 flex flex-col h-full">
+          <div ref={drawerRef} className="relative w-72 max-w-[85vw] bg-[#17191D] border-r border-black/20 flex flex-col h-full">
 
             {/* Drawer header */}
             <div className="h-14 flex items-center justify-between px-4 border-b border-neutral-800">
@@ -448,17 +447,17 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
       <div className="flex-1 flex flex-col overflow-hidden min-w-0">
 
         {/* Topbar */}
-        <header className="h-14 md:h-16 bg-neutral-900 border-b border-neutral-800 flex items-center justify-between px-4 md:px-6 flex-shrink-0">
+        <header className="h-14 md:h-16 bg-white border-b border-neutral-200 flex items-center justify-between px-4 md:px-6 flex-shrink-0">
           {/* Left: hamburger (mobile) + breadcrumb */}
           <div className="flex items-center gap-2 md:gap-3 min-w-0">
             <button onClick={() => setDrawerOpen(true)}
-              className="md:hidden w-9 h-9 rounded-lg bg-neutral-800 flex items-center justify-center text-neutral-400 hover:text-white flex-shrink-0">
+              className="md:hidden w-9 h-9 rounded-lg bg-neutral-100 flex items-center justify-center text-neutral-500 hover:text-[#17191D] flex-shrink-0">
               <Menu className="w-4 h-4" />
             </button>
             <div className="flex items-center gap-1.5 min-w-0">
-              <span className="hidden sm:block text-xs text-neutral-600 uppercase tracking-widest">Admin</span>
-              <ChevronRight className="hidden sm:block w-3 h-3 text-neutral-700" />
-              <span className="text-sm text-white font-medium truncate">{currentPage}</span>
+              <span className="hidden sm:block text-xs text-neutral-400 uppercase tracking-widest">Admin</span>
+              <ChevronRight className="hidden sm:block w-3 h-3 text-neutral-300" />
+              <span className="text-sm text-[#17191D] font-medium truncate">{currentPage}</span>
             </div>
           </div>
 
@@ -473,26 +472,25 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
             <div className="relative" ref={notifRef}>
               <Button variant="ghost" size="icon"
                 onClick={() => setShowNotifs(v => !v)}
-                className="relative text-neutral-500 hover:text-white hover:bg-neutral-800 w-9 h-9">
+                className="relative text-neutral-500 hover:text-[#17191D] hover:bg-neutral-100 w-9 h-9">
                 <Bell className="w-4 h-4 md:w-5 md:h-5" />
                 {totalUnread > 0 && (
-                  <span className="absolute -top-1 -right-1 min-w-[16px] h-4 bg-orange-500 rounded-full animate-pulse border border-neutral-900 flex items-center justify-center text-[9px] font-black text-white px-0.5">
+                  <span className="absolute -top-1 -right-1 min-w-[16px] h-4 bg-orange-500 rounded-full animate-pulse border border-white flex items-center justify-center text-[9px] font-black text-white px-0.5">
                     {totalUnread > 9 ? "9+" : totalUnread}
                   </span>
                 )}
               </Button>
 
               {showNotifs && (
-                <div className="absolute right-0 top-11 w-80 rounded-2xl shadow-2xl z-50 overflow-hidden"
-                  style={{ background: "#111", border: "1px solid rgba(255,255,255,0.08)", boxShadow: "0 24px 48px rgba(0,0,0,0.8)" }}>
+                <div className="absolute right-0 top-11 w-80 rounded-2xl z-50 overflow-hidden bg-white border border-neutral-200 shadow-xl">
                   {/* Header */}
-                  <div className="px-4 py-3 flex items-center justify-between" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                  <div className="px-4 py-3 flex items-center justify-between border-b border-neutral-100">
                     <div className="flex items-center gap-2">
-                      <Bell className="w-3.5 h-3.5 text-orange-400" />
-                      <span className="text-sm font-bold text-white">Notifications</span>
+                      <Bell className="w-3.5 h-3.5 text-orange-500" />
+                      <span className="text-sm font-bold text-[#17191D]">Notifications</span>
                     </div>
                     {totalUnread > 0 && (
-                      <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400 border border-orange-500/30">
+                      <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-orange-50 text-orange-600 border border-orange-200">
                         {totalUnread} new
                       </span>
                     )}
@@ -501,43 +499,43 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
                   {/* Items */}
                   <div className="py-1">
                     {[
-                      { key: "requests",    label: "Signup requests", count: counts.requests,    unreadCount: unread.requests,    href: "/admin/requests",    color: "#8b5cf6", dot: "rgba(139,92,246,0.15)", desc: "Awaiting approval" },
-                      { key: "withdrawals", label: "Pending withdrawals", count: counts.withdrawals, unreadCount: unread.withdrawals, href: "/admin/withdrawals", color: "#f59e0b", dot: "rgba(245,158,11,0.15)", desc: "To process" },
-                      { key: "orders",      label: "New orders",     count: counts.orders,      unreadCount: unread.orders,      href: "/admin/orders",      color: "#f97316", dot: "rgba(249,115,22,0.15)", desc: "Recent orders" },
-                      { key: "leads",       label: "Pending leads",        count: counts.leads,       unreadCount: unread.leads,       href: "/admin/leads",       color: "#3b82f6", dot: "rgba(59,130,246,0.15)", desc: "To confirm" },
+                      { key: "requests",    label: "Signup requests", count: counts.requests,    unreadCount: unread.requests,    href: "/admin/requests",    color: "#8b5cf6", dot: "#f5f3ff", desc: "Awaiting approval" },
+                      { key: "withdrawals", label: "Pending withdrawals", count: counts.withdrawals, unreadCount: unread.withdrawals, href: "/admin/withdrawals", color: "#d97706", dot: "#fffbeb", desc: "To process" },
+                      { key: "orders",      label: "New orders",     count: counts.orders,      unreadCount: unread.orders,      href: "/admin/orders",      color: "#f97316", dot: "#fff7ed", desc: "Recent orders" },
+                      { key: "leads",       label: "Pending leads",        count: counts.leads,       unreadCount: unread.leads,       href: "/admin/leads",       color: "#2563eb", dot: "#eff6ff", desc: "To confirm" },
                     ].map(item => (
                       <Link key={item.href} href={item.href}
                         onClick={() => { markSeen(item.key); setShowNotifs(false) }}
-                        className="flex items-center gap-3 px-4 py-3 hover:bg-white/[0.03] transition-colors group relative">
+                        className="flex items-center gap-3 px-4 py-3 hover:bg-neutral-50 transition-colors group relative">
                         {item.unreadCount > 0 && (
                           <div className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-6 rounded-r-full" style={{ background: item.color }} />
                         )}
                         <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-                          style={{ background: item.unreadCount > 0 ? item.dot : "rgba(255,255,255,0.04)" }}>
-                          <span className="text-sm font-black" style={{ color: item.unreadCount > 0 ? item.color : "#4b5563" }}>
+                          style={{ background: item.unreadCount > 0 ? item.dot : "#f5f5f5" }}>
+                          <span className="text-sm font-black" style={{ color: item.unreadCount > 0 ? item.color : "#9ca3af" }}>
                             {item.count > 0 ? item.count : "—"}
                           </span>
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className={`text-sm font-medium transition-colors group-hover:text-orange-400 ${item.unreadCount > 0 ? "text-white" : "text-neutral-500"}`}>
+                          <p className={`text-sm font-medium transition-colors group-hover:text-orange-500 ${item.unreadCount > 0 ? "text-[#17191D]" : "text-neutral-400"}`}>
                             {item.label}
                           </p>
-                          <p className="text-[10px] text-neutral-600">{item.unreadCount > 0 ? `${item.unreadCount} unread` : item.desc}</p>
+                          <p className="text-[10px] text-neutral-400">{item.unreadCount > 0 ? `${item.unreadCount} unread` : item.desc}</p>
                         </div>
                         {item.unreadCount > 0
                           ? <span className="text-[10px] font-black px-1.5 py-0.5 rounded-full" style={{ background: item.dot, color: item.color }}>{item.unreadCount}</span>
-                          : <span className="text-[10px] text-neutral-700">✓ Read</span>
+                          : <span className="text-[10px] text-neutral-300">✓ Read</span>
                         }
                       </Link>
                     ))}
                   </div>
 
                   {/* Footer */}
-                  <div className="px-4 py-2.5" style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
+                  <div className="px-4 py-2.5 border-t border-neutral-100">
                     {totalUnread === 0
-                      ? <p className="text-xs text-neutral-600 text-center py-1">All caught up ✓</p>
+                      ? <p className="text-xs text-neutral-400 text-center py-1">All caught up ✓</p>
                       : <button onClick={() => { ["requests","withdrawals","orders","leads"].forEach(markSeen); setShowNotifs(false) }}
-                          className="block w-full text-center text-xs font-bold text-neutral-500 hover:text-neutral-300 py-1 transition-colors">
+                          className="block w-full text-center text-xs font-bold text-neutral-500 hover:text-neutral-700 py-1 transition-colors">
                           Mark all as read
                         </button>
                     }
@@ -546,25 +544,24 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
               )}
             </div>
 
-            <div className="flex items-center gap-2 pl-2 border-l border-neutral-800">
+            <div className="flex items-center gap-2 pl-2 border-l border-neutral-200">
               <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-red-600 rounded-full flex items-center justify-center text-white font-bold text-xs flex-shrink-0">A</div>
               <div className="hidden sm:block">
-                <p className="text-white text-sm font-medium leading-none">Admin</p>
-                <p className="text-orange-400/60 text-xs">Super Admin</p>
+                <p className="text-[#17191D] text-sm font-medium leading-none">Admin</p>
+                <p className="text-orange-500/70 text-xs">Super Admin</p>
               </div>
             </div>
           </div>
         </header>
 
         {/* Page content */}
-        <main className="flex-1 overflow-auto bg-neutral-950 relative pb-16 md:pb-0">
-          <GridBackground />
+        <main className="flex-1 overflow-auto bg-[#F3F4F6] relative pb-16 md:pb-0">
           {children}
         </main>
       </div>
 
       {/* ── Mobile Bottom Tab Bar ───────────────────────────────── */}
-      <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-neutral-900 border-t border-neutral-800 flex items-stretch h-16 safe-area-bottom">
+      <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-[#17191D] border-t border-black/20 flex items-stretch h-16 safe-area-bottom">
         {BOTTOM_TABS.map(tab => {
           const active = isActive(tab.href)
           return (
