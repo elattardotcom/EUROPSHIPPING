@@ -14,6 +14,8 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const action     = searchParams.get("action")
   const adminEmail = searchParams.get("adminEmail")
+  const targetType = searchParams.get("targetType")
+  const targetId   = searchParams.get("targetId")
   const from       = searchParams.get("from")
   const to         = searchParams.get("to")
   const limitParam = parseInt(searchParams.get("limit") ?? "100", 10)
@@ -23,6 +25,8 @@ export async function GET(req: NextRequest) {
 
   if (action)     query = query.eq("action", action)
   if (adminEmail) query = query.eq("admin_email", adminEmail)
+  if (targetType) query = query.eq("target_type", targetType)
+  if (targetId)   query = query.eq("target_id", targetId)
   if (from)       query = query.gte("created_at", from)
   if (to)         query = query.lte("created_at", to)
 

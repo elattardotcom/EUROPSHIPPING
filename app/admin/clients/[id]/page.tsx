@@ -6,11 +6,19 @@ import {
   ArrowLeft, Mail, Phone, Globe, Store, ShoppingCart, Users,
   DollarSign, CheckCircle, Clock, Truck, XCircle, AlertCircle, PhoneMissed,
   PlusCircle, MinusCircle, Loader2, TrendingUp, TrendingDown,
-  Building2, Bitcoin, ArrowRight, Star, Wallet,
+  Building2, Bitcoin, ArrowRight, Star, Wallet, AlertTriangle, ShieldCheck, RotateCcw,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import type { Client, AdminOrder, AdminLead, AdminStore, BalanceAdjustment, PaymentMethod } from "@/lib/db"
+import type { Client, AdminOrder, AdminLead, AdminStore, BalanceAdjustment, PaymentMethod, OperationalException } from "@/lib/db"
 import { useI18n } from "@/lib/admin-i18n"
+
+interface AuditLogEntry {
+  id: string
+  action: string
+  admin_email: string
+  created_at: string
+  metadata: Record<string, unknown> | null
+}
 
 const FLAGS: Record<string, string> = { PT:"🇵🇹", ES:"🇪🇸", FR:"🇫🇷", MA:"🇲🇦", BE:"🇧🇪", TN:"🇹🇳" }
 
@@ -56,6 +64,9 @@ export default function ClientDetail({ params }: { params: Promise<{ id: string 
 
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([])
 
+  const [exceptions, setExceptions] = useState<OperationalException[]>([])
+  const [auditLogs,  setAuditLogs]  = useState<AuditLogEntry[]>([])
+
   const [adjustments, setAdjustments] = useState<BalanceAdjustment[]>([])
   const [adjAmount,   setAdjAmount]   = useState("")
   const [adjType,     setAdjType]     = useState<"credit" | "debit">("credit")
@@ -86,6 +97,17 @@ export default function ClientDetail({ params }: { params: Promise<{ id: string 
     fetch(`/api/admin/clients/${id}/balance`)
       .then(r => r.json())
       .then(data => setAdjustments(Array.isArray(data) ? data : []))
+      .catch(() => {})
+    // Exceptions aren't stored per-merchant — they reference an order or
+    // lead id, so the merchant tie-in is a client-side join against this
+    // merchant's own orders/leads (set above).
+    fetch(`/api/admin/exceptions`)
+      .then(r => r.json())
+      .then(data => setExceptions(Array.isArray(data) ? data : []))
+      .catch(() => {})
+    fetch(`/api/admin/audit-logs?targetType=client&targetId=${id}&limit=20`)
+      .then(r => r.json())
+      .then(data => setAuditLogs(Array.isArray(data) ? data : []))
       .catch(() => {})
   }, [id])
 
@@ -150,8 +172,23 @@ export default function ClientDetail({ params }: { params: Promise<{ id: string 
 
   const confirmedLeads  = leads.filter(l => l.status === "CONFIRMED").length
   const deliveredOrders = orders.filter(o => o.status === "DELIVERED").length
+  const returnedOrders  = orders.filter(o => o.status === "RETURNED").length
   const totalRevenue    = orders.filter(o => o.status === "DELIVERED").reduce((s,o) => s + o.value, 0)
-  void deliveredOrders
+  const completedOrders = deliveredOrders + returnedOrders
+  const deliveryRate    = completedOrders > 0 ? Math.round((deliveredOrders / completedOrders) * 100) : null
+  const returnRate      = completedOrders > 0 ? Math.round((returnedOrders  / completedOrders) * 100) : null
+
+  const orderIds = new Set(orders.map(o => o.id))
+  const leadIds  = new Set(leads.map(l => l.id))
+  const merchantExceptions = exceptions.filter(e =>
+    (e.entityType === "order" && orderIds.has(e.entityId)) ||
+    (e.entityType === "lead"  && leadIds.has(e.entityId))
+  )
+  const openExceptions = merchantExceptions.filter(e => e.status !== "resolved")
+
+  const EXCEPTION_SEVERITY_COLOR: Record<string, string> = {
+    low: "text-neutral-400", medium: "text-amber-400", high: "text-red-400", critical: "text-red-400",
+  }
 
   return (
     <div className="p-6 space-y-6">
@@ -287,6 +324,67 @@ export default function ClientDetail({ params }: { params: Promise<{ id: string 
                   </div>
                 )
               })
+          }
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="rounded-2xl p-5" style={{ background: "#111", border: "1px solid rgba(16,185,129,0.25)" }}>
+          <div className="flex items-center gap-2 text-emerald-400 mb-2"><CheckCircle className="w-4 h-4" /><p className="text-xs font-medium text-neutral-400">Delivery rate</p></div>
+          <p className="text-2xl font-black text-white">{deliveryRate === null ? "—" : `${deliveryRate}%`}</p>
+          <p className="text-xs text-neutral-500 mt-0.5">{deliveredOrders}/{completedOrders || 0} completed orders</p>
+        </div>
+        <div className="rounded-2xl p-5" style={{ background: "#111", border: "1px solid rgba(239,68,68,0.25)" }}>
+          <div className="flex items-center gap-2 text-red-400 mb-2"><RotateCcw className="w-4 h-4" /><p className="text-xs font-medium text-neutral-400">Return rate</p></div>
+          <p className="text-2xl font-black text-white">{returnRate === null ? "—" : `${returnRate}%`}</p>
+          <p className="text-xs text-neutral-500 mt-0.5">{returnedOrders}/{completedOrders || 0} completed orders</p>
+        </div>
+        <div className="rounded-2xl p-5 col-span-2" style={{ background: "#111", border: `1px solid ${openExceptions.length ? "rgba(249,115,22,0.3)" : "rgba(255,255,255,0.08)"}` }}>
+          <div className="flex items-center gap-2 text-orange-400 mb-2"><AlertTriangle className="w-4 h-4" /><p className="text-xs font-medium text-neutral-400">Open exceptions</p></div>
+          <p className="text-2xl font-black text-white">{openExceptions.length}</p>
+          <p className="text-xs text-neutral-500 mt-0.5">out of {merchantExceptions.length} total for this merchant</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-neutral-900 border border-neutral-800 rounded-2xl overflow-hidden">
+          <div className="px-5 py-4 border-b border-neutral-800 flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 text-orange-400" />
+            <h2 className="font-semibold text-white">Open exceptions ({openExceptions.length})</h2>
+          </div>
+          {openExceptions.length === 0
+            ? <p className="p-5 text-neutral-500 text-sm">No open exceptions for this merchant.</p>
+            : openExceptions.map(e => (
+                <Link key={e.id} href={e.entityType === "order" ? `/admin/orders/${e.entityId}` : "/admin/leads"}
+                  className="px-5 py-3.5 border-b border-neutral-800 last:border-0 flex items-center justify-between hover:bg-neutral-800/30 transition-colors">
+                  <div className="min-w-0">
+                    <p className="text-white text-sm font-medium truncate">{e.title}</p>
+                    {e.description && <p className="text-neutral-500 text-xs truncate">{e.description}</p>}
+                  </div>
+                  <span className={`text-xs font-medium flex-shrink-0 ml-3 capitalize ${EXCEPTION_SEVERITY_COLOR[e.severity]}`}>{e.severity}</span>
+                </Link>
+              ))
+          }
+        </div>
+
+        <div className="bg-neutral-900 border border-neutral-800 rounded-2xl overflow-hidden">
+          <div className="px-5 py-4 border-b border-neutral-800 flex items-center gap-2">
+            <ShieldCheck className="w-4 h-4 text-orange-400" />
+            <h2 className="font-semibold text-white">Recent admin actions ({auditLogs.length})</h2>
+          </div>
+          {auditLogs.length === 0
+            ? <p className="p-5 text-neutral-500 text-sm">No admin actions recorded for this merchant.</p>
+            : auditLogs.map(a => (
+                <div key={a.id} className="px-5 py-3.5 border-b border-neutral-800 last:border-0 flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-white text-sm font-medium">{a.action.replace(/_/g, " ")}</p>
+                    <p className="text-neutral-500 text-xs truncate">{a.admin_email}</p>
+                  </div>
+                  <p className="text-neutral-500 text-xs flex-shrink-0">
+                    {new Date(a.created_at).toLocaleDateString(locale, { day:"2-digit", month:"short", hour:"2-digit", minute:"2-digit" })}
+                  </p>
+                </div>
+              ))
           }
         </div>
       </div>
