@@ -18,7 +18,7 @@ export async function GET() {
     ] = await Promise.all([
       sb.from("clients").select("*", { count: "exact", head: true }),
       sb.from("orders").select("*", { count: "exact", head: true }).eq("status", "PENDING"),
-      sb.from("leads").select("*", { count: "exact", head: true }).eq("status", "new"),
+      sb.from("leads").select("*", { count: "exact", head: true }).eq("status", "PENDING"),
       sb.from("withdrawals").select("*", { count: "exact", head: true }).eq("status", "pending"),
       sb.from("registration_requests").select("*", { count: "exact", head: true }).eq("status", "pending"),
     ])

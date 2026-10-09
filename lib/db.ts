@@ -745,6 +745,21 @@ export async function getBalance(clientId: string): Promise<number> {
   return (await getBalanceSummary(clientId)).available
 }
 
+/**
+ * Sum of every merchant's current available balance — i.e. what the
+ * platform currently owes across all accounts. Reuses getBalanceSummary()
+ * per client (the same calculation each merchant's own wallet page shows)
+ * rather than approximating with a cheaper aggregate query, so this number
+ * always matches reality. Deliberately NOT called on every Overview poll
+ * tick (it's O(clients) queries) — callers should fetch it once and offer
+ * a manual refresh instead.
+ */
+export async function getMerchantPayablesTotal(): Promise<number> {
+  const clients = await getClients()
+  const summaries = await Promise.all(clients.map(c => getBalanceSummary(c.id)))
+  return Math.round(summaries.reduce((s, b) => s + b.available, 0) * 100) / 100
+}
+
 export async function createWithdrawal(
   payload: Omit<Withdrawal, "id" | "status" | "requestedAt" | "processedAt" | "adminNote">
 ): Promise<Withdrawal | null> {

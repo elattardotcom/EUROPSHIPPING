@@ -6,8 +6,9 @@ import {
   Users, ShoppingCart, DollarSign, ArrowUpRight,
   Clock, AlertCircle, RefreshCw, Radio, Store, TrendingUp,
   Package, Truck, PhoneCall, CheckCircle, Zap, Wallet, ClipboardList, ArrowRight, Activity,
+  AlertTriangle, Banknote, ChevronDown,
 } from "lucide-react"
-import type { Client, AdminOrder, AdminLead } from "@/lib/db"
+import type { Client, AdminOrder, AdminLead, Withdrawal } from "@/lib/db"
 import { useRealtime, type RealtimeEvent } from "@/hooks/useSse"
 import { CornerBrackets, SectionDot } from "@/components/dashboard/hud-accents"
 
@@ -63,6 +64,10 @@ export default function AdminDashboard() {
   const [pending,     setPending]     = useState({ requests: 0, withdrawals: 0 })
   const [live,        setLive]        = useState(false)
   const [activity,    setActivity]    = useState<ActivityItem[]>([])
+  const [withdrawals, setWithdrawals] = useState<Withdrawal[]>([])
+  const [payables,        setPayables]        = useState<number | null>(null)
+  const [payablesLoading, setPayablesLoading] = useState(true)
+  const [dateRange,       setDateRange]       = useState<"today" | "7d" | "30d" | "all">("all")
   const clientsRef = useRef<Client[]>([])
   useEffect(() => { clientsRef.current = clients }, [clients])
 
@@ -78,23 +83,36 @@ export default function AdminDashboard() {
   }, [])
 
   const load = useCallback(async () => {
-    const [c, o, l, s, counts] = await Promise.all([
+    const [c, o, l, s, counts, w] = await Promise.all([
       fetch("/api/admin/clients").then(r => r.json()).catch(() => []),
       fetch("/api/admin/orders").then(r => r.json()).catch(() => []),
       fetch("/api/admin/leads").then(r => r.json()).catch(() => []),
       fetch("/api/admin/stores").then(r => r.json()).catch(() => []),
       fetch("/api/admin/counts").then(r => r.json()).catch(() => null),
+      fetch("/api/withdrawals").then(r => r.json()).catch(() => []),
     ])
     setClients(Array.isArray(c) ? c : [])
     setOrders(Array.isArray(o) ? o : [])
     setLeads(Array.isArray(l) ? l : [])
     setStores(Array.isArray(s) ? s : [])
     if (counts) setPending({ requests: counts.requests ?? 0, withdrawals: counts.withdrawals ?? 0 })
+    setWithdrawals(Array.isArray(w) ? w : [])
     setLoading(false)
     setLastRefresh(new Date())
   }, [])
 
   useEffect(() => { load(); const i = setInterval(load, 30_000); return () => clearInterval(i) }, [load])
+
+  // Sum of every merchant's current balance — O(clients) server-side, so
+  // fetched once on mount rather than on the 30s poll. Manual refresh only.
+  const loadPayables = useCallback(async () => {
+    setPayablesLoading(true)
+    const d = await fetch("/api/admin/payables").then(r => r.json()).catch(() => null)
+    setPayables(typeof d?.total === "number" ? d.total : null)
+    setPayablesLoading(false)
+  }, [])
+
+  useEffect(() => { loadPayables() }, [loadPayables])
 
   // ── Live activity feed, synced with every client dashboard ────
   const onRealtimeEvent = useCallback((e: RealtimeEvent) => {
@@ -134,6 +152,41 @@ export default function AdminDashboard() {
   const deliveryRate  = orders.length ? Math.round(delivered / orders.length * 100) : 0
   const confirmRate   = leads.length  ? Math.round(confirmed  / leads.length  * 100) : 0
   const needsAttention = pending.requests + pending.withdrawals
+
+  // ── Operations & Finance (date-scoped flow metrics) ──────────────────────
+  const RANGE_DAYS: Record<typeof dateRange, number | null> = { today: 1, "7d": 7, "30d": 30, all: null }
+  const rangeStart = (() => {
+    const days = RANGE_DAYS[dateRange]
+    if (days === null) return null
+    const d = new Date(); d.setDate(d.getDate() - days); d.setHours(0, 0, 0, 0)
+    return d
+  })()
+  const inRange = (createdAt: string) => !rangeStart || new Date(createdAt) >= rangeStart
+
+  const rangedOrders = orders.filter(o => inRange(o.createdAt))
+  const rangedLeads  = leads.filter(l => inRange(l.createdAt))
+
+  const ordersByStatus = {
+    PENDING:   rangedOrders.filter(o => o.status === "PENDING").length,
+    SHIPPED:   rangedOrders.filter(o => o.status === "SHIPPED").length,
+    DELIVERED: rangedOrders.filter(o => o.status === "DELIVERED").length,
+    RETURNED:  rangedOrders.filter(o => o.status === "RETURNED").length,
+    ERROR:     rangedOrders.filter(o => o.status === "ERROR").length,
+  }
+  // "Needs attention": orders stuck in an error state, or leads that have
+  // been attempted repeatedly (3+) without reaching a final outcome.
+  const UNREACHED_ATTEMPTS_THRESHOLD = 3
+  const stuckLeads = rangedLeads.filter(l => l.status === "UNREACHED" && l.attempts >= UNREACHED_ATTEMPTS_THRESHOLD)
+  const ordersNeedingAttention = ordersByStatus.ERROR + stuckLeads.length
+
+  // Total COD collected = gross value of DELIVERED orders. Deliberately
+  // distinct from MRR (subscription revenue) and from "amount owed to
+  // merchants" (payables, below) — these are three different financial
+  // concepts and must not be conflated.
+  const totalCODCollected = rangedOrders.filter(o => o.status === "DELIVERED").reduce((s, o) => s + (o.value ?? 0), 0)
+
+  const pendingWithdrawals       = withdrawals.filter(w => w.status === "pending")
+  const pendingWithdrawalsAmount = pendingWithdrawals.reduce((s, w) => s + w.amount, 0)
 
   const fmt = (d: Date) =>
     [d.getHours(), d.getMinutes(), d.getSeconds()].map(n => String(n).padStart(2, "0")).join(":")
@@ -201,6 +254,76 @@ export default function AdminDashboard() {
           )}
         </div>
       )}
+
+      {/* ── Operations & Finance ── */}
+      <div className="rounded-2xl p-5" style={{ background: "#111", border: "1px solid rgba(255,255,255,0.06)" }}>
+        <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
+          <div className="flex items-center gap-2">
+            <Banknote className="w-4 h-4 text-emerald-400" />
+            <h2 className="font-bold text-white text-sm">Operations & Finance</h2>
+          </div>
+          <div className="relative">
+            <select value={dateRange} onChange={e => setDateRange(e.target.value as typeof dateRange)}
+              className="appearance-none bg-neutral-800 border border-neutral-700 rounded-lg pl-3 pr-8 py-1.5 text-xs text-neutral-300 focus:outline-none focus:border-orange-500 cursor-pointer">
+              <option value="today">Today</option>
+              <option value="7d">Last 7 days</option>
+              <option value="30d">Last 30 days</option>
+              <option value="all">All time</option>
+            </select>
+            <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-neutral-500 pointer-events-none" />
+          </div>
+        </div>
+        <p className="text-[11px] text-neutral-600 mb-4 -mt-2">
+          Orders/leads figures below are scoped to the selected period. Active clients, stores, and amount owed reflect current state, not the period.
+        </p>
+
+        {/* Three financial concepts — kept visually distinct, never summed together */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+          <div className="rounded-xl p-4" style={{ background: "rgba(16,185,129,0.06)", border: "1px solid rgba(16,185,129,0.2)" }}>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-400 mb-1">COD collected</p>
+            <p className="text-2xl font-black text-white">€{totalCODCollected.toFixed(2)}</p>
+            <p className="text-[11px] text-neutral-500 mt-1">Gross value of delivered orders ({ordersByStatus.DELIVERED})</p>
+          </div>
+          <div className="rounded-xl p-4" style={{ background: "rgba(245,158,11,0.06)", border: "1px solid rgba(245,158,11,0.2)" }}>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-amber-400 mb-1">Pending withdrawals</p>
+            <p className="text-2xl font-black text-white">€{pendingWithdrawalsAmount.toFixed(2)}</p>
+            <p className="text-[11px] text-neutral-500 mt-1">{pendingWithdrawals.length} request{pendingWithdrawals.length !== 1 ? "s" : ""} awaiting your decision</p>
+          </div>
+          <div className="rounded-xl p-4" style={{ background: "rgba(139,92,246,0.06)", border: "1px solid rgba(139,92,246,0.2)" }}>
+            <div className="flex items-center justify-between mb-1">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-violet-400">Owed to merchants</p>
+              <button onClick={loadPayables} className="text-neutral-600 hover:text-white transition-colors" title="Refresh">
+                <RefreshCw className={`w-3 h-3 ${payablesLoading ? "animate-spin" : ""}`} />
+              </button>
+            </div>
+            <p className="text-2xl font-black text-white">{payablesLoading ? "…" : payables !== null ? `€${payables.toFixed(2)}` : "—"}</p>
+            <p className="text-[11px] text-neutral-500 mt-1">Sum of every merchant&apos;s current wallet balance</p>
+          </div>
+        </div>
+
+        {/* Orders by status + needing attention */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+          <div className="lg:col-span-2 grid grid-cols-5 gap-2">
+            {([
+              ["PENDING", "#f59e0b"], ["SHIPPED", "#3b82f6"], ["DELIVERED", "#10b981"],
+              ["RETURNED", "#ef4444"], ["ERROR", "#f43f5e"],
+            ] as const).map(([status, color]) => (
+              <div key={status} className="rounded-lg p-2.5 text-center" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
+                <p className="text-lg font-black text-white">{ordersByStatus[status]}</p>
+                <p className="text-[9px] font-bold uppercase tracking-wider" style={{ color }}>{status}</p>
+              </div>
+            ))}
+          </div>
+          <div className={`rounded-lg p-3 flex items-center gap-3 ${ordersNeedingAttention > 0 ? "" : "opacity-60"}`}
+            style={{ background: ordersNeedingAttention > 0 ? "rgba(244,63,94,0.08)" : "rgba(255,255,255,0.03)", border: `1px solid ${ordersNeedingAttention > 0 ? "rgba(244,63,94,0.25)" : "rgba(255,255,255,0.06)"}` }}>
+            <AlertTriangle className={`w-5 h-5 flex-shrink-0 ${ordersNeedingAttention > 0 ? "text-rose-400" : "text-neutral-600"}`} />
+            <div>
+              <p className="text-lg font-black text-white leading-none">{ordersNeedingAttention}</p>
+              <p className="text-[10px] text-neutral-500 mt-1">Need attention — {ordersByStatus.ERROR} error order{ordersByStatus.ERROR !== 1 ? "s" : ""}, {stuckLeads.length} unreachable lead{stuckLeads.length !== 1 ? "s" : ""} (3+ attempts)</p>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* ── Hero MRR Banner */}
       <div className="relative rounded-2xl overflow-hidden p-6 md:p-8"
