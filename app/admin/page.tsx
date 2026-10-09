@@ -316,7 +316,7 @@ export default function AdminDashboard() {
           value={payablesLoading ? "…" : payables !== null ? `€${payables.toFixed(2)}` : "—"}
           icon={DollarSign} sub="Sum of merchant wallet balances" onClick={loadPayables} />
         <KpiCard label="Operational exceptions" value={ordersNeedingAttention} icon={AlertTriangle}
-          sub={`${ordersByStatus.ERROR} error orders · ${stuckLeads.length} stuck leads`} />
+          sub={`${ordersByStatus.ERROR} error orders · ${stuckLeads.length} stuck leads`} href="/admin/exceptions" />
         <KpiCard label="Connected stores" value={stores.length} icon={Store} sub={`${suspended.length} merchants suspended`} />
       </div>
 

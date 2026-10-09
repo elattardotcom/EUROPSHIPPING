@@ -8,7 +8,7 @@ import {
   LayoutDashboard, Users, ShoppingCart, UserCheck,
   BarChart3, LogOut, ChevronRight, Bell, Store,
   ArrowDownLeft, Settings, Radio, ClipboardList, Menu, X, Search, Package, Gift, Wallet, Percent,
-  ShieldCheck, Truck, Plug,
+  ShieldCheck, Truck, Plug, AlertTriangle,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { AdminI18nProvider, useI18n } from "@/lib/admin-i18n"
@@ -155,7 +155,8 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
     {
       label: "Overview",
       items: [
-        { href: "/admin", icon: LayoutDashboard, label: t("nav_overview"), badge: 0 },
+        { href: "/admin",            icon: LayoutDashboard, label: t("nav_overview"), badge: 0 },
+        { href: "/admin/exceptions", icon: AlertTriangle,   label: "Exceptions",      badge: 0 },
       ],
     },
     {

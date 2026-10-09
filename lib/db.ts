@@ -1124,3 +1124,125 @@ export async function getAdminStats() {
   const active = clients.filter(c => c.status === "active").length
   return { totalClients: clients.length, activeClients: active, totalOrders: orders.length, totalLeads: leads.length, mrr }
 }
+
+/* ── Operational exceptions ─────────────────────────────────────────────── */
+
+export type ExceptionSeverity = "low" | "medium" | "high" | "critical"
+export type ExceptionStatus   = "open" | "acknowledged" | "resolved"
+
+export interface OperationalException {
+  id:          string
+  type:        string
+  severity:    ExceptionSeverity
+  entityType:  string
+  entityId:    string
+  title:       string
+  description: string | null
+  status:      ExceptionStatus
+  ownerEmail:  string | null
+  resolvedBy:  string | null
+  resolvedAt:  string | null
+  createdAt:   string
+  updatedAt:   string
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const mapException = (r: any): OperationalException => ({
+  id: r.id, type: r.type, severity: r.severity, entityType: r.entity_type, entityId: r.entity_id,
+  title: r.title, description: r.description ?? null, status: r.status,
+  ownerEmail: r.owner_email ?? null, resolvedBy: r.resolved_by ?? null, resolvedAt: r.resolved_at ?? null,
+  createdAt: r.created_at, updatedAt: r.updated_at,
+})
+
+export async function getOperationalExceptions(filters?: { status?: ExceptionStatus; severity?: ExceptionSeverity }): Promise<OperationalException[]> {
+  const sb = getSupabaseAdmin()
+  if (!sb) return []
+  try {
+    let q = sb.from("operational_exceptions").select("*").order("created_at", { ascending: false })
+    if (filters?.status)   q = q.eq("status", filters.status)
+    if (filters?.severity) q = q.eq("severity", filters.severity)
+    const { data, error } = await q
+    if (error) throw error
+    return (data ?? []).map(mapException)
+  } catch { return [] }
+}
+
+export async function updateExceptionStatus(
+  id: string, status: ExceptionStatus, by: string
+): Promise<OperationalException | null> {
+  const sb = getSupabaseAdmin()
+  if (!sb) return null
+  try {
+    const patch: Record<string, unknown> = { status, updated_at: new Date().toISOString() }
+    if (status === "resolved") { patch.resolved_by = by; patch.resolved_at = new Date().toISOString() }
+    const { data, error } = await sb.from("operational_exceptions").update(patch).eq("id", id).select().single()
+    if (error) throw error
+    return mapException(data)
+  } catch { return null }
+}
+
+// Same stuck-lead threshold already used by Overview's "needs attention" card.
+const UNREACHED_ATTEMPTS_THRESHOLD = 3
+
+/**
+ * Derives exceptions from real order/lead state and upserts them — open
+ * exceptions for conditions that now exist, auto-resolved (by "system")
+ * for ones whose underlying condition no longer holds. Never creates an
+ * exception that doesn't trace back to a real row. Safe to call
+ * repeatedly (e.g. on every Overview poll) — upserts on the (type,
+ * entity_id) unique constraint, so it never duplicates.
+ */
+export async function reconcileOperationalExceptions(): Promise<void> {
+  const sb = getSupabaseAdmin()
+  if (!sb) return
+  try {
+    const [orders, leads, existing] = await Promise.all([
+      getAllOrders(),
+      getAllLeads(),
+      getOperationalExceptions(),
+    ])
+
+    const errorOrders = orders.filter(o => o.status === "ERROR")
+    const stuckLeads   = leads.filter(l => l.status === "UNREACHED" && l.attempts >= UNREACHED_ATTEMPTS_THRESHOLD)
+
+    const wanted = new Map<string, { type: string; severity: ExceptionSeverity; entityType: string; entityId: string; title: string; description: string }>()
+    for (const o of errorOrders) {
+      wanted.set(`order_error:${o.id}`, {
+        type: "order_error", severity: "high", entityType: "order", entityId: o.id,
+        title: `Order in error state — ${o.customerName || o.id}`,
+        description: `${o.clientName} · ${o.product} · €${o.value.toFixed(2)}`,
+      })
+    }
+    for (const l of stuckLeads) {
+      wanted.set(`lead_stuck:${l.id}`, {
+        type: "lead_stuck", severity: "medium", entityType: "lead", entityId: l.id,
+        title: `Lead unreachable after ${l.attempts} attempts — ${l.customerName || l.id}`,
+        description: `${l.clientName} · ${l.product || ""}`,
+      })
+    }
+
+    const existingByKey = new Map(existing.map(e => [`${e.type}:${e.entityId}`, e]))
+
+    // Upsert open exceptions for everything currently wanted — except rows
+    // an admin already manually resolved, which stay resolved (sticky)
+    // rather than silently reopening while the same underlying order/lead
+    // is still in that state.
+    const toUpsert = Array.from(wanted.entries())
+      .filter(([key]) => existingByKey.get(key)?.status !== "resolved")
+      .map(([, v]) => ({
+        type: v.type, severity: v.severity, entity_type: v.entityType, entity_id: v.entityId,
+        title: v.title, description: v.description, status: "open", updated_at: new Date().toISOString(),
+      }))
+    if (toUpsert.length > 0) {
+      await sb.from("operational_exceptions").upsert(toUpsert, { onConflict: "type,entity_id" })
+    }
+
+    // Auto-resolve exceptions whose condition no longer holds.
+    const toResolve = existing.filter(e => e.status !== "resolved" && !wanted.has(`${e.type}:${e.entityId}`))
+    for (const e of toResolve) {
+      await sb.from("operational_exceptions")
+        .update({ status: "resolved", resolved_by: "system", resolved_at: new Date().toISOString(), updated_at: new Date().toISOString() })
+        .eq("id", e.id)
+    }
+  } catch { /* exceptions table may not exist yet — never block the caller */ }
+}
