@@ -70,6 +70,9 @@ export default function AdminDashboard() {
   const [payables,        setPayables]        = useState<number | null>(null)
   const [payablesLoading, setPayablesLoading] = useState(true)
   const [dateRange,       setDateRange]       = useState<"today" | "7d" | "30d" | "all">("all")
+  const [providers,       setProviders]       = useState<{ id: string; name: string }[]>([])
+  const [merchantF,       setMerchantF]       = useState<string>("ALL")
+  const [providerF,       setProviderF]       = useState<string>("ALL")
   const clientsRef = useRef<Client[]>([])
   useEffect(() => { clientsRef.current = clients }, [clients])
 
@@ -85,13 +88,14 @@ export default function AdminDashboard() {
   }, [])
 
   const load = useCallback(async () => {
-    const [c, o, l, s, counts, w] = await Promise.all([
+    const [c, o, l, s, counts, w, p] = await Promise.all([
       fetch("/api/admin/clients").then(r => r.json()).catch(() => []),
       fetch("/api/admin/orders").then(r => r.json()).catch(() => []),
       fetch("/api/admin/leads").then(r => r.json()).catch(() => []),
       fetch("/api/admin/stores").then(r => r.json()).catch(() => []),
       fetch("/api/admin/counts").then(r => r.json()).catch(() => null),
       fetch("/api/withdrawals").then(r => r.json()).catch(() => []),
+      fetch("/api/admin/providers").then(r => r.json()).catch(() => []),
     ])
     setClients(Array.isArray(c) ? c : [])
     setOrders(Array.isArray(o) ? o : [])
@@ -99,6 +103,7 @@ export default function AdminDashboard() {
     setStores(Array.isArray(s) ? s : [])
     if (counts) setPending({ requests: counts.requests ?? 0, withdrawals: counts.withdrawals ?? 0 })
     setWithdrawals(Array.isArray(w) ? w : [])
+    setProviders(Array.isArray(p) ? p : [])
     setLoading(false)
     setLastRefresh(new Date())
   }, [])
@@ -140,21 +145,15 @@ export default function AdminDashboard() {
 
   useRealtime(onRealtimeEvent)
 
+  // Merchant counts/MRR are always current-state snapshots, never scoped
+  // by the orders/leads filters below (the filter row's caption says so).
   const active        = clients.filter(c => c.status === "active")
   const trial          = clients.filter(c => c.status === "trial")
   const suspended     = clients.filter(c => c.status === "suspended")
   const mrr           = active.reduce((s, c) => s + c.monthlyRevenue, 0)
-  const delivered     = orders.filter(o => o.status === "DELIVERED").length
-  const returned      = orders.filter(o => o.status === "RETURNED").length
-  const confirmed     = leads.filter(l => l.status === "CONFIRMED").length
-  const pendingLeads  = leads.filter(l => l.status === "PENDING").length
-  const unreachedL    = leads.filter(l => l.status === "UNREACHED").length
-  const canceledL     = leads.filter(l => l.status === "CANCELED").length
-  const deliveryRate  = orders.length ? Math.round(delivered / orders.length * 100) : 0
-  const confirmRate   = leads.length  ? Math.round(confirmed  / leads.length  * 100) : 0
   const needsAttention = pending.requests + pending.withdrawals
 
-  // ── Operations & Finance (date-scoped flow metrics) ──────────────────────
+  // ── Orders/leads filters (date, merchant, provider) ──────────────────────
   const RANGE_DAYS: Record<typeof dateRange, number | null> = { today: 1, "7d": 7, "30d": 30, all: null }
   const rangeStart = (() => {
     const days = RANGE_DAYS[dateRange]
@@ -163,9 +162,23 @@ export default function AdminDashboard() {
     return d
   })()
   const inRange = (createdAt: string) => !rangeStart || new Date(createdAt) >= rangeStart
+  const matchesMerchant = (clientId: string) => merchantF === "ALL" || clientId === merchantF
+  const matchesProvider = (providerId: string | undefined) => providerF === "ALL" || providerId === providerF
 
-  const rangedOrders = orders.filter(o => inRange(o.createdAt))
-  const rangedLeads  = leads.filter(l => inRange(l.createdAt))
+  const rangedOrders = orders.filter(o => inRange(o.createdAt) && matchesMerchant(o.clientId) && matchesProvider(o.providerId))
+  const rangedLeads  = leads.filter(l => inRange(l.createdAt) && matchesMerchant(l.clientId))
+
+  // Every orders/leads figure below is derived from the filtered arrays
+  // above, so every card on the page moves consistently when a filter
+  // changes — no card silently stays global while its neighbor updates.
+  const delivered     = rangedOrders.filter(o => o.status === "DELIVERED").length
+  const returned      = rangedOrders.filter(o => o.status === "RETURNED").length
+  const confirmed     = rangedLeads.filter(l => l.status === "CONFIRMED").length
+  const pendingLeads  = rangedLeads.filter(l => l.status === "PENDING").length
+  const unreachedL    = rangedLeads.filter(l => l.status === "UNREACHED").length
+  const canceledL     = rangedLeads.filter(l => l.status === "CANCELED").length
+  const deliveryRate  = rangedOrders.length ? Math.round(delivered / rangedOrders.length * 100) : 0
+  const confirmRate   = rangedLeads.length  ? Math.round(confirmed  / rangedLeads.length  * 100) : 0
 
   const ordersByStatus = {
     PENDING:   rangedOrders.filter(o => o.status === "PENDING").length,
@@ -185,6 +198,13 @@ export default function AdminDashboard() {
   // merchants" (payables, below) — these are three different financial
   // concepts and must not be conflated.
   const totalCODCollected = rangedOrders.filter(o => o.status === "DELIVERED").reduce((s, o) => s + (o.value ?? 0), 0)
+
+  // COD expected = value of orders still in flight (not yet delivered or
+  // returned) — the pipeline that hasn't been collected yet. Distinct from
+  // both COD collected (above) and amount owed to merchants (payables,
+  // below): expected is gross order value in transit, not a merchant
+  // payable, which only exists after fees/adjustments are applied.
+  const totalCODExpected = rangedOrders.filter(o => o.status === "PENDING" || o.status === "SHIPPED").reduce((s, o) => s + (o.value ?? 0), 0)
 
   const pendingWithdrawals       = withdrawals.filter(w => w.status === "pending")
   const pendingWithdrawalsAmount = pendingWithdrawals.reduce((s, w) => s + w.amount, 0)
@@ -250,18 +270,36 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {/* ── Date range (scopes the flow metrics below) ── */}
-      <div className="flex items-center justify-between">
-        <p className="text-xs text-neutral-500">Orders/leads figures are scoped to the period below. Merchant counts and amount owed reflect current state.</p>
-        <div className="relative">
-          <select value={dateRange} onChange={e => setDateRange(e.target.value as typeof dateRange)}
-            className="appearance-none bg-white border border-neutral-200 rounded-lg pl-3 pr-8 py-1.5 text-xs text-neutral-600 focus:outline-none focus:border-orange-400 cursor-pointer">
-            <option value="today">Today</option>
-            <option value="7d">Last 7 days</option>
-            <option value="30d">Last 30 days</option>
-            <option value="all">All time</option>
-          </select>
-          <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-neutral-400 pointer-events-none" />
+      {/* ── Filters (scope the flow metrics below) ── */}
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <p className="text-xs text-neutral-500">Orders/leads figures are scoped to the filters below. Merchant counts and amount owed reflect current state.</p>
+        <div className="flex items-center gap-2">
+          <div className="relative">
+            <select value={merchantF} onChange={e => setMerchantF(e.target.value)}
+              className="appearance-none bg-white border border-neutral-200 rounded-lg pl-3 pr-8 py-1.5 text-xs text-neutral-600 focus:outline-none focus:border-orange-400 cursor-pointer max-w-[160px]">
+              <option value="ALL">All merchants</option>
+              {clients.map(c => <option key={c.id} value={c.id}>{c.firstName} {c.lastName}</option>)}
+            </select>
+            <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-neutral-400 pointer-events-none" />
+          </div>
+          <div className="relative">
+            <select value={providerF} onChange={e => setProviderF(e.target.value)}
+              className="appearance-none bg-white border border-neutral-200 rounded-lg pl-3 pr-8 py-1.5 text-xs text-neutral-600 focus:outline-none focus:border-orange-400 cursor-pointer max-w-[160px]">
+              <option value="ALL">All providers</option>
+              {providers.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+            </select>
+            <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-neutral-400 pointer-events-none" />
+          </div>
+          <div className="relative">
+            <select value={dateRange} onChange={e => setDateRange(e.target.value as typeof dateRange)}
+              className="appearance-none bg-white border border-neutral-200 rounded-lg pl-3 pr-8 py-1.5 text-xs text-neutral-600 focus:outline-none focus:border-orange-400 cursor-pointer">
+              <option value="today">Today</option>
+              <option value="7d">Last 7 days</option>
+              <option value="30d">Last 30 days</option>
+              <option value="all">All time</option>
+            </select>
+            <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-neutral-400 pointer-events-none" />
+          </div>
         </div>
       </div>
 
@@ -269,9 +307,10 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <KpiCard label="Total merchants" value={clients.length} icon={Users} sub={`${active.length} active · ${trial.length} trial`} />
         <KpiCard label="Platform revenue (MRR)" value={`€${mrr.toFixed(2)}`} icon={TrendingUp} sub="Monthly subscription revenue" />
-        <KpiCard label="Total orders" value={orders.length} icon={ShoppingCart} sub={`${deliveryRate}% delivery rate`} />
+        <KpiCard label="Total orders" value={rangedOrders.length} icon={ShoppingCart} sub={`${deliveryRate}% delivery rate`} />
         <KpiCard label="Delivered orders" value={delivered} icon={Truck} sub={`${returned} returned`} />
         <KpiCard label="COD collected" value={`€${totalCODCollected.toFixed(2)}`} icon={Banknote} sub={`${ordersByStatus.DELIVERED} delivered orders`} />
+        <KpiCard label="COD expected" value={`€${totalCODExpected.toFixed(2)}`} icon={Clock} sub={`${ordersByStatus.PENDING + ordersByStatus.SHIPPED} orders in flight`} />
         <KpiCard label="Pending withdrawals" value={`€${pendingWithdrawalsAmount.toFixed(2)}`} icon={Wallet} sub={`${pendingWithdrawals.length} awaiting decision`} />
         <KpiCard label="Owed to merchants"
           value={payablesLoading ? "…" : payables !== null ? `€${payables.toFixed(2)}` : "—"}
@@ -376,13 +415,13 @@ export default function AdminDashboard() {
             </Link>
           </div>
           <div>
-            {leads.length === 0
-              ? <p className="p-5 text-neutral-400 text-sm">No leads</p>
-              : leads.slice(0, 7).map((l, i) => {
+            {rangedLeads.length === 0
+              ? <p className="p-5 text-neutral-400 text-sm">No leads match the current filters</p>
+              : rangedLeads.slice(0, 7).map((l, i) => {
                   const s = LEAD_STATUS[l.status] ?? LEAD_STATUS.PENDING
                   return (
                     <div key={l.id}
-                      className={`flex items-center justify-between px-5 py-3 hover:bg-neutral-50 transition-colors ${i < Math.min(leads.length, 7) - 1 ? "border-b border-neutral-100" : ""}`}>
+                      className={`flex items-center justify-between px-5 py-3 hover:bg-neutral-50 transition-colors ${i < Math.min(rangedLeads.length, 7) - 1 ? "border-b border-neutral-100" : ""}`}>
                       <div className="flex items-center gap-3 min-w-0">
                         <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-white text-[10px] font-bold"
                           style={{ background: s.dot }}>
@@ -443,11 +482,11 @@ export default function AdminDashboard() {
       </div>
 
       {/* ── Leads breakdown ── */}
-      {leads.length > 0 && (
+      {rangedLeads.length > 0 && (
         <div className="bg-white border border-neutral-200 rounded-xl p-5">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-semibold text-[#17191D] text-sm">Leads breakdown</h2>
-            <span className="text-xs text-neutral-400">{leads.length} leads total · {confirmRate}% confirmation rate</span>
+            <span className="text-xs text-neutral-400">{rangedLeads.length} leads total · {confirmRate}% confirmation rate</span>
           </div>
 
           <div className="h-2 rounded-full bg-neutral-100 overflow-hidden mb-4">
@@ -462,7 +501,7 @@ export default function AdminDashboard() {
               { label: "Canceled",    value: canceledL,    tone: "danger" as const,  icon: AlertCircle },
             ].map(s => (
               <KpiCard key={s.label} label={s.label} value={s.value} icon={s.icon}
-                sub={leads.length ? `${Math.round(s.value / leads.length * 100)}%` : "0%"} />
+                sub={rangedLeads.length ? `${Math.round(s.value / rangedLeads.length * 100)}%` : "0%"} />
             ))}
           </div>
         </div>
