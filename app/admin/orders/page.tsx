@@ -5,11 +5,12 @@ import { createPortal } from "react-dom"
 import {
   Search, ChevronDown, ChevronLeft, ChevronRight,
   CheckCircle, Clock, Truck, XCircle, AlertCircle,
-  ShoppingCart, RefreshCw, Radio, Pencil, X, Save, Loader2,
+  ShoppingCart, RefreshCw, Radio, Pencil, X, Save, Loader2, Download,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import type { AdminOrder, OrderStatus } from "@/lib/db"
 import { useI18n } from "@/lib/admin-i18n"
+import { exportToCSV } from "@/lib/mock-data"
 
 const FLAGS: Record<string, string> = { PT:"🇵🇹", ES:"🇪🇸", FR:"🇫🇷", MA:"🇲🇦", BE:"🇧🇪", TN:"🇹🇳" }
 
@@ -205,6 +206,18 @@ export default function AdminOrders() {
   const rows         = filtered.slice((cur-1)*PER_PAGE, cur*PER_PAGE)
   const totalRevenue = orders.filter(o=>o.status==="DELIVERED").reduce((s,o)=>s+o.value,0)
 
+  const handleExport = () => {
+    exportToCSV(
+      filtered.map(o => ({
+        ID: o.id, Client: o.clientName, Customer: o.customerName, Phone: o.customerPhone,
+        Country: o.country, Product: o.product, "Value (EUR)": o.value.toFixed(2),
+        Currency: o.currency, Status: o.status, Store: o.store,
+        Tracking: o.trackingNumber ?? "", "Created at": o.createdAt,
+      })),
+      "orders_codshipeurope.csv"
+    )
+  }
+
   const handleSaved = (updated: AdminOrder) => {
     setOrders(prev => prev.map(o => o.id === updated.id ? updated : o))
     setEditing(null)
@@ -288,6 +301,10 @@ export default function AdminOrders() {
           </select>
           <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-neutral-500 pointer-events-none" />
         </div>
+        <button onClick={handleExport}
+          className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl text-sm font-medium border border-neutral-800 text-neutral-300 hover:bg-neutral-800 transition-colors">
+          <Download className="w-3.5 h-3.5" />Export
+        </button>
       </div>
 
       <div className="bg-neutral-900 border border-neutral-800 rounded-2xl overflow-hidden">

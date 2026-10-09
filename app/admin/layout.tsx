@@ -160,13 +160,28 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
       ],
     },
     {
-      label: "Operations",
+      label: "Merchants",
       items: [
         { href: "/admin/clients",   icon: Users,         label: t("nav_clients"),  badge: counts.clients },
-        { href: "/admin/leads",     icon: UserCheck,     label: t("nav_leads"),    badge: counts.leads },
-        { href: "/admin/orders",    icon: ShoppingCart,  label: t("nav_orders"),   badge: counts.orders },
-        { href: "/admin/stores",    icon: Store,         label: t("nav_stores"),   badge: 0 },
         { href: "/admin/requests",  icon: ClipboardList, label: t("nav_requests"), badge: counts.requests },
+      ],
+    },
+    {
+      label: "Orders",
+      items: [
+        { href: "/admin/orders", icon: ShoppingCart, label: t("nav_orders"), badge: counts.orders },
+      ],
+    },
+    {
+      label: "Call Center",
+      items: [
+        { href: "/admin/leads", icon: UserCheck, label: t("nav_leads"), badge: counts.leads },
+      ],
+    },
+    {
+      label: "Integrations",
+      items: [
+        { href: "/admin/stores", icon: Store, label: t("nav_stores"), badge: 0 },
       ],
     },
     {

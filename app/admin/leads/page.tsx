@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useMemo, useEffect, useCallback, useRef } from "react"
-import { Search, ChevronDown, ChevronLeft, ChevronRight, CheckCircle, Clock, XCircle, AlertCircle, PhoneMissed, Users, RefreshCw, Radio, Loader2 } from "lucide-react"
+import { Search, ChevronDown, ChevronLeft, ChevronRight, CheckCircle, Clock, XCircle, AlertCircle, PhoneMissed, Users, RefreshCw, Radio, Loader2, PhoneCall } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import type { AdminLead, LeadStatus } from "@/lib/db"
 import { useI18n } from "@/lib/admin-i18n"
@@ -98,6 +98,14 @@ export default function AdminLeads() {
             <RefreshCw className="w-3.5 h-3.5"/>{t("refresh")}
           </button>
         </div>
+      </div>
+
+      <div className="bg-amber-500/5 border border-amber-500/20 rounded-xl p-4 flex items-start gap-3">
+        <PhoneCall className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
+        <p className="text-sm text-neutral-400">
+          No telephony provider is connected — outcomes below are recorded manually by whoever calls each lead.
+          Add a call-center provider on the <a href="/admin/providers" className="text-orange-400 hover:text-orange-300">Providers</a> page once one is ready to integrate.
+        </p>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3">

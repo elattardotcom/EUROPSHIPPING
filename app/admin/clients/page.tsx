@@ -2,10 +2,11 @@
 
 import { useState, useMemo, useEffect, useCallback } from "react"
 import Link from "next/link"
-import { Search, ChevronDown, ArrowUpRight, Users, TrendingUp, DollarSign, Shield, ChevronLeft, ChevronRight, RefreshCw, Ban, CheckCircle, Loader2, Clock } from "lucide-react"
+import { Search, ChevronDown, ArrowUpRight, Users, TrendingUp, DollarSign, Shield, ChevronLeft, ChevronRight, RefreshCw, Ban, CheckCircle, Loader2, Clock, Download } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import type { Client, Plan, UserStatus } from "@/lib/db"
 import { useI18n } from "@/lib/admin-i18n"
+import { exportToCSV } from "@/lib/mock-data"
 
 const FLAGS: Record<string, string> = { PT:"🇵🇹", ES:"🇪🇸", FR:"🇫🇷", MA:"🇲🇦", BE:"🇧🇪", TN:"🇹🇳" }
 
@@ -102,6 +103,17 @@ export default function AdminClients() {
   const rows       = filtered.slice((cur-1)*PER_PAGE, cur*PER_PAGE)
   const totalMRR   = clients.filter(c => c.status === "active").reduce((s,c) => s + c.monthlyRevenue, 0)
 
+  const handleExport = () => {
+    exportToCSV(
+      filtered.map(c => ({
+        ID: c.id, "First name": c.firstName, "Last name": c.lastName, Email: c.email,
+        Phone: c.phone, Company: c.company, Country: c.country, Plan: c.plan, Status: c.status,
+        "Monthly revenue (EUR)": c.monthlyRevenue.toFixed(2), "Joined at": c.joinedAt,
+      })),
+      "clients_codshipeurope.csv"
+    )
+  }
+
   return (
     <div className="p-4 md:p-6 space-y-4 md:space-y-6">
       <div className="flex items-center justify-between">
@@ -164,6 +176,10 @@ export default function AdminClients() {
             <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-neutral-500 pointer-events-none" />
           </div>
         </div>
+        <button onClick={handleExport}
+          className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl text-sm font-medium border border-neutral-800 text-neutral-300 hover:bg-neutral-800 transition-colors">
+          <Download className="w-3.5 h-3.5" />Export
+        </button>
       </div>
 
       <div className="bg-neutral-900 border border-neutral-800 rounded-2xl overflow-hidden">
