@@ -4,9 +4,9 @@ import { useEffect, useState, useCallback, useMemo } from "react"
 import {
   TrendingUp, DollarSign, Users, ShoppingCart, RefreshCw,
   Package, Truck, RotateCcw, UserCheck, UserX, Target,
-  PhoneCall, Clock, Ban, BarChart3, Globe, Trophy,
+  PhoneCall, Clock, Ban, BarChart3, Globe, Trophy, Receipt, HelpCircle,
 } from "lucide-react"
-import type { Client, AdminOrder, AdminLead } from "@/lib/db"
+import type { Client, AdminOrder, AdminLead, FinanceLedger } from "@/lib/db"
 import { useI18n } from "@/lib/admin-i18n"
 
 const FLAGS: Record<string, string> = {
@@ -56,17 +56,20 @@ export default function AdminAnalytics() {
   const [clients, setClients] = useState<Client[]>([])
   const [orders,  setOrders]  = useState<AdminOrder[]>([])
   const [leads,   setLeads]   = useState<AdminLead[]>([])
+  const [ledger,  setLedger]  = useState<FinanceLedger | null>(null)
   const [loading, setLoading] = useState(true)
 
   const load = useCallback(async () => {
-    const [c, o, l] = await Promise.all([
+    const [c, o, l, f] = await Promise.all([
       fetch("/api/admin/clients").then(r => r.json()).catch(() => []),
       fetch("/api/admin/orders").then(r => r.json()).catch(() => []),
       fetch("/api/admin/leads").then(r => r.json()).catch(() => []),
+      fetch("/api/admin/finance").then(r => r.json()).catch(() => null),
     ])
     setClients(Array.isArray(c) ? c : [])
     setOrders(Array.isArray(o) ? o : [])
     setLeads(Array.isArray(l) ? l : [])
+    setLedger(f)
     setLoading(false)
   }, [])
 
@@ -169,6 +172,49 @@ export default function AdminAnalytics() {
           <KpiCard icon={TrendingUp}  label="ARR"              value={`€${arr.toFixed(2)}`}  sub="Annual recurring revenue"     gradient="linear-gradient(135deg,#10b981,#0d9488)" border="rgba(16,185,129,0.25)"  glow="linear-gradient(135deg,#10b981,#0d9488)" />
           <KpiCard icon={BarChart3}   label="Avg. rev / client" value={`€${avgRev}`}          sub="Among active clients"    gradient="linear-gradient(135deg,#8b5cf6,#6366f1)" border="rgba(139,92,246,0.25)"  glow="linear-gradient(135deg,#8b5cf6,#6366f1)" />
           <KpiCard icon={UserX}       label="Churn rate"    value={`${churnRate}%`}        sub={`${cancelled.length} cancelled`} gradient="linear-gradient(135deg,#f43f5e,#e11d48)" border="rgba(244,63,94,0.25)"   glow="linear-gradient(135deg,#f43f5e,#e11d48)" />
+        </div>
+      </div>
+
+      {/* ── Section 1b: Profitability — measured vs unavailable */}
+      <div>
+        <p className="text-[11px] font-bold text-neutral-600 uppercase tracking-widest mb-3 flex items-center gap-2">
+          <Receipt className="w-3 h-3" />Profitability
+        </p>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          <div className="rounded-2xl p-6 border border-emerald-500/15" style={{ background: "#111" }}>
+            <p className="text-white font-bold mb-1">Measured platform revenue</p>
+            <p className="text-neutral-500 text-xs mb-4">From real rows — subscriptions and COD service fees, kept as separate figures</p>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-neutral-400">Subscriptions (MRR)</span>
+                <span className="text-sm font-bold text-emerald-400">€{(ledger?.totals.platformRevenueMRR ?? 0).toFixed(2)}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-neutral-400">COD service fees <span className="text-neutral-600">(est. at current rates)</span></span>
+                <span className="text-sm font-bold text-emerald-400">€{(ledger?.totals.feesEstimated ?? 0).toFixed(2)}</span>
+              </div>
+              <div className="pt-3 border-t border-white/[0.06] flex items-center justify-between">
+                <span className="text-xs text-neutral-500">Combined (two distinct revenue streams)</span>
+                <span className="text-sm font-black text-white">€{((ledger?.totals.platformRevenueMRR ?? 0) + (ledger?.totals.feesEstimated ?? 0)).toFixed(2)}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-2xl p-6 border border-white/[0.06]" style={{ background: "#111" }}>
+            <div className="flex items-center gap-2 mb-1">
+              <HelpCircle className="w-4 h-4 text-neutral-500" />
+              <p className="text-white font-bold">Unavailable — true profit margin</p>
+            </div>
+            <p className="text-neutral-500 text-xs mb-4">No cost-of-goods, shipping cost, or ad-spend data exists anywhere in the schema, so gross margin and net profit cannot be computed — showing a guess would be worse than showing nothing.</p>
+            <div className="space-y-2">
+              {["Cost of goods sold", "Fulfillment/shipping cost", "Net profit margin"].map(label => (
+                <div key={label} className="flex items-center justify-between">
+                  <span className="text-sm text-neutral-500">{label}</span>
+                  <span className="text-xs font-medium text-neutral-600 px-2 py-0.5 rounded-full border border-neutral-800">Unavailable</span>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
 
