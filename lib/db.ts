@@ -79,6 +79,23 @@ export interface AdminOrder {
   store: string
   trackingNumber?: string
   createdAt: string
+  providerId?: string
+  shipmentStatus?: string
+  shipmentError?: string
+}
+
+export interface Provider {
+  id:          string
+  name:        string
+  serviceType: string
+  countries:   string[]
+  status:      "active" | "inactive" | "pending"
+  apiStatus:   "not_connected" | "connected" | "error"
+  lastSyncAt?: string
+  lastError?:  string
+  notes?:      string
+  createdAt:   string
+  updatedAt:   string
 }
 
 export interface AdminLead {
@@ -226,6 +243,9 @@ const mapOrder = (r: any): AdminOrder => ({
   store:          r.store ?? "",
   trackingNumber: r.tracking_number ?? undefined,
   createdAt:      r.created_at ?? "",
+  providerId:     r.provider_id ?? undefined,
+  shipmentStatus: r.shipment_status ?? undefined,
+  shipmentError:  r.shipment_error ?? undefined,
 })
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -369,17 +389,97 @@ export async function getAllOrders(): Promise<AdminOrder[]> {
 
 export async function updateOrder(
   id: string,
-  fields: { status?: OrderStatus; trackingNumber?: string }
+  fields: { status?: OrderStatus; trackingNumber?: string; providerId?: string | null; shipmentStatus?: string | null }
 ): Promise<AdminOrder | null> {
   try {
     const sb = getSupabaseAdmin(); if (!sb) return null
     const patch: Record<string, unknown> = {}
     if (fields.status         !== undefined) patch.status          = fields.status
     if (fields.trackingNumber !== undefined) patch.tracking_number = fields.trackingNumber || null
+    if (fields.providerId     !== undefined) patch.provider_id     = fields.providerId || null
+    if (fields.shipmentStatus !== undefined) patch.shipment_status = fields.shipmentStatus || null
     const { data, error } = await sb.from("orders").update(patch).eq("id", id).select().single()
     if (error) throw error
     return mapOrder(data)
   } catch { return null }
+}
+
+/* ── Providers ──────────────────────────────────────────────────────────── */
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const mapProvider = (r: any): Provider => ({
+  id:          r.id,
+  name:        r.name,
+  serviceType: r.service_type,
+  countries:   Array.isArray(r.countries) ? r.countries : [],
+  status:      r.status,
+  apiStatus:   r.api_status,
+  lastSyncAt:  r.last_sync_at ?? undefined,
+  lastError:   r.last_error ?? undefined,
+  notes:       r.notes ?? undefined,
+  createdAt:   r.created_at ?? "",
+  updatedAt:   r.updated_at ?? "",
+})
+// Deliberately never maps `config` — that column holds server-only
+// credentials and must never reach a browser response.
+
+export async function getProviders(): Promise<Provider[]> {
+  const sb = getSupabaseAdmin()
+  if (!sb) return []
+  try {
+    const { data, error } = await sb
+      .from("providers")
+      .select("id, name, service_type, countries, status, api_status, last_sync_at, last_error, notes, created_at, updated_at")
+      .order("created_at", { ascending: false })
+    if (error) throw error
+    return (data ?? []).map(mapProvider)
+  } catch { return [] }
+}
+
+export async function createProvider(payload: {
+  name: string; serviceType: string; countries: string[]; status: string; notes?: string
+}): Promise<Provider | null> {
+  const sb = getSupabaseAdmin()
+  if (!sb) return null
+  try {
+    const { data, error } = await sb.from("providers").insert({
+      name:         payload.name,
+      service_type: payload.serviceType,
+      countries:    payload.countries,
+      status:       payload.status,
+      notes:        payload.notes ?? null,
+    }).select("id, name, service_type, countries, status, api_status, last_sync_at, last_error, notes, created_at, updated_at").single()
+    if (error) throw error
+    return mapProvider(data)
+  } catch { return null }
+}
+
+export async function updateProvider(id: string, payload: Partial<{
+  name: string; serviceType: string; countries: string[]; status: string; notes: string
+}>): Promise<Provider | null> {
+  const sb = getSupabaseAdmin()
+  if (!sb) return null
+  try {
+    const patch: Record<string, unknown> = { updated_at: new Date().toISOString() }
+    if (payload.name        !== undefined) patch.name         = payload.name
+    if (payload.serviceType !== undefined) patch.service_type = payload.serviceType
+    if (payload.countries   !== undefined) patch.countries    = payload.countries
+    if (payload.status      !== undefined) patch.status       = payload.status
+    if (payload.notes       !== undefined) patch.notes        = payload.notes
+    const { data, error } = await sb.from("providers").update(patch).eq("id", id)
+      .select("id, name, service_type, countries, status, api_status, last_sync_at, last_error, notes, created_at, updated_at").single()
+    if (error) throw error
+    return mapProvider(data)
+  } catch { return null }
+}
+
+export async function deleteProvider(id: string): Promise<boolean> {
+  const sb = getSupabaseAdmin()
+  if (!sb) return false
+  try {
+    const { error } = await sb.from("providers").delete().eq("id", id)
+    return !error
+  } catch { return false }
 }
 
 export async function getClientOrders(clientId: string): Promise<AdminOrder[]> {

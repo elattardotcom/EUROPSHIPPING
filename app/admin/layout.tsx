@@ -8,7 +8,7 @@ import {
   LayoutDashboard, Users, ShoppingCart, UserCheck,
   BarChart3, LogOut, ChevronRight, Bell, Store,
   ArrowDownLeft, Settings, Radio, ClipboardList, Menu, X, Search, Package, Gift, Wallet, Percent,
-  ShieldCheck,
+  ShieldCheck, Truck, Plug,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { AdminI18nProvider, useI18n } from "@/lib/admin-i18n"
@@ -175,6 +175,13 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
         { href: "/admin/withdrawals",     icon: ArrowDownLeft, label: t("nav_withdrawals"), badge: counts.withdrawals },
         { href: "/admin/payment-methods", icon: Wallet,        label: "Payment Methods",    badge: 0 },
         { href: "/admin/fee-rates",       icon: Percent,       label: "Fee Rates",          badge: 0 },
+      ],
+    },
+    {
+      label: "Fulfillment",
+      items: [
+        { href: "/admin/fulfillment", icon: Truck, label: "Fulfillment & Tracking", badge: 0 },
+        { href: "/admin/providers",   icon: Plug,  label: "Providers",              badge: 0 },
       ],
     },
     {

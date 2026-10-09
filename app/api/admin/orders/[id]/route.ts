@@ -15,7 +15,9 @@ export async function PATCH(
   const { id } = await params
   const body = await req.json().catch(() => ({}))
 
-  const { status, trackingNumber } = body as { status?: string; trackingNumber?: string }
+  const { status, trackingNumber, providerId, shipmentStatus } = body as {
+    status?: string; trackingNumber?: string; providerId?: string | null; shipmentStatus?: string | null
+  }
 
   if (status && !VALID_STATUSES.includes(status as OrderStatus)) {
     return NextResponse.json({ error: "Invalid status" }, { status: 400 })
@@ -24,6 +26,8 @@ export async function PATCH(
   const updated = await updateOrder(id, {
     status:         status as OrderStatus | undefined,
     trackingNumber: trackingNumber,
+    providerId,
+    shipmentStatus,
   })
 
   if (!updated) return NextResponse.json({ error: "Update failed" }, { status: 500 })
